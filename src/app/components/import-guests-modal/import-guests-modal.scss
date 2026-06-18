@@ -1,0 +1,390 @@
+@use "sass:color";
+
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 1rem;
+}
+
+.modal-content {
+    background-color: #FFFFFF;
+    border-radius: 1rem;
+    max-width: 880px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 25px rgba(0, 0, 0, 0.15);
+    position: relative;
+    animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+    from {
+    opacity: 0;
+    transform: translateY(20px);
+    }
+    to {
+    opacity: 1;
+    transform: translateY(0);
+    }
+}
+
+.modal-close {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: #666666;
+    transition: color 0.2s ease;
+    z-index: 10;
+
+    &:hover {
+    color: #1A1A1A;
+    }
+}
+
+.modal-body {
+    padding: 2rem 1.5rem;
+}
+
+.modal-header {
+    margin-bottom: 2rem;
+}
+
+.modal-header h2 {
+    margin: 0 0 0.5rem 0;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.75rem;
+    color: #1A1A1A;
+}
+
+.modal-header p {
+    margin: 0;
+    color: #666666;
+    font-size: 0.875rem;
+}
+
+// Upload Area
+.upload-area {
+    border: 2px dashed #D4AF37;
+    border-radius: 0.75rem;
+    padding: 2rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background-color: #FAFAF8;
+    margin-bottom: 1.5rem;
+
+    &:hover {
+    background-color: #F5F5F5;
+    border-color: color.adjust(#D4AF37, $lightness: -10%);
+    }
+
+    &.dragover {
+    background-color: rgba(212, 175, 55, 0.1);
+    border-color: color.adjust(#D4AF37, $lightness: -10%);
+    }
+}
+
+.upload-content {
+    pointer-events: none;
+}
+
+.upload-icon {
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.upload-title {
+    margin: 0 0 0.25rem 0;
+    font-weight: 600;
+    color: #1A1A1A;
+}
+
+.upload-subtitle {
+    margin: 0 0 0.5rem 0;
+    color: #666666;
+    font-size: 0.875rem;
+}
+
+.upload-formats {
+    margin: 0;
+    color: #999999;
+    font-size: 0.75rem;
+}
+
+// File Info
+.file-info {
+    background-color: #F5F5F5;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.file-name {
+    margin: 0 0 0.25rem 0;
+    font-weight: 600;
+    color: #1A1A1A;
+}
+
+.file-size {
+    margin: 0;
+    color: #666666;
+    font-size: 0.875rem;
+}
+
+// Template Section
+.template-section {
+    background-color: rgba(212, 175, 55, 0.05);
+    border-left: 3px solid #D4AF37;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.template-label {
+    margin: 0 0 0.75rem 0;
+    font-weight: 600;
+    color: #1A1A1A;
+    font-size: 0.875rem;
+}
+
+.template-section .btn {
+    width: 100%;
+}
+
+// Errors Section
+.errors-section {
+    background-color: rgba(239, 68, 68, 0.05);
+    border-left: 3px solid #EF4444;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.errors-title {
+    margin: 0 0 0.75rem 0;
+    font-weight: 600;
+    color: #EF4444;
+    font-size: 0.875rem;
+}
+
+.errors-list {
+    margin: 0;
+    padding-left: 1.5rem;
+    color: #EF4444;
+    font-size: 0.875rem;
+
+    li {
+    margin-bottom: 0.5rem;
+
+    &:last-child {
+        margin-bottom: 0;
+    }
+    }
+}
+
+// Preview Table
+.preview-table {
+    overflow-x: auto;
+    margin-bottom: 1.5rem;
+    border: 1px solid #E0E0E0;
+    border-radius: 0.5rem;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+}
+
+thead {
+    background-color: #F5F5F5;
+    border-bottom: 2px solid #E0E0E0;
+}
+
+th {
+    padding: 0.75rem;
+    text-align: left;
+    font-weight: 600;
+    color: #1A1A1A;
+}
+
+td {
+    padding: 0.75rem;
+    border-bottom: 1px solid #E0E0E0;
+    color: #666666;
+
+    &:last-child {
+    text-align: center;
+    }
+}
+
+tbody tr:last-child td {
+    border-bottom: none;
+}
+
+// Success Body
+.success-body {
+    text-align: center;
+}
+
+.success-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 4rem;
+    height: 4rem;
+    border-radius: 50%;
+    background-color: rgba(34, 197, 94, 0.1);
+    font-size: 2rem;
+    color: #22C55E;
+    margin-bottom: 1rem;
+}
+
+.success-body h2 {
+    margin-bottom: 0.5rem;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.75rem;
+}
+
+.success-message {
+    color: #666666;
+    margin-bottom: 1.5rem;
+}
+
+.success-stats {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 2rem;
+}
+
+.stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.stat-value {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #D4AF37;
+}
+
+.stat-label {
+    font-size: 0.875rem;
+    color: #666666;
+}
+
+// Modal Actions
+.modal-actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid #E0E0E0;
+}
+
+.modal-actions .btn {
+    flex: 1;
+}
+
+// Pagination style
+.preview-table {
+  margin-top: 20px;
+  overflow-x: auto;
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 15px;
+}
+
+// th {
+//   background-color: #333;
+//   color: gold;
+//   padding: 10px;
+//   text-align: left;
+// }
+
+td {
+  padding: 10px;
+  border-bottom: 1px solid #ddd;
+}
+
+tr:hover {
+  background-color: #f5f5f5;
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 15px;
+  gap: 5px;
+}
+
+.page-btn {
+  background-color: transparent;
+  border: 1px solid #D4AF37;
+  color: #D4AF37;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.page-btn:hover {
+  background-color: #ffeaa5;
+  color: #222;
+}
+
+.page-btn.active {
+  background-color: #D4AF37;
+  color: #222;
+  font-weight: bold;
+}
+
+.page-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+// Pagination End
+
+@media (max-width: 768px) {
+    .modal-content {
+    max-width: 100%;
+    }
+
+    .modal-actions {
+    flex-direction: column;
+    }
+
+    .upload-area {
+    padding: 1.5rem;
+    }
+
+    .upload-icon {
+    font-size: 2rem;
+    }
+
+    table {
+    font-size: 0.75rem;
+    }
+
+    th, td {
+    padding: 0.5rem;
+    }
+}

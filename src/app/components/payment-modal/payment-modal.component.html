@@ -1,0 +1,75 @@
+<div class="modal-overlay" *ngIf="isOpen" (click)="closeModal()">
+  <div class="modal-card" (click)="$event.stopPropagation()">
+    <button class="close-btn" (click)="closeModal()">✕</button>
+
+    <!-- ÉTAPE 1 : Informations de paiement -->
+    <div *ngIf="currentStep() === 1">
+      <h2>Effectuer le paiement</h2>
+      <div class="amount-summary">
+        <p>Quota : <strong>{{ quota }} invités</strong></p>
+        <p>Montant total : <strong>{{ amount | number }} XAF</strong></p>
+      </div>
+      <p class="instruction">Effectuez votre paiement via l'un des moyens suivants :</p>
+
+      <div class="payment-method">
+        <span>Orange Money</span>
+        <strong>{{ paymentInfo.orangeMoneyNumber }}</strong>
+        <button (click)="copyToClipboard(paymentInfo.orangeMoneyNumber, 'orange')">
+          {{ copiedOrange ? '✅ Copié' : '📋 Copier' }}
+        </button>
+      </div>
+
+      <div class="payment-method">
+        <span>MTN Money</span>
+        <strong>{{ paymentInfo.mtnMoneyNumber }}</strong>
+        <button (click)="copyToClipboard(paymentInfo.mtnMoneyNumber, 'mtn')">
+          {{ copiedMtn ? '✅ Copié' : '📋 Copier' }}
+        </button>
+      </div>
+
+      <p class="note">
+        Indiquez <strong>{{ amount | number }} XAF</strong> comme montant exact
+        lors du virement.
+      </p>
+      <button class="btn btn-primary" (click)="nextStep()">
+        J'ai effectué le paiement →
+      </button>
+    </div>
+
+    <!-- ÉTAPE 2 : Upload de la preuve -->
+    <div *ngIf="currentStep() === 2">
+      <h2>Soumettre la preuve de paiement</h2>
+
+      <div class="upload-zone"
+           [class.drag-over]="isDragOver"
+           (dragover)="onDragOver($event)"
+           (dragleave)="onDragLeave()"
+           (drop)="onDrop($event)">
+        <p *ngIf="!proofFile">📎 Glissez votre capture d'écran ici ou</p>
+        <input type="file" accept="image/jpeg,image/png" (change)="onFileSelected($event)" id="proofInput" hidden />
+        <label for="proofInput" class="btn btn-secondary" *ngIf="!proofFile">
+          Choisir un fichier
+        </label>
+        <div *ngIf="proofFile" class="file-preview">
+          <span>{{ proofFile.name }}</span>
+          <button (click)="removeFile()">✕</button>
+        </div>
+      </div>
+
+      <p class="error" *ngIf="uploadError">{{ uploadError }}</p>
+
+      <div class="form-group">
+        <label>Référence de transaction (optionnel)</label>
+        <input type="text" [(ngModel)]="proofReference"
+               placeholder="Ex: TXN-20240115-00123" />
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn btn-secondary" (click)="previousStep()">← Retour</button>
+        <button class="btn btn-primary" (click)="onSubmit()" [disabled]="!proofFile">
+          Soumettre la preuve
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,60 @@
+<!-- ✏️ NOUVEAU template pricing.component.html -->
+<section class="pricing-page">
+  <h1>Tarification Simple et Transparente</h1>
+  <p>Payez uniquement pour les invités que vous souhaitez accueillir.</p>
+
+  <!-- Tarif unique -->
+  <div class="pricing-card">
+    <div class="price-highlight">{{PRICE_PER_GUEST}} XAF</div>
+    <p>par invité</p>
+    <ul>
+      <li>✓  Quota défini par vous</li>
+      <li>✓  Paiement unique par événement</li>
+      <li>✓  Génération de liens débloquée après paiement validé</li>
+      <li>✓  QR Code par invité</li>
+    </ul>
+  </div>
+
+  <!-- Simulateur -->
+  <div class="simulator">
+    <h2>Simulez votre budget</h2>
+    <input type="number" [(ngModel)]="simulatedQuota" (ngModelChange)="onSimulatorChange()" min="1" />
+    <p>Pour {{ simulatedQuota }} invités : <strong>{{ simulatedAmount | number }} XAF</strong></p>
+  </div>
+
+  <!-- Exemples -->
+  <div class="examples-grid">
+    <div *ngFor="let ex of examples" class="example-card">
+      <span>{{ ex.quota }} invités</span>
+      <strong>{{ ex.amount | number }} XAF</strong>
+    </div>
+  </div>
+
+  <!-- FAQ -->
+  <div class="faq">
+    <h2>Questions fréquentes</h2>
+    <div class="faq-item">
+      <strong>Quand dois-je payer ?</strong>
+      <p>Après avoir créé votre événement et défini votre quota. Le paiement est requis avant la génération des liens d'invitation.</p>
+    </div>
+    <div class="faq-item">
+      <strong>Puis-je augmenter mon quota ?</strong>
+      <p>Oui. Modifiez le quota dans votre événement. Un nouveau paiement sera requis pour le complément.</p>
+    </div>
+    <div class="faq-item">
+      <strong>Puis-je créer des invités sans payer ?</strong>
+      <p>Oui. La création d'invités est libre tant que vous ne dépassez pas votre quota. Le paiement est requis uniquement pour générer les liens d'invitation.</p>
+    </div>
+  </div>
+
+  <button (click)="goToCreateEvent()">Créer mon événement</button>
+</section>
+
+  <!-- <app-payment-modal
+    [isOpen]="showPaymentModal"
+    [eventId]="eventId!"
+    [quota]="event.totalGuests"
+    [amount]="event.totalGuests * 35"
+    (closeEvent)="closePaymentModal()"
+    (proofSubmitted)="onProofSubmitted($event)">
+  </app-payment-modal> -->

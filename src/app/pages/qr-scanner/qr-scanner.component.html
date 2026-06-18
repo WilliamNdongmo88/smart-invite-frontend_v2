@@ -1,0 +1,314 @@
+    <div class="qr-scanner">
+      <!-- Header -->
+      <div class="scanner-header">
+        <div class="container">
+          <a (click)="backToEvent()" class="back-link">← Retour à l'événement</a>
+          <h1>Scanner une invitation</h1>
+          <p>Scannez le code QR de l'invité pour enregistrer sa présence</p>
+        </div>
+      </div>
+
+      <!-- Main content -->
+      <div class="container py-12">
+        <div class="scanner-wrapper">
+          <!-- Scanner Section -->
+          <div class="scanner-section">
+            <div class="scanner-card">
+              <h2>Caméra de scan</h2>
+
+              <!-- Video Stream -->
+              <div class="video-container" *ngIf="!scanResult()">
+                <video
+                  #videoElement
+                  class="video-stream"
+                  [style.display]="cameraActive() ? 'block' : 'none'"
+                ></video>
+
+                  <!-- L'effet de scan (affiché uniquement si isScanning est vrai) -->
+                  @if (isEffetScanning) {
+                    <div class="scan-overlay">
+                      <div class="scan-line"></div>
+                      <div class="scan-corner top-left"></div>
+                      <div class="scan-corner top-right"></div>
+                      <div class="scan-corner bottom-left"></div>
+                      <div class="scan-corner bottom-right"></div>
+                    </div>
+                  }
+
+                <!-- Overlay + cadre -->
+                <div class="scan-overlay" *ngIf="cameraActive()">
+                  <div class="scan-frame"></div>
+                  <p class="scan-hint">Place le QR code dans le cadre</p>
+                </div>
+
+                <div *ngIf="!cameraActive()" class="camera-placeholder">
+                  <div class="placeholder-icon">📷</div>
+                  <p>Caméra non active</p>
+                  <button class="btn btn-primary" (click)="startCamera()">
+                    📷 Activer la caméra
+                  </button>
+                </div>
+
+                <canvas
+                  #canvasElement
+                  class="canvas-hidden"
+                ></canvas>
+              </div>
+
+              <!-- Scan Result -->
+              <div *ngIf="scanResult()" class="scan-result" [class]="scanResult()?.success ? 'success' : 'error'">
+                <div class="result-icon">
+                  {{ scanResult()?.success ? '✓' : '✕' }}
+                </div>
+                <h3>{{ scanResult()?.message }}</h3>
+
+                <div *ngIf="scanResult()?.success" class="result-details">
+                  <div class="detail-item">
+                    <span class="label">Invité :</span>
+                    <span class="value">{{ scanResult()?.guestName }}</span>
+                  </div>
+                  <div class="detail-item">
+                    <span class="label">Événement :</span>
+                    <span class="value">{{ scanResult()?.eventName }}</span>
+                  </div>
+                  <div class="detail-item">
+                    <span class="label">Table :</span>
+                    <span class="value">{{ scanResult()?.tableNumber }}</span>
+                  </div>
+                </div>
+
+                <div class="result-actions">
+                  <button class="btn btn-primary" (click)="resetScanner()">
+                    🔄 Scanner un autre code
+                  </button>
+                  <button class="btn btn-outline" (click)="goToDashboard()">
+                    ← Retour au tableau de bord
+                  </button>
+                </div>
+              </div>
+
+              <!-- Camera Controls -->
+              <div *ngIf="cameraActive() && !scanResult()" class="camera-controls">
+                <button class="btn btn-outline" (click)="stopCamera()">
+                  ⏹️ Arrêter la caméra
+                </button>
+                <button class="btn btn-primary" (click)="captureFrame()">
+                  📸 Capturer
+                </button>
+              </div>
+            </div>
+
+            <!-- Manual Input -->
+            <!-- <div class="manual-input-card">
+              <h3>Ou entrez le code manuellement</h3>
+              <div class="form-group">
+                <input
+                  type="text"
+                  [(ngModel)]="manualCode"
+                  placeholder="Entrez le code QR ou l'ID d'invitation..."
+                  class="form-input"
+                  (keyup.enter)="processManualCode()"
+                />
+              </div>
+              <button class="btn btn-outline" style="width: 100%;" (click)="processManualCode()">
+                ✓ Valider le code
+              </button>
+            </div>
+          </div> -->
+
+          <!-- Info Section -->
+          <div class="info-section">
+            <div class="info-card">
+              <h3>📱 Comment ça marche ?</h3>
+              <ol class="info-list">
+                <li>Activez votre caméra</li>
+                <li>Pointez vers le code QR de l'invité</li>
+                <li>Le code sera automatiquement scanné</li>
+                <li>Les informations de l'invité s'afficheront</li>
+                <li>Confirmez la présence de l'invité</li>
+              </ol>
+            </div>
+
+            <!-- Guests List *ngIf="!(isMobile | async)" -->
+            <div class="card mt-card">
+                <h2 class="clickable-title" (click)="toggle()">
+                  <span>Invités {{ isOpen ? '' : '(' + filteredGuests.length + ')' }}</span>
+
+                  <span class="toggle-icon">
+                    {{ isOpen ? '▾' : '▸' }}
+                  </span>
+                </h2>
+
+                <div *ngIf="!isOpen && filteredGuests.length > 0">
+                  <!-- Search and Filter *ngIf="!(isMobile | async)" -->
+                  <div class="search-filter">
+                      <div class="search-box">
+                          <input
+                          type="text"
+                          placeholder="Rechercher par nom ou email..."
+                          [(ngModel)]="searchTerm"
+                          (ngModelChange)="filterGuests()"
+                          />
+                      </div>
+
+                      <div class="filter-buttons">
+                          <button class=" filter-btn btn-outline" style="width: 100%;" (click)="exportPDF()">
+                              {{ loading ? '⏳ Téléchargement...' : '📄 Télécharger en PDF' }}
+                          </button>
+                          <button class="btn btn-outline text-center" style="width: 100%;" (click)="thankMessageForm()">
+                              💌 Envoyer message de remerciement
+                          </button>
+                      </div>
+                  </div>
+
+                  <!-- Guests Table *ngIf="!(isMobile | async)" -->
+                  <div class="guests-table guests-grid">
+                      <table>
+                          <thead>
+                              <tr>
+                                  <th>Nom</th>
+                                  <th>Nom +1</th>
+                                  <th>Restrictions</th>
+                                  <th>Restrictions +1</th>
+                                  <!-- <th>Actions</th> -->
+                                  <th>Statut</th>
+                              </tr>
+                          </thead>
+                          <tbody>
+                              <tr *ngFor="let guest of paginatedGuests()" [class]="'status-' + guest.status">
+                                  <td>{{ guest.name }}</td>
+                                  <td class="name">{{ guest.plusOne ? guest.plusOneName : '-' }}</td>
+                                  <td class="restrictions">{{ guest.dietaryRestrictions || '-' }}</td>
+                                  <td class="restrictions">{{ guest.plusOnedietaryRestrictions || '-' }}</td>
+                                  <td>
+                                      <span class="status-badge" [class]="'status-' + guest.status">
+                                          {{ getStatusIcon(guest.status) }} {{ getStatusLabel(guest.status) }}
+                                      </span>
+                                  </td>
+                              </tr>
+                          </tbody>
+                      </table>
+                      <div *ngIf="filteredGuests.length === 0" class="no-guests">
+                          <p>Aucun invité trouvé</p>
+                      </div>
+                  </div>
+
+                  <!-- Pagination Controls *ngIf="!(isMobile | async)"-->
+                  <div class="pagination">
+                      <button 
+                          (click)="prevPage()" 
+                          [disabled]="currentPage === 1"
+                          class="page-btn">
+                          ◀
+                      </button>
+
+                      <button 
+                          *ngFor="let page of totalPagesArray()" 
+                          (click)="goToPage(page)"
+                          [class.active]="page === currentPage"
+                          class="page-btn">
+                          {{ page }}
+                      </button>
+
+                      <button 
+                          (click)="nextPage()" 
+                          [disabled]="currentPage === totalPages"
+                          class="page-btn">
+                          ▶
+                      </button>
+                  </div>
+                </div>
+                <div *ngIf="isMessage">
+                  <!-- Message de remerciement -->
+                  <label class="label-mt">
+                    💬 Saisir le message de remerciement
+                  </label>
+
+                  <textarea
+                    [(ngModel)]="thankMessage"
+                    (ngModelChange)="onMessageChange()"
+                    rows="4"
+                    maxlength="1000"
+                    placeholder="Merci d’avoir participé à notre événement..."
+                    class="thank-textarea"
+                  ></textarea>
+
+                  <!-- Compteur + erreur -->
+                  <div class="message-meta">
+                    <small>{{ thankMessage.length }}/1000 caractères</small>
+
+                    <small class="error" *ngIf="messageError">
+                      {{ messageError }}
+                    </small>
+                  </div>
+
+                  <!-- Bouton envoyer -->
+                  <button
+                    class="btn btn-primary"
+                    [disabled]="!canSendThankMessage"
+                    (click)="sendThankMessage()"
+                  >
+                  {{ loading ? '⏳ Envoie en cours...' : '📨 Envoyer le message de remerciement' }}
+                  </button>
+                </div>
+                <div *ngIf="noMessage">
+                  <span>📅 L’événement est dans le futur</span>
+                </div>
+                <div *ngIf="!isOpen && filteredGuests.length == 0">
+                    <span>Aucun invité pour le moment</span>
+                </div> 
+            </div>
+
+            <div class="info-card">
+              <h3>⚙️ Paramètres</h3>
+              <div class="settings-group checkbox-group checkbox-text">
+                <label class="custom-checkbox">
+                  <input
+                    type="checkbox"
+                    [checked]="autoCapture()"
+                    (change)="toggleAutoCapture($event)"
+                  />
+                  <span class="checkmark"></span>
+                  <span class="label-text">
+                    Capture automatique
+                  </span>
+                </label>
+                <small>Capture automatiquement quand un code QR est détecté</small>
+              </div>
+
+              <div class="settings-group checkbox-group checkbox-text">
+                <label class="custom-checkbox">
+                  <input
+                    type="checkbox"
+                    [checked]="soundEnabled()"
+                    (change)="toggleSound()"
+                  />
+                  <span class="checkmark"></span>
+                  <span class="label-text">
+                    Son de confirmation
+                  </span>
+                </label>
+                <small>Joue un son quand un code est scanné</small>
+              </div>
+            </div>
+
+            <div class="info-card stats">
+              <h3>📊 Statistiques</h3>
+              <div class="stat">
+                <span class="label">Codes scannés</span>
+                <span class="value">{{ scannedCount() }}</span>
+              </div>
+              <div class="stat">
+                <span class="label">Succès</span>
+                <span class="value success">{{ successCount() }}</span>
+              </div>
+              <div class="stat">
+                <span class="label">Erreurs</span>
+                <span class="value error">{{ errorCount() }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- <app-footer></app-footer> -->

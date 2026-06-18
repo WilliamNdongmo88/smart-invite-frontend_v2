@@ -1,0 +1,525 @@
+<div class="profile-page">
+    <!-- Header -->
+    <div class="profile-header">
+      <div class="container">
+          <button (click)="goBack()" class="back-link">← Retour</button>
+          <h1>Profil</h1>
+      </div>
+    </div>
+
+    <!-- Main content -->
+    <div class="container py-12">
+        <div class="profile-wrapper">
+            <!-- Sidebar -->
+            <div class="profile-sidebar">
+            <div class="profile-card">
+                <div class="avatar-section">
+                <img *ngIf="userProfile.avatar == null" [src]="'img/avatar.webp'" alt="Avatar" class="avatar" />
+                <img *ngIf="userProfile.avatar != null" [src]="userProfile.avatar" alt="Avatar" class="avatar" />
+                <button class="btn-change-avatar">📷 Changer</button>
+                </div>
+
+                <h2>{{ userProfile.fullName }}</h2>
+                <p class="email">{{ userProfile.email }}</p>
+            </div>
+
+            <!-- Menu de navigation -->
+            <div class="profile-menu">
+                <button
+                *ngFor="let tab of tabs"
+                [class.active]="activeTab === tab.id"
+                (click)="activeTab = tab.id"
+                class="menu-item"
+                >
+                {{ tab.icon }} {{ tab.label }}
+                </button>
+            </div>
+            </div>
+
+            <!-- Main content area -->
+            <div class="profile-content">
+            <!-- Tab: Informations personnelles -->
+            <div *ngIf="activeTab === 'personal'" class="tab-content">
+                <div class="content-card">
+                    <h2>Informations Personnelles</h2>
+
+                    <form #profileForm="ngForm" (ngSubmit)="saveProfile()" novalidate>
+                        <div class="form-grid">
+
+                            <!-- Nom complet -->
+                            <div class="form-group full-width">
+                              <label>Nom complet *</label>
+                              <input
+                                  type="text"
+                                  name="fullName"
+                                  [(ngModel)]="userProfile.fullName"
+                                  required
+                                  minlength="3"
+                                  class="form-input"
+                              />
+                              <small class="error"
+                                  *ngIf="profileForm.submitted && profileForm.controls['fullName']?.invalid">
+                                  Nom requis (min. 3 caractères)
+                              </small>
+
+                              <!-- Notification Means -->
+                              <div class="form-group checkbox-group checkbox-text">
+                                <p class="notification-title">
+                                  Notifiez moi des détails de l'événement via :
+                                </p>
+
+                                <label class="custom-switch">
+                                  <input
+                                    type="checkbox"
+                                    [checked]="userProfile.notificationMode === 'whatsapp'"
+                                    (change)="toggleNotificationMode($event)"
+                                  />
+
+                                  <span class="checkmark"></span>
+
+                                  <div class="label-text">
+                                    <span class="on">WhatsApp</span>
+                                    <span class="off">Email</span>
+                                  </div>
+                                </label>
+                              </div>
+                            </div>
+
+                            <!-- Email -->
+                            <div class="form-group">
+                              <label>Email *</label>
+                              <input
+                                  type="email"
+                                  name="email"
+                                  [(ngModel)]="userProfile.email"
+                                  required
+                                  email
+                                  class="form-input"
+                              />
+                              <small class="error"
+                                  *ngIf="profileForm.submitted && profileForm.controls['email']?.invalid">
+                                  Email invalide
+                              </small>
+                            </div>
+
+                            <!-- Téléphone -->
+                            <div class="form-group">
+                              <label>Whatsapp</label>
+                              <input
+                                  type="tel"
+                                  name="phone"
+                                  [(ngModel)]="userProfile.phone"
+                                  placeholder="Ex: +237655002318"
+                                  pattern="^[0-9+ ]*$"
+                                  class="form-input"
+                              />
+                            </div>
+
+                            <!-- Bio -->
+                            <div class="form-group full-width">
+                            <label>Bio</label>
+                            <textarea
+                                name="bio"
+                                [(ngModel)]="userProfile.bio"
+                                rows="4"
+                                class="form-textarea"
+                                placeholder="Parlez-nous de vous...">
+                            </textarea>
+                            </div>
+
+                            <!-- <div class="form-group">
+                            <label>Localisation</label>
+                            <input type="text" [(ngModel)]="userProfile.location" class="form-input" placeholder="Ville, Pays" />
+                            </div>
+
+                            <div class="form-group">
+                            <label>Site web</label>
+                            <input type="url" [(ngModel)]="userProfile.website" class="form-input" placeholder="https://..." />
+                            </div>
+
+                            <div class="form-group">
+                            <label>Langue</label>
+                            <select [(ngModel)]="userProfile.language" class="form-select">
+                                <option value="fr">Français</option>
+                                <option value="en">Anglais</option>
+                                <option value="es">Espagnol</option>
+                                <option value="de">Allemand</option>
+                            </select>
+                            </div>
+
+                            <div class="form-group">
+                            <label>Fuseau horaire</label>
+                            <select [(ngModel)]="userProfile.timezone" class="form-select">
+                                <option value="Europe/Paris">Europe/Paris (GMT+1)</option>
+                                <option value="Europe/London">Europe/London (GMT+0)</option>
+                                <option value="America/New_York">America/New_York (GMT-5)</option>
+                                <option value="America/Los_Angeles">America/Los_Angeles (GMT-8)</option>
+                            </select>
+                            </div> -->
+                        </div>
+
+                        <!-- Actions -->
+                        <div class="form-actions">
+                            <button
+                            type="submit"
+                            class="btn btn-primary"
+                            [disabled]="profileForm.invalid || loading">
+                            {{ loading ? '⏳ Enregistrement...' : '💾 Enregistrer les modifications' }}
+                            </button>
+
+                            <button
+                            type="button"
+                            class="btn btn-outline"
+                            (click)="resetForm(profileForm)">
+                            ↺ Annuler
+                            </button>
+                        </div>
+                        <p class="error" *ngIf="errorMessage">
+                        {{ errorMessage }}
+                    </p>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Tab: Sécurité -->
+            <div *ngIf="activeTab === 'security'" class="tab-content">
+                <div class="content-card">
+                <h2>Sécurité et Mot de Passe</h2>
+
+                <form
+                    #passwordForm="ngForm"
+                    (ngSubmit)="changePassword(passwordForm)"
+                    novalidate
+                    class="security-section"
+                >
+                    <h3>Changer le mot de passe</h3>
+
+                    <!-- Mot de passe actuel -->
+                    <div class="form-group">
+                        <label for="currentPassword">Mot de passe actuel *</label>
+                        <input
+                            type="password"
+                            id="currentPassword"
+                            name="currentPassword"
+                            [(ngModel)]="passwordData.currentPassword"
+                            #currentPasswordRef="ngModel"
+                            required
+                            minlength="6"
+                            class="form-input"
+                        />
+                        <!-- Messages d'erreur pour le mot de passe actuel -->
+                        <div *ngIf="currentPasswordRef.invalid && (currentPasswordRef.dirty || currentPasswordRef.touched)" class="error-message">
+                            <p *ngIf="currentPasswordRef.errors?.['required']">Le mot de passe actuel est requis.</p>
+                            <p *ngIf="currentPasswordRef.errors?.['minlength']">Le mot de passe actuel doit contenir au moins 6 caractères.</p>
+                        </div>
+                    </div>
+
+                    <!-- Nouveau mot de passe -->
+                    <div class="form-group">
+                        <label for="newPassword">Nouveau mot de passe *</label>
+                        <input
+                            type="password"
+                            id="newPassword"
+                            name="newPassword"
+                            [(ngModel)]="passwordData.newPassword"
+                            #newPasswordRef="ngModel"
+                            required
+                            minlength="8"
+                            class="form-input"
+                        />
+                        <!-- Messages d'erreur pour le nouveau mot de passe -->
+                        <div *ngIf="newPasswordRef.invalid && (newPasswordRef.dirty || newPasswordRef.touched)" class="error-message">
+                            <p *ngIf="newPasswordRef.errors?.['required']">Le nouveau mot de passe est requis.</p>
+                            <p *ngIf="newPasswordRef.errors?.['minlength']">Le nouveau mot de passe doit contenir au moins 8 caractères.</p>
+                        </div>
+                    </div>
+
+                    <!-- Confirmation -->
+                    <div class="form-group">
+                        <label for="confirmPassword">Confirmer le mot de passe *</label>
+                        <input
+                            type="password"
+                            id="confirmPassword"
+                            name="confirmPassword"
+                            [(ngModel)]="passwordData.confirmPassword"
+                            #confirmPasswordRef="ngModel"
+                            required
+                            minlength="8"
+                            class="form-input"
+                        />
+                        <!-- Messages d'erreur pour la confirmation du mot de passe -->
+                        <div *ngIf="confirmPasswordRef.invalid && (confirmPasswordRef.dirty || confirmPasswordRef.touched)" class="error-message">
+                            <p *ngIf="confirmPasswordRef.errors?.['required']">La confirmation du mot de passe est requise.</p>
+                            <p *ngIf="confirmPasswordRef.errors?.['minlength']">La confirmation doit contenir au moins 8 caractères.</p>
+                        </div>
+                        <!-- Message d'erreur pour la non-correspondance des mots de passe -->
+                        <div *ngIf="passwordData.newPassword !== passwordData.confirmPassword && confirmPasswordRef.dirty && confirmPasswordRef.valid" class="error-message">
+                            <p>Les mots de passe ne correspondent pas.</p>
+                        </div>
+                    </div>
+
+                    <!-- Bouton [disabled]="loading" -->
+                    <button
+                        type="submit"
+                        class="btn btn-primary btn-mt"
+
+                    >
+                        {{ loading ? '⏳ Modification...' : '🔒 Changer le mot de passe' }}
+                    </button>
+                    <div class="password-reset">
+                        <p>Mot de passe actuel oublié ?</p>
+                        <a (click)="goToResetPage()" class="pass-link">Reset mon mot de passe</a>
+                    </div>
+                    <!-- Success backend -->
+                    <p class="success" *ngIf="successMessage">
+                        {{ successMessage }}
+                    </p>
+                    <!-- Erreur backend -->
+                    <p class="error" *ngIf="errorMessage">
+                        {{ errorMessage }}
+                    </p>
+                </form>
+
+                <!-- <div class="security-section">
+                    <h3>Authentification à deux facteurs</h3>
+                    <p>Renforcez la sécurité de votre compte avec l'authentification à deux facteurs.</p>
+                    <button class="btn btn-outline">🔐 Activer l'authentification 2FA</button>
+                </div>
+
+                <div class="security-section">
+                    <h3>Sessions actives</h3>
+                    <div class="session-item">
+                    <div class="session-info">
+                        <p class="session-device">💻 Chrome sur Windows</p>
+                        <p class="session-location">Paris, France</p>
+                        <p class="session-date">Connecté il y a 2 heures</p>
+                    </div>
+                    <button class="btn-small">Déconnecter</button>
+                    </div>
+
+                    <div class="session-item">
+                    <div class="session-info">
+                        <p class="session-device">📱 Safari sur iPhone</p>
+                        <p class="session-location">Lyon, France</p>
+                        <p class="session-date">Connecté il y a 1 jour</p>
+                    </div>
+                    <button class="btn-small">Déconnecter</button>
+                    </div>
+
+                    <button class="btn btn-outline" style="width: 100%; margin-top: 1rem;">
+                    🚪 Déconnecter de tous les appareils
+                    </button>
+                </div> -->
+                </div>
+            </div>
+
+            <!-- Tab: Notifications -->
+            <div *ngIf="activeTab === 'notifications'" class="tab-content">
+                <div class="content-card">
+                <h2>Préférences de Notifications</h2>
+
+                <div class="notification-section">
+                    <h3>Canaux de notification</h3>
+
+                    <div class="notification-item">
+                    <div class="notification-info">
+                        <label class="checkbox-label">
+                        <input type="checkbox" [(ngModel)]="notificationPrefs.emailNotifications" />
+                        <span>📧 Notifications par email</span>
+                        </label>
+                        <p class="description">Recevoir les notifications par email</p>
+                    </div>
+                    </div>
+
+                    <!-- <div class="notification-item">
+                    <div class="notification-info">
+                        <label class="checkbox-label">
+                        <input type="checkbox" [(ngModel)]="notificationPrefs.smsNotifications" />
+                        <span>📱 Notifications par SMS</span>
+                        </label>
+                        <p class="description">Recevoir les notifications par SMS</p>
+                    </div>
+                    </div> -->
+
+                    <!-- <div class="notification-item">
+                    <div class="notification-info">
+                        <label class="checkbox-label">
+                        <input type="checkbox" [(ngModel)]="notificationPrefs.pushNotifications" />
+                        <span>🔔 Notifications push</span>
+                        </label>
+                        <p class="description">Recevoir les notifications push sur votre navigateur</p>
+                    </div>
+                    </div> -->
+                </div>
+
+                <div class="notification-section">
+                    <h3>Types de notifications</h3>
+
+                    <div class="notification-item">
+                    <div class="notification-info">
+                        <label class="checkbox-label">
+                        <input type="checkbox" [(ngModel)]="notificationPrefs.eventReminders" />
+                        <span>📅 Rappels d'événements</span>
+                        </label>
+                        <p class="description">Rappels 2 jours avant les événements prévus</p>
+                    </div>
+                    </div>
+
+                    <div class="notification-item">
+                        <div class="notification-info">
+                            <label class="checkbox-label">
+                            <input type="checkbox" [(ngModel)]="notificationPrefs.attendanceNotifications" />
+                            <span>📥 Récapitulatif de présence</span>
+                            </label>
+                            <p class="description">Recevoir la liste de tous les invités présents et absents lors de l’événement.</p>
+                        </div>
+                    </div>
+
+                    <div class="notification-item">
+                        <div class="notification-info">
+                            <label class="checkbox-label">
+                            <input type="checkbox" [(ngModel)]="notificationPrefs.thankNotifications" />
+                            <span>📋 Email de remerciement</span>
+                            </label>
+                            <p class="description">Envoyer automatiquement un email de remerciement à tous les invités présents à l'événement</p>
+                        </div>
+                    </div>
+
+                    <div class="notification-item">
+                    <div class="notification-info">
+                        <label class="checkbox-label">
+                        <input type="checkbox" [(ngModel)]="notificationPrefs.marketingEmails" />
+                        <span>🎯 Emails marketing</span>
+                        </label>
+                        <p class="description">Recevoir les actualités et offres de Smart Invite</p>
+                    </div>
+                    </div>
+                </div>
+
+                <button class="btn btn-primary" (click)="saveProfile()">
+                    {{ loading ? '⏳ Enregistrement...' : '💾 Enregistrer les préférences' }}
+                </button>
+                </div>
+            </div>
+
+            <!-- Tab: Confidentialité -->
+            <!-- <div *ngIf="activeTab === 'privacy'" class="tab-content">
+                <div class="content-card">
+                <h2>Confidentialité et Partage</h2>
+
+                <div class="privacy-section">
+                    <h3>Visibilité du profil</h3>
+                    <div class="radio-group">
+                    <label class="radio-label">
+                        <input type="radio" [(ngModel)]="privacySettings.profileVisibility" value="public" />
+                        <span>🌐 Public</span>
+                        <p class="description">Votre profil est visible par tous</p>
+                    </label>
+                    </div>
+
+                    <div class="radio-group">
+                    <label class="radio-label">
+                        <input type="radio" [(ngModel)]="privacySettings.profileVisibility" value="friends" />
+                        <span>👥 Amis uniquement</span>
+                        <p class="description">Votre profil est visible par vos amis</p>
+                    </label>
+                    </div>
+
+                    <div class="radio-group">
+                    <label class="radio-label">
+                        <input type="radio" [(ngModel)]="privacySettings.profileVisibility" value="private" />
+                        <span>🔒 Privé</span>
+                        <p class="description">Votre profil n'est visible que par vous</p>
+                    </label>
+                    </div>
+                </div>
+
+                <div class="privacy-section">
+                    <h3>Informations visibles</h3>
+
+                    <div class="privacy-item">
+                    <label class="checkbox-label">
+                        <input type="checkbox" [(ngModel)]="privacySettings.showEmail" />
+                        <span>Afficher mon email</span>
+                    </label>
+                    </div>
+
+                    <div class="privacy-item">
+                    <label class="checkbox-label">
+                        <input type="checkbox" [(ngModel)]="privacySettings.showPhone" />
+                        <span>Afficher mon téléphone</span>
+                    </label>
+                    </div>
+                </div>
+
+                <div class="privacy-section">
+                    <h3>Interactions</h3>
+
+                    <div class="privacy-item">
+                    <label class="checkbox-label">
+                        <input type="checkbox" [(ngModel)]="privacySettings.allowMessages" />
+                        <span>Permettre les messages privés</span>
+                    </label>
+                    </div>
+
+                    <div class="privacy-item">
+                    <label class="checkbox-label">
+                        <input type="checkbox" [(ngModel)]="privacySettings.allowEventInvites" />
+                        <span>Permettre les invitations d'événements</span>
+                    </label>
+                    </div>
+                </div>
+
+                <button class="btn btn-primary">💾 Enregistrer les paramètres</button>
+                </div>
+            </div> -->
+
+            <!-- Tab: Compte -->
+            <div *ngIf="activeTab === 'account'" class="tab-content">
+                <div class="content-card">
+                <h2>Paramètres du Compte</h2>
+
+                <div class="account-section">
+                    <h3>Informations du compte</h3>
+                    <div class="info-item">
+                    <span class="label">ID utilisateur</span>
+                    <span class="value">{{ userProfile.id }}</span>
+                    </div>
+                    <div class="info-item">
+                    <span class="label">Email</span>
+                    <span class="value">{{ userProfile.email }}</span>
+                    </div>
+                    <div class="info-item">
+                    <span class="label">Compte créé</span>
+                    <span class="value">{{ formatDate(userProfile.createdAt) }}</span>
+                    </div>
+                </div>
+
+                <!-- <div class="account-section">
+                    <h3>Télécharger vos données</h3>
+                    <p>Téléchargez une copie de toutes vos données personnelles.</p>
+                    <button class="btn btn-outline">📥 Télécharger mes données</button>
+                </div> -->
+
+                <div class="account-section danger">
+                    <h3>Zone de danger</h3>
+                    <p>Actions irréversibles sur votre compte.</p>
+
+                    <button class="btn btn-outline danger" (click)="openDeleteModal('delete')">
+                        {{ loading ? '⏳ Suppréssion...' : '🗑️ Supprimer mon compte' }}
+                    </button>
+                </div>
+                </div>
+            </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<app-confirm-delete-modal
+    [visible]="showDeleteModal"
+    [message] = warningMessage
+    [action]="modalAction"
+    (confirmDelete)="confirmDelete()"
+    (cancel)="closeModal()">
+</app-confirm-delete-modal>

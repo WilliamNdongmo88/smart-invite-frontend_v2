@@ -1,0 +1,133 @@
+.floating-btn-container {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    z-index: 999;
+}
+
+.floating-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 56px;
+    height: 56px;
+    background-color: rgba(212, 175, 55, 0.85);//rgba(212, 175, 55, 0.85);
+    border-radius: 50%;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(212, 175, 55, 0.3);
+    position: relative;
+    z-index: 1001;
+
+    &:hover {
+    background-color: rgba(212, 175, 55, 0.95);
+    box-shadow: 0 6px 20px rgba(212, 175, 55, 0.3);
+    transform: scale(1.1);
+    }
+
+    &:active {
+    transform: scale(0.95);
+    }
+}
+
+.btn-icon {
+    font-size: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.tooltip {
+    position: absolute;
+    bottom: 70px;
+    right: 0;
+    background-color: rgba(26, 26, 26, 0.95);
+    color: #FFFFFF;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    font-size: 0.75rem;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+
+    &.show {
+    opacity: 1;
+    }
+
+    &::after {
+    content: '';
+    position: absolute;
+    bottom: -4px;
+    right: 12px;
+    width: 0;
+    height: 0;
+    border-left: 4px solid transparent;
+    border-right: 4px solid transparent;
+    border-top: 4px solid rgba(26, 26, 26, 0.95);
+    }
+}
+
+.pulse {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background-color: rgba(212, 175, 55, 0.2);
+    animation: pulse 2s infinite;
+    z-index: 1000;
+}
+
+@keyframes pulse {
+    0% {
+    width: 56px;
+    height: 56px;
+    opacity: 1;
+    }
+    100% {
+    width: 100px;
+    height: 100px;
+    opacity: 0;
+    }
+}
+
+@media (max-width: 768px) {
+    .floating-btn-container {
+    bottom: 1rem;
+    right: 1rem;
+    }
+
+    .floating-btn {
+    width: 48px;
+    height: 48px;
+    }
+
+    .btn-icon {
+    font-size: 1.25rem;
+    }
+
+    .pulse {
+    width: 48px;
+    height: 48px;
+    }
+
+    @keyframes pulse {
+    0% {
+        width: 48px;
+        height: 48px;
+        opacity: 1;
+    }
+    100% {
+        width: 90px;
+        height: 90px;
+        opacity: 0;
+    }
+    }
+}

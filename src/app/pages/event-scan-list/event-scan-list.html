@@ -1,0 +1,63 @@
+<div class="dashboard">
+  <!-- Header -->
+  <div class="dashboard-header">
+    <div class="container">
+      <div class="header-content">
+        <div>
+          <h1>Liste des événements</h1>
+          <p>Sélectionnez l'événement concerné.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main content -->
+  <div class="container py-12">
+
+    <!-- Events List -->
+    <div class="mt-8 c-mt">
+
+      <div class="events-list">
+        <div *ngFor="let event of events" class="event-card card">
+          <div class="event-header" (click)="navigateToScanner(event.id)">
+            <div>
+              <h3>{{ event.title }}</h3>
+              <p class="event-meta">📅 {{ formatDate(event.date) }}</p>
+              <p class="event-meta">📍 {{ event.location }}</p>
+            </div>
+          </div>
+
+          <div class="event-stats">
+            <div class="stat-box">
+              <p class="label">Total</p>
+              <p class="value">{{ event.totalGuests }}</p>
+            </div>
+            <div class="stat-box confirmed">
+              <p class="label">Confirmés</p>
+              <p class="value">{{ event.confirmedGuests }}</p>
+            </div>
+            <div class="stat-box pending">
+              <p class="label">En attente</p>
+              <p class="value">{{ event.pendingGuests }}</p>
+            </div>
+            <div class="stat-box declined">
+              <p class="label">Refusés</p>
+              <p class="value">{{ event.declinedGuests }}</p>
+            </div>
+          </div>
+
+          <div class="progress-bar">
+            <div class="progress-label">
+              <span>Taux de réponse</span>
+              <span>{{ getResponseRate(event) }}%</span>
+            </div>
+            <div class="progress">
+              <div class="progress-fill" [style.width.%]="getResponseRate(event)"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>

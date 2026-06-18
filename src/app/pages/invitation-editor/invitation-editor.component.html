@@ -1,0 +1,411 @@
+    <div class="invitation-editor">
+
+      <!-- Main content -->
+      <div class="container py-12">
+        <div class="editor-wrapper">
+          <!-- Form Section -->
+          <div class="editor-form">
+            <div class="form-card">
+              <h2>Paramètres de l'invitation</h2>
+
+              <!-- Section 1: Détails de l'événement -->
+              <div class="form-section">
+                <h3>📅 Détails de l'événement</h3>
+
+                <div class="form-group">
+                  <label>Nom de l'événement *</label>
+                  <input
+                    type="text"
+                    [(ngModel)]="invitationData.eventName"
+                    placeholder="Ex: Mariage de Sophie et Pierre"
+                    class="form-input"
+                  />
+                </div>
+
+                <div class="form-row">
+                  <div class="form-group">
+                    <label>Date *</label>
+                    <input
+                      type="date"
+                      [(ngModel)]="invitationData.eventDate"
+                      class="form-input"
+                    />
+                  </div>
+
+                  <div class="form-group">
+                    <label>Heure *</label>
+                    <input
+                      type="time"
+                      [(ngModel)]="invitationData.eventTime"
+                      class="form-input"
+                    />
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label>Lieu de la cérémonie civile *</label>
+                  <input
+                    type="text"
+                    [(ngModel)]="invitationData.eventCivilLocation"
+                    placeholder="Ex: Mairie de Bangangte"
+                    class="form-input"
+                  />
+                </div>
+
+                <div class="form-group">
+                  <label>Lieu de la réception *</label>
+                  <input
+                    type="text"
+                    [(ngModel)]="invitationData.eventLocation"
+                    placeholder="Ex: Palais de Fête, Bafoussam"
+                    class="form-input"
+                  />
+                </div>
+
+                <div class="form-group">
+                  <label>Heure de la réception *</label>
+                  <input
+                    type="time"
+                    [(ngModel)]="invitationData.banquetTime"
+                    class="form-input"
+                  />
+                </div>
+
+                <!-- Cérémonie religieuse (optionnelle) -->
+                <div class="form-group">
+                  <label class="checkbox-label">
+                    <input
+                      type="checkbox"
+                      [(ngModel)]="invitationData.showReligiousCeremony"
+                    />
+                    <span>Afficher la cérémonie religieuse</span>
+                  </label>
+                </div>
+
+                <div *ngIf="invitationData.showReligiousCeremony" class="conditional-fields">
+                  <div class="form-group">
+                    <label>Lieu de la cérémonie religieuse</label>
+                    <input
+                      type="text"
+                      [(ngModel)]="invitationData.religiousLocation"
+                      placeholder="Ex: Cathédrale Notre-Dame"
+                      class="form-input"
+                    />
+                  </div>
+
+                  <div class="form-group">
+                    <label>Heure de la cérémonie religieuse</label>
+                    <input
+                      type="time"
+                      [(ngModel)]="invitationData.religiousTime"
+                      class="form-input"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <!-- Section 2: Personnes concernées -->
+              <div class="form-section">
+                <h3>👥 Personnes concernées</h3>
+
+                <div class="form-row">
+                  <div class="form-group">
+                    <label>Première personne *</label>
+                    <input
+                      type="text"
+                      [(ngModel)]="invitationData.nameConcerned1"
+                      placeholder="Ex: Sophie"
+                      class="form-input"
+                    />
+                  </div>
+
+                  <div class="form-group">
+                    <label>Deuxième personne *</label>
+                    <input
+                      type="text"
+                      [(ngModel)]="invitationData.nameConcerned2"
+                      placeholder="Ex: Pierre"
+                      class="form-input"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <!-- Section 3: Contenu principal -->
+              <div class="form-section">
+                <h3>✍️ Contenu principal</h3>
+
+                <div class="form-group">
+                  <label>Message principal</label>
+                  <textarea
+                    [(ngModel)]="invitationData.mainMessage"
+                    class="form-textarea"
+                    placeholder="C'est avec un immense bonheur que nous vous invitons..."
+                  ></textarea>
+                </div>
+
+                <div class="form-group">
+                  <label>Thème de la soirée</label>
+                  <input
+                    type="text"
+                    [(ngModel)]="invitationData.eventTheme"
+                    placeholder="Ex: CHIC ET GLAMOUR"
+                    class="form-input"
+                  />
+                </div>
+
+                <div class="form-group">
+                  <label>Couleurs priorisées</label>
+                  <input
+                    type="text"
+                    [(ngModel)]="invitationData.priorityColors"
+                    placeholder="Ex: Bleu, Blanc, Rouge, Noir"
+                    class="form-input"
+                  />
+                </div>
+
+                <div class="form-group">
+                  <label>Instructions QR Code</label>
+                  <textarea
+                    [(ngModel)]="invitationData.qrInstructions"
+                    class="form-textarea"
+                    placeholder="Prière de vous présenter uniquement avec votre code QR..."
+                  ></textarea>
+                </div>
+
+                <div class="form-group">
+                  <label>Message sur le code vestimentaire</label>
+                  <input
+                    type="text"
+                    [(ngModel)]="invitationData.dressCodeMessage"
+                    placeholder="Ex: Merci de respecter les couleurs vestimentaires choisies."
+                    class="form-input"
+                  />
+                </div>
+
+                <div class="form-group">
+                  <label>Premier message de remerciement</label>
+                  <input
+                    type="text"
+                    [(ngModel)]="invitationData.thanksMessage1"
+                    placeholder="Ex: Merci pour votre compréhension."
+                    class="form-input"
+                  />
+                </div>
+
+                <div class="form-group">
+                  <label>Deuxième message de remerciement</label>
+                  <input
+                    type="text"
+                    [(ngModel)]="invitationData.thanksMessage2"
+                    placeholder="Ex: Merci pour votre compréhension."
+                    class="form-input"
+                  />
+                </div>
+
+                <div class="form-group">
+                  <label>Message de fermeture</label>
+                  <input
+                    type="text"
+                    [(ngModel)]="invitationData.closingMessage"
+                    placeholder="Ex: Votre présence illuminera ce jour si spécial pour nous."
+                    class="form-input"
+                  />
+                </div>
+              </div>
+
+              <!-- Section 4: Couleurs et design -->
+              <div class="form-section">
+                <h3>🎨 Couleurs et design</h3>
+
+                <div class="form-row">
+                  <div class="form-group">
+                    <label>Couleur du titre</label>
+                    <div class="color-input-group">
+                      <input
+                        type="color"
+                        [(ngModel)]="invitationData.titleColor"
+                        class="color-input"
+                      />
+                      <input
+                        type="text"
+                        [(ngModel)]="invitationData.titleColor"
+                        class="form-input"
+                      />
+                    </div>
+                  </div>
+
+                  <div class="form-group">
+                    <label>Couleur du texte</label>
+                    <div class="color-input-group">
+                      <input
+                        type="color"
+                        [(ngModel)]="invitationData.textColor"
+                        class="color-input"
+                      />
+                      <input
+                        type="text"
+                        [(ngModel)]="invitationData.textColor"
+                        class="form-input"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div class="form-row">
+                  <div class="form-group">
+                    <label>Couleur de la bande supérieure</label>
+                    <div class="color-input-group">
+                      <input
+                        type="color"
+                        [(ngModel)]="invitationData.topBandColor"
+                        class="color-input"
+                      />
+                      <input
+                        type="text"
+                        [(ngModel)]="invitationData.topBandColor"
+                        class="form-input"
+                      />
+                    </div>
+                  </div>
+
+                  <div class="form-group">
+                    <label>Couleur de la bande inférieure</label>
+                    <div class="color-input-group">
+                      <input
+                        type="color"
+                        [(ngModel)]="invitationData.bottomBandColor"
+                        class="color-input"
+                      />
+                      <input
+                        type="text"
+                        [(ngModel)]="invitationData.bottomBandColor"
+                        class="form-input"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Section 5: Images et logos -->
+              <div class="form-section">
+                <h3>🖼️ Images et logos</h3>
+
+                <div class="form-group">
+                  <label>URL du logo</label>
+                  <input
+                    type="url"
+                    [(ngModel)]="invitationData.logoUrl"
+                    placeholder="https://..."
+                    class="form-input"
+                  />
+                </div>
+
+                <div class="form-group">
+                  <label>URL de l'icône cœur</label>
+                  <input
+                    type="url"
+                    [(ngModel)]="invitationData.heartIconUrl"
+                    placeholder="https://..."
+                    class="form-input"
+                  />
+                </div>
+              </div>
+
+              <!-- Actions -->
+              <div class="form-actions">
+                <button class="btn btn-primary" (click)="generatePDF()">
+                  📥 Télécharger PDF
+                </button>
+                <button class="btn btn-outline" (click)="resetForm()">
+                  ↺ Réinitialiser
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Preview Section -->
+          <div class="editor-preview">
+            <div class="preview-card">
+              <h2>Aperçu de la carte</h2>
+
+              <div class="preview-container">
+                <!-- Top band -->
+                <div class="preview-top-band" [style.background-color]="invitationData.topBandColor"></div>
+
+                <!-- Content -->
+                <div class="preview-content">
+                  <!-- Logo -->
+                  <div class="preview-logo" *ngIf="invitationData.logoUrl">
+                    <img [src]="invitationData.logoUrl" alt="Logo" />
+                  </div>
+
+                  <!-- Title -->
+                  <h1 class="preview-title" [style.color]="invitationData.titleColor">
+                    LETTRE D'INVITATION
+                  </h1>
+
+                  <!-- Guest greeting -->
+                  <p class="preview-greeting">
+                    Cher/Chère invité,
+                  </p>
+
+                  <!-- Main message -->
+                  <p class="preview-message">{{ invitationData.mainMessage }}</p>
+
+                  <!-- Event details -->
+                  <div class="preview-event-details">
+                    <h3>PROGRAMME DE LA JOURNÉE</h3>
+                    <p>
+                      <strong>MARIAGE CIVIL LE {{ formatDate(invitationData.eventDate) }} A {{ invitationData.eventTime }}</strong><br />
+                      {{ invitationData.eventCivilLocation }}<br />
+                      Mini réception à la sortie de la mairie directement après la célébration de l'union par Mr le Maire.
+                    </p>
+
+                    <p *ngIf="invitationData.showReligiousCeremony">
+                      <strong>Cérémonie Religieuse {{ invitationData.religiousTime }}</strong><br />
+                      {{ invitationData.religiousLocation }}
+                    </p>
+
+                    <p>
+                      <strong>Réception nuptiale le même jour à partir de {{ invitationData.banquetTime }}</strong><br />
+                      {{ invitationData.eventLocation }}
+                    </p>
+                  </div>
+
+                  <!-- Theme -->
+                  <h3 class="preview-theme">THEME DE LA SOIRÉE : {{ invitationData.eventTheme }}</h3>
+
+                  <p class="preview-colors-label">Couleurs priorisées</p>
+                  <p class="preview-colors">{{ invitationData.priorityColors }}</p>
+
+                  <!-- QR Instructions -->
+                  <p class="preview-qr-text">{{ invitationData.qrInstructions }}</p>
+
+                  <!-- Thanks messages -->
+                  <p class="preview-thanks">{{ invitationData.dressCodeMessage }}</p>
+                  <p class="preview-thanks">{{ invitationData.thanksMessage1 }}</p>
+                  <p class="preview-thanks">{{ invitationData.thanksMessage2 }}</p>
+
+                  <!-- Closing message -->
+                  <p class="preview-closing">{{ invitationData.closingMessage }}</p>
+
+                  <!-- Signature -->
+                  <p class="preview-signature" [style.color]="invitationData.titleColor">
+                    {{ invitationData.nameConcerned1 }} & {{ invitationData.nameConcerned2 }}
+                  </p>
+
+                  <!-- Heart icon -->
+                  <div class="preview-heart" *ngIf="invitationData.heartIconUrl">
+                    <img [src]="invitationData.heartIconUrl" alt="Heart" />
+                  </div>
+                </div>
+
+                <!-- Bottom band -->
+                <div class="preview-bottom-band" [style.background-color]="invitationData.bottomBandColor"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>

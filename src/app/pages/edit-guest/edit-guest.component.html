@@ -1,0 +1,347 @@
+    <div class="edit-guest">
+        <!-- Indicateur de chargement -->
+        <app-spinner [isLoading]="isLoading"></app-spinner>
+
+      <!-- Header -->
+      <div class="edit-guest-header">
+        <div class="container c-container">
+          <a (click)="gobackToGuestList()" class="back-link">← Retour</a>
+          <div class="header-content">
+            <div class="guest-avatar">{{ guestData.name.charAt(0).toUpperCase() }}</div>
+            <div>
+              <h1>Modifier l'invité</h1>
+              <p>{{ guestData.name }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Main content -->
+      <div class="container py-12">
+        <div class="form-wrapper">
+          <form (ngSubmit)="onSubmit()" #guestForm="ngForm" class="guest-form">
+            <!-- Tabs -->
+            <div class="tabs">
+              <button
+                type="button"
+                class="tab"
+                [class.active]="activeTab() === 'personal'"
+                (click)="activeTab.set('personal')"
+              >
+                👤 Informations personnelles
+              </button>
+              <button
+                type="button"
+                class="tab"
+                [class.active]="activeTab() === 'response'"
+                (click)="activeTab.set('response')"
+              >
+                ✓ Réponse à l'événement
+              </button>
+              <button
+                type="button"
+                class="tab"
+                [class.active]="activeTab() === 'plusone'"
+                (click)="activeTab.set('plusone')"
+              >
+                👥 Accompagnant (+1)
+              </button>
+              <button
+                type="button"
+                class="tab"
+                [class.active]="activeTab() === 'notes'"
+                (click)="activeTab.set('notes')"
+              >
+                📝 Notes
+              </button>
+            </div>
+
+            <!-- Tab Content -->
+
+            <!-- Personal Information Tab -->
+            <div *ngIf="activeTab() === 'personal'" class="tab-content">
+              <h2>Informations personnelles</h2>
+
+              <div class="form-group">
+                <label for="name">Nom complet *</label>
+                <input
+                  type="text"
+                  id="name"
+                  name="name"
+                  [(ngModel)]="guestData.name"
+                  placeholder="Jean Dupont"
+                  required
+                  class="form-input"
+                />
+              </div>
+
+              <div *ngIf="this.guestData.status == 'confirmed'" class="form-group">
+                <label for="table_number">Numero de table *</label>
+                <input
+                  type="text"
+                  id="table_number"
+                  name="table_number"
+                  [(ngModel)]="guestData.table_number"
+                  placeholder="Table 5"
+                  required
+                  class="form-input"
+                />
+              </div>
+
+            <!-- Notification Means -->
+            <div class="form-group checkbox-group checkbox-text">
+              <p class="notification-title">
+                Notifiez l'invité des détails de l'événement via :
+              </p>
+
+              <label class="custom-switch">
+                <input
+                  type="checkbox"
+                  [checked]="guestData.notificationMode === 'whatsapp'"
+                  (change)="toggleNotificationMode($event)"
+                />
+
+                <span class="checkmark"></span>
+
+                <div class="label-text">
+                  <span class="on">WhatsApp</span>
+                  <span class="off">Email</span>
+                </div>
+              </label>
+            </div>
+
+              <div *ngIf="guestData.notificationMode === 'email'" class="form-group">
+                <label for="email">Adresse email *</label>
+                <input
+                  type="email"
+                  id="email"
+                  name="email"
+                  [(ngModel)]="guestData.email"
+                  placeholder="will@email.com"
+                  required
+                  class="form-input"
+                />
+              </div>
+
+              <div *ngIf="guestData.notificationMode === 'whatsapp'" class="form-group">
+                <label for="phone">Whatsapp *</label>
+                <input
+                  type="tel"
+                  id="phone"
+                  name="phone"
+                  [(ngModel)]="guestData.phone"
+                  placeholder="+33 6 12 34 56 78"
+                  required
+                  class="form-input"
+                />
+              </div>
+
+              <div class="form-group">
+                <label for="invitationSentDate">Date d'invitation</label>
+                <input
+                  type="date"
+                  id="invitationSentDate"
+                  name="invitationSentDate"
+                  [(ngModel)]="guestData.invitationSentDate"
+                  class="form-input"
+                  disabled
+                />
+                <small>Cette date ne peut pas être modifiée</small>
+              </div>
+            </div>
+
+            <!-- Response Tab -->
+            <div *ngIf="activeTab() === 'response'" class="tab-content">
+              <h2>Réponse à l'événement</h2>
+
+              <div class="form-group">
+                <label>Statut de réponse</label>
+                <div class="status-options">
+                  <label class="status-option">
+                    <input
+                      type="radio"
+                      name="status"
+                      value="confirmed"
+                      [(ngModel)]="guestData.status"
+                      disabled
+                    />
+                    <span class="status-label confirmed">✓ Confirmé</span>
+                  </label>
+                  <label class="status-option">
+                    <input
+                      type="radio"
+                      name="status"
+                      value="pending"
+                      [(ngModel)]="guestData.status"
+                    />
+                    <span class="status-label pending">⏳ En attente</span>
+                  </label>
+                  <label class="status-option">
+                    <input
+                      type="radio"
+                      name="status"
+                      value="declined"
+                      [(ngModel)]="guestData.status"
+                    />
+                    <span class="status-label declined">✕ Refusé</span>
+                  </label>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="dietaryRestrictions">Restrictions alimentaires</label>
+                <input
+                  type="text"
+                  id="dietaryRestrictions"
+                  name="dietaryRestrictions"
+                  [(ngModel)]="guestData.dietaryRestrictions"
+                  placeholder="Ex: Végétarien, Sans gluten, Vegan..."
+                  class="form-input"
+                  disabled
+                />
+              </div>
+
+              <div class="form-group">
+                <label for="responseDate">Date de réponse</label>
+                <input
+                  type="date"
+                  id="responseDate"
+                  name="responseDate"
+                  [(ngModel)]="guestData.responseDate"
+                  class="form-input"
+                  disabled
+                />
+              </div>
+
+              <div class="info-box">
+                <p>
+                  <strong>Statut actuel:</strong>
+                  <span class="status-badge" [class]="'status-' + guestData.status">
+                    {{ getStatusLabel(guestData.status) }}
+                  </span>
+                </p>
+                <p *ngIf="guestData.responseDate">
+                  <strong>Répondu le:</strong> {{ formatDate(guestData.responseDate) }}
+                </p>
+              </div>
+            </div>
+
+            <!-- Plus One Tab -->
+            <div *ngIf="activeTab() === 'plusone'" class="tab-content">
+              <h2>Accompagnant (+1)</h2>
+
+              <div class="form-group">
+                <label class="checkbox-label">
+                  <input
+                    type="checkbox"
+                    [(ngModel)]="guestData.plusOne"
+                    name="plusOne"
+                  />
+                  <span>Cet invité peut amener un accompagnant</span>
+                </label>
+              </div>
+
+              <div *ngIf="guestData.plusOne" class="plusone-details">
+                <div class="form-group">
+                  <label for="plusOneName">Nom de l'accompagnant</label>
+                  <input
+                    type="text"
+                    id="plusOneName"
+                    name="plusOneName"
+                    [(ngModel)]="guestData.plusOneInfo!.name"
+                    placeholder="Nom de l'accompagnant"
+                    class="form-input"
+                    disabled
+                  />
+                </div>
+
+                <div class="form-group">
+                  <label for="plusOneDietary">Restrictions alimentaires de l'accompagnant</label>
+                  <input
+                    type="text"
+                    id="plusOneDietary"
+                    name="plusOneDietary"
+                    [(ngModel)]="guestData.plusOneInfo!.dietaryRestrictions"
+                    placeholder="Ex: Végétarien, Sans gluten..."
+                    class="form-input"
+                    disabled
+                  />
+                </div>
+
+                <div class="info-box">
+                  <p>📌 Les informations de l'accompagnant seront mises à jour</p>
+                </div>
+              </div>
+
+              <div *ngIf="!guestData.plusOne" class="info-box">
+                <p>Cet invité n'a pas la possibilité d'amener un accompagnant</p>
+              </div>
+            </div>
+
+            <!-- Notes Tab -->
+            <div *ngIf="activeTab() === 'notes'" class="tab-content">
+              <h2>Notes internes</h2>
+
+              <div class="form-group">
+                <label for="notes">Notes</label>
+                <textarea
+                  id="notes"
+                  name="notes"
+                  [(ngModel)]="guestData.notes"
+                  placeholder="Ajoutez des notes internes sur cet invité..."
+                  rows="6"
+                  class="form-textarea"
+                ></textarea>
+              </div>
+
+              <div class="notes-tips">
+                <p><strong>💡 Conseils:</strong></p>
+                <ul>
+                  <li>Utilisez ces notes pour des informations personnelles</li>
+                  <li>Exemple: "Ami de longue date", "Relation professionnelle"</li>
+                  <li>Ces notes ne sont visibles que pour vous</li>
+                </ul>
+              </div>
+            </div>
+
+            <!-- Changes Summary -->
+            <div *ngIf="getChanges().length > 0" class="changes-summary">
+              <h3>Modifications détectées</h3>
+              <ul class="changes-list">
+                <li *ngFor="let change of getChanges()">
+                  <span class="change-field">{{ change.field }}</span>
+                  <span class="change-arrow">→</span>
+                  <span class="change-value">{{ change.newValue }}</span>
+                </li>
+              </ul>
+            </div>
+
+            <!-- Form Actions -->
+            <div class="form-actions">
+              <button type="button" class="btn btn-outline" (click)="gobackToGuestDetail()">
+                ← Annuler
+              </button>
+              <button type="submit" class="btn btn-primary" [disabled]="!guestForm.valid">
+                ✓ Enregistrer les modifications
+              </button>
+            </div>
+          </form>
+
+          <!-- Delete Button -->
+          <div class="delete-section">
+            <button type="button" class="btn btn-outline btn-danger" (click)="openDeleteModal('delete')">
+              🗑️ Supprimer cet invité
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal de confirmation -->
+    <app-confirm-delete-modal
+        [visible]="showDeleteModal"
+        [message]=warningMessage
+        [action]="modalAction"
+        (confirmDelete)="confirmDelete()"
+        (cancel)="closeModal()">
+    </app-confirm-delete-modal>

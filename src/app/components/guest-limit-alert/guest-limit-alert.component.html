@@ -1,0 +1,85 @@
+<div class="alert-container" *ngIf="showAlert" [@slideDown] role="alertdialog" aria-labelledby="alertTitle" aria-describedby="alertMessage">
+    <div class="alert-content">
+
+        <!-- Main Content -->
+        <div class="alert-main">
+            <!-- Title -->
+            <h3 id="alertTitle" class="alert-title">
+                <span class="icon-emoji">⚠️</span> Aucun paiement enegistré
+            </h3>
+
+            <!-- Message -->
+            <p id="alertMessage" class="alert-message">
+                <strong>Paiement non validé.</strong> 
+                Soumettez votre preuve de paiement avant de générer un lien.
+            </p>
+
+            <!-- Details -->
+            <div class="alert-details">
+                <div class="detail-item">
+                    <span class="detail-label">Total invité :</span>
+                    <span class="detail-value">{{ maxGuests }}</span>
+                </div>
+                <div class="progress-bar" role="progressbar" [attr.aria-valuenow]="100" [attr.aria-valuemin]="0" [attr.aria-valuemax]="maxGuests">
+                    <div class="progress-fill" [style.width.%]="100"></div>
+                </div>
+            </div>
+
+            <!-- Options -->
+            <div class="alert-options">
+                <div class="option upgrade-option">
+                    <div class="option-header">
+                        <span class="option-icon" aria-hidden="true">⭐</span>
+                        <h4>La simplicité avant tout</h4>
+                    </div>
+                    <p class="option-description">
+                        Payez uniquement pour le nombre d'invités que vous souhaitez accueillir.
+                        <strong>Aucun abonnement, aucun engagement :</strong> vous maîtrisez totalement votre budget.
+                    </p>
+                    <button class="btn btn-primary" (click)="upgradePlan()">
+                        Payer maintenant →
+                    </button>
+                </div>
+            </div>
+
+            <!-- Benefits Preview -->
+            <div class="benefits-preview">
+                <h4>Pourquoi choisir cette tarification ? :</h4>
+                <ul class="benefits-list">
+                    <li>
+                        <span class="benefit-icon" aria-hidden="true">✓</span>
+                        <span>Vous ne payez que pour ce que vous utilisez </span>
+                    </li>
+                    <li>
+                        <span class="benefit-icon" aria-hidden="true">✓</span>
+                        <span>Aucun abonnement mensuel  </span>
+                    </li>
+                    <li>
+                        <span class="benefit-icon" aria-hidden="true">✓</span>
+                        <span>Budget maîtrisé dès le départ</span>
+                    </li>
+                    <li>
+                        <span class="benefit-icon" aria-hidden="true">✓</span>
+                        <span>Quota ajustable à tout moment</span>
+                    </li>
+                    <li>
+                        <span class="benefit-icon" aria-hidden="true">✓</span>
+                        <span>Paiement simple via Orange Money et MTN Money</span>
+                    </li>
+                    <li>
+                        <span class="benefit-icon" aria-hidden="true">✓</span>
+                        <span>Toutes les fonctionnalités incluses</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Close Button -->
+        <button class="close-btn" (click)="dismissAlert()" title="Fermer" aria-label="Fermer l'alerte">
+            ✕
+        </button>
+    </div>
+
+    <!-- Backdrop -->
+    <div class="alert-backdrop" (click)="dismissAlert()"></div>
+</div>

@@ -1,0 +1,227 @@
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background-color: rgba(0, 0, 0, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      padding: 1rem;
+    }
+
+    .modal-content {
+      background-color: #FFFFFF;
+      border-radius: 1rem;
+      max-width: 500px;
+      width: 100%;
+      box-shadow: 0 20px 25px rgba(0, 0, 0, 0.15);
+      position: relative;
+      animation: slideUp 0.3s ease-out;
+    }
+
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .modal-close {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      cursor: pointer;
+      color: #666666;
+      transition: color 0.2s ease;
+
+      &:hover {
+        color: #1A1A1A;
+      }
+    }
+
+    .modal-header {
+      padding: 2rem 1.5rem 1rem;
+      border-bottom: 1px solid #E0E0E0;
+    }
+
+    .modal-header h2 {
+      margin: 0 0 0.5rem 0;
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.75rem;
+      color: #1A1A1A;
+    }
+
+    .modal-header p {
+      margin: 0;
+      color: #666666;
+      font-size: 0.875rem;
+    }
+
+    .modal-form {
+      padding: 1.5rem;
+    }
+
+    .form-group {
+      margin-bottom: 1.5rem;
+    }
+
+    .form-group label {
+      display: block;
+      font-weight: 600;
+      color: #1A1A1A;
+      margin-bottom: 0.5rem;
+      font-size: 0.875rem;
+    }
+
+    .form-input {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      border: 1px solid #E0E0E0;
+      border-radius: 0.5rem;
+      font-family: 'Lato', sans-serif;
+      font-size: 0.875rem;
+      transition: all 0.3s ease;
+
+      &:focus {
+        outline: none;
+        border-color: #D4AF37;
+        box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.1);
+      }
+
+      &::placeholder {
+        color: #999999;
+      }
+    }
+
+    .checkbox-label {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      cursor: pointer;
+      color: #1A1A1A;
+      font-size: 0.875rem;
+
+      input {
+        cursor: pointer;
+        margin-right: 5px;
+      }
+    }
+
+    .form-actions {
+      display: flex;
+      gap: 1rem;
+      margin-top: 2rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid #E0E0E0;
+    }
+
+    .form-actions .btn {
+      flex: 1;
+    }
+
+    /* Notification means */
+    .checkbox-group {
+      margin-top: 1rem;
+
+      .custom-switch {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+
+        cursor: pointer;
+        user-select: none;
+
+        font-size: 0.95rem;
+        color: #6a6b6c;
+        line-height: 1.4;
+
+        input {
+          display: none;
+        }
+
+        /* SWITCH BACKGROUND */
+        .checkmark {
+          position: relative;
+          width: 44px;
+          height: 24px;
+          background-color: #e5e7eb;
+          border-radius: 999px;
+          transition: background-color 0.25s ease;
+          flex-shrink: 0;
+
+          &::before {
+            content: '';
+            position: absolute;
+            top: 3px;
+            left: 3px;
+
+            width: 18px;
+            height: 18px;
+
+            background: #fff;
+            border-radius: 50%;
+
+            transition: transform 0.25s ease;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+          }
+        }
+
+        /* ACTIVE STATE */
+        input:checked + .checkmark {
+          background-color: #D4AF37; // doré élégant
+
+          &::before {
+            transform: translateX(20px);
+          }
+        }
+
+        /* LABELS */
+        .label-text {
+          display: flex;
+          gap: 8px;
+          transition: color 0.2s ease;
+
+          .on {
+            font-weight: 600;
+            color: #999;
+          }
+
+          .off {
+            font-weight: 600;
+            color: #999;
+          }
+        }
+
+        /* ACTIVE LABEL COLORS */
+        input:checked ~ .label-text .on {
+          color: #D4AF37;
+        }
+
+        input:not(:checked) ~ .label-text .off {
+          color: #D4AF37;
+        }
+
+        /* ACCESSIBILITY */
+        input:focus-visible + .checkmark {
+          outline: 2px solid #f5d97b;
+          outline-offset: 2px;
+        }
+      }
+    }
+
+    @media (max-width: 768px) {
+      .modal-content {
+        max-width: 100%;
+      }
+
+      .form-actions {
+        flex-direction: column;
+      }
+    }

@@ -1,0 +1,469 @@
+<div class="event-detail">
+    <!-- Notification conditionnelle -->
+    <app-conditional-alert [config]="alertConfig"></app-conditional-alert>
+
+    <!-- Header -->
+    <div class="event-header">
+        <div class="container">
+            <a routerLink="/evenements" class="back-link">← Retour au tableau de bord</a>
+            <div class="header-content">
+                <div>
+                    <h1>{{ event.title }}</h1>
+                    <p>Gestion des invitations et des invités</p>
+                </div>
+                <div class="header-actions">
+                    <button class="btn btn-outline" (click)="editEvent()">✏️ Éditer</button>
+                    <button class="btn btn-outline btn-danger" (click)="openDeleteModal('delete')">🗑️ Supprimer</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main content -->
+    <div id="event-header-guide" class="container py-12 c-mgtop">
+        <div class="grid grid-main">
+            <!-- Left column - Event details and guests -->
+            <div class="left-column">
+                <!-- Event Info Card -->
+                <div id="event-details-card" class="card">
+                    <!-- Header Section -->
+                    <div class="header-section">
+                        <h1 class="title">Détails de l'événement</h1>
+                    </div>
+
+                    <div class="content-section">
+                        <!-- Date Section -->
+                        <div class="info-row">
+                        <div class="icon-container">
+                            <div class="icon-circle">
+                            <mat-icon style="color: #DAA520;">calendar_today</mat-icon>
+                            </div>
+                        </div>
+                        <div class="info-content">
+                            <p class="label">DATE</p>
+                            <p class="value-main">{{ formatDate(event.date) }}</p>
+                        </div>
+                        </div>
+
+                        <div class="divider-gold-thin"></div>
+
+                        <!-- Ceremonies Grid -->
+                        <div class="details-grid">
+                        <!-- Cérémonie Civile -->
+                        <div *ngIf="showWeddingCivilLocation" class="info-row">
+                            <div class="icon-container">
+                            <div class="icon-circle">
+                                <mat-icon style="color: #DAA520;">location_on</mat-icon>
+                            </div>
+                            </div>
+                            <div class="info-content">
+                              <p class="label">CÉRÉMONIE CIVILE</p>
+                              <p class="value-main">{{ event.civilLocation }}</p>
+                              <p class="value-sub">
+                                  <span class="time-icon">🕒</span> {{ event.time }}
+                              </p>
+                            </div>
+                        </div>
+
+                        <!-- Cérémonie Religieuse -->
+                        <div *ngIf="event.showWeddingReligiousLocation" class="info-row">
+                            <div class="icon-container">
+                            <div class="icon-circle">
+                                <mat-icon style="color: #DAA520;">church</mat-icon>
+                            </div>
+                            </div>
+                            <div class="info-content">
+                            <p class="label">CÉRÉMONIE RELIGIEUSE</p>
+                            <p class="value-main">{{ event.religiousLocation }}</p>
+                            <p class="value-sub">
+                                <span class="time-icon">🕒</span> {{ event.religiousTime }}
+                            </p>
+                            </div>
+                        </div>
+                        </div>
+
+                        <div class="divider-gold-thin"></div>
+
+                        <!-- Banquet Section -->
+                        <div class="info-row">
+                        <div class="icon-container">
+                            <div class="icon-circle">
+                            <mat-icon style="color: #DAA520;">location_on</mat-icon>
+                            </div>
+                        </div>
+                        <div class="info-content">
+                            <p class="label">
+                            {{ showWeddingCivilLocation ? 'LIEU DU BANQUET' : 'LIEU' }}
+                            </p>
+                            <p class="value-main">{{ event.location }}</p>
+                            <p class="value-sub">
+                            <span class="time-icon">🕒</span> {{ showWeddingCivilLocation ? event.banquetTime : event.time }}
+                            </p>
+                        </div>
+                        </div>
+
+                        <!-- Message Section -->
+                        <div class="message-box">
+                        <p class="label">EXTRAIT MESSAGE D'INVITATION</p>
+                        <p class="message-text">{{ event.description }}</p>
+                        </div>
+
+                        <div class="divider-gold-thin"></div>
+
+                        <!-- Actions Section -->
+                        <div class="btn-both">
+                            <button id="manage-guests-btn" class="btn btn-primary" style="width: 100%;" (click)="sendInvitations()">
+                                Gérer vos invités
+                            </button>
+                            <button id="manage-links-btn" class="btn btn-outline" style="width: 100%;" (click)="openAddLinkModal('create')">
+                                Générer le lien d'invitation
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Liens d'invitation (click)="shareEventLink(event, link)"-->
+                <div id="invitation-links-card" *ngIf="(isMobile | async)"  class="card mt-card">
+                    <h3>Liens d'invitations</h3>
+                    <p class="export-desc">Partagé le lien d'invitation a vos contact</p>
+                    <button
+                        *ngFor="let link of links"
+                        class="btn link-btn btn-outline"
+                        (click)="openAddLinkModal('partage', event, link)"
+                        >
+                        {{ getFilterLabel(link.label) }}
+                    </button>
+                </div>
+
+                <!-- Guests List *ngIf="!(isMobile | async)" -->
+                <div id="guests-list-card" class="card mt-card">
+                    <h2 class="clickable-title">
+                        Invités ({{ filteredGuests.length }})
+                    </h2>
+
+                    <!-- Search and Filter *ngIf="!(isMobile | async)" -->
+                    <div class="search-filter">
+                        <div class="search-box">
+                            <input
+                            type="text"
+                            placeholder="Rechercher par nom ou email..."
+                            [(ngModel)]="searchTerm"
+                            (ngModelChange)="filterGuests()"
+                            />
+                        </div>
+
+                        <div class="filter-buttons">
+                            <button
+                                *ngFor="let filter of filters"
+                                [class.active]="filterStatus() === filter.value"
+                                class="filter-btn"
+                                (click)="setFilterStatus(filter.value)">
+                                {{ getFilterLabel(filter.value) }}
+                            </button>
+                            <!-- <button class="btn btn-outline filter-btn" style="width: 100%;" (click)="exportCSV()">
+                                📊 Exporter en CSV
+                            </button> -->
+                            <button class=" filter-btn btn-outline" style="width: 100%;" (click)="exportPDF()">
+                                {{ loading ? '⏳ Exportation...' : '📄 Exporter en PDF' }}
+                            </button>
+                            <!-- <button class="btn btn-outline" style="width: 100%;" (click)="exportExcel()">
+                                📈 Exporter en Excel
+                            </button> -->
+                        </div>
+                    </div>
+
+                    <!-- Guests Table *ngIf="!(isMobile | async)" -->
+                    <div class="guests-table guests-grid">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Nom</th>
+                                    <th>Nom +1</th>
+                                    <th>N° Table</th>
+                                    <th>Restrictions</th>
+                                    <th>Restrictions +1</th>
+                                    <th>Statut</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr *ngFor="let guest of paginatedGuests()" [class]="'status-' + guest.status">
+                                    <td>{{ guest.name }}</td>
+                                    <td class="email">{{ guest.plusOne ? guest.plusOneName : '-' }}</td>
+                                    <td class="email">{{ guest.tableNumber || '-' }}</td>
+                                    <td class="restrictions">{{ guest.dietaryRestrictions || '-' }}</td>
+                                    <td class="restrictions">{{ guest.plusOnedietaryRestrictions || '-' }}</td>
+                                    <td>
+                                        <span class="status-badge" [class]="'status-' + guest.status">
+                                            {{ getStatusIcon(guest.status) }} {{ getStatusLabel(guest.status) }}
+                                        </span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <div *ngIf="filteredGuests.length === 0 && isScanning" class="no-guests">
+                            <p>Aucun invité trouvé</p>
+                        </div>
+                        <div *ngIf="filteredGuests.length === 0 && !isScanning" class="no-guestss">
+                            <p>L'événement n'est pas encore passé</p>
+                        </div>
+                    </div>
+
+                    <!-- Pagination Controls *ngIf="!(isMobile | async)" -->
+                    <div class="pagination">
+                        <button
+                            (click)="prevPage()"
+                            [disabled]="currentPage === 1"
+                            class="page-btn">
+                            ◀
+                        </button>
+
+                        <button
+                            *ngFor="let page of totalPagesArray()"
+                            (click)="goToPage(page)"
+                            [class.active]="page === currentPage"
+                            class="page-btn">
+                            {{ page }}
+                        </button>
+
+                        <button
+                            (click)="nextPage()"
+                            [disabled]="currentPage === totalPages"
+                            class="page-btn">
+                            ▶
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right column - Stats -->
+            <div class="right-column">
+
+                <!-- Actions 👤-->
+                <div id="quick-actions-card" class="card mt-card">
+                    <h3>Actions rapides</h3>
+                    <div class="actions-list">
+                    <button class="btn btn-outline" style="width: 100%;" (click)="openAddGuestModal()">
+                        ➕ Ajouter un invité
+                    </button>
+                    <button class="btn btn-outline" style="width: 100%;" (click)="openImportModal()">
+                        📥 Importer une liste d'invité
+                    </button>
+                    <!-- <button class="btn btn-primary" style="width: 100%;" (click)="sendReminder()">
+                        ✉️ Envoyer rappel
+                    </button> -->
+                    </div>
+                </div>
+
+                <div id="invitation-links-card" *ngIf="!(isMobile | async)"  class="card mt-card">
+                    <h3>Liens d'invitations</h3>
+                    <p class="export-desc">Partagé le lien d'invitation a vos contact</p>
+                    <button
+                        *ngFor="let link of links"
+                        class="btn link-btn btn-outline "
+                        (click)="openAddLinkModal('partage', event, link)"
+                        >
+                        {{ getFilterLabel(link.label) }}
+                    </button>
+                </div>
+                <!-- Export Options -->
+                <!-- <div *ngIf="!(isMobile | async)" class="card mt-6">
+                    <h3>Exporter</h3>
+                    <p class="export-desc">Téléchargez vos données dans différents formats</p>
+                    <div class="export-buttons">
+                        <button class="btn btn-outline" style="width: 100%;" (click)="exportCSV()">
+                            📊 Exporter en CSV
+                        </button>
+                        <button class="btn btn-outline" style="width: 100%;" (click)="exportPDF()">
+                            📄 Exporter en PDF
+                        </button>
+                        <button class="btn btn-outline" style="width: 100%;" (click)="exportExcel()">
+                            📈 Exporter en Excel
+                        </button>
+                    </div>
+                </div> -->
+
+                <!-- Quick Stats *ngIf="!(isMobile | async)" -->
+                <div id="stats-summary-card" class="card mt-card">
+                    <h3>Résumé</h3>
+
+                    <div class="stats-list">
+                    <div class="stat-item">
+                        <p class="stat-label">Total</p>
+                        <p class="stat-value">{{ event.totalGuests }}</p>
+                        <div class="progress-bar">
+                        <div class="progress-fill" style="width: 100%"></div>
+                        </div>
+                    </div>
+
+                    <div class="stat-item">
+                        <p class="stat-label confirmed">✓ Confirmés</p>
+                        <p class="stat-value">{{ event.confirmedGuests }}</p>
+                        <div class="progress-bar">
+                        <div class="progress-fill confirmed" [style.width.%]="getPercentage(event.confirmedGuests)"></div>
+                        </div>
+                    </div>
+
+                    <div class="stat-item">
+                        <p class="stat-label pending">⏳ En attente</p>
+                        <p class="stat-value">{{ event.pendingGuests }}</p>
+                        <div class="progress-bar">
+                        <div class="progress-fill pending" [style.width.%]="getPercentage(event.pendingGuests)"></div>
+                        </div>
+                    </div>
+
+                    <div class="stat-item">
+                        <p class="stat-label declined">✕ Refusés</p>
+                        <p class="stat-value">{{ event.declinedGuests }}</p>
+                        <div class="progress-bar">
+                        <div class="progress-fill declined" [style.width.%]="getPercentage(event.declinedGuests)"></div>
+                        </div>
+                    </div>
+                    </div>
+
+                    <div class="divider-gold"></div>
+
+                    <div class="response-rate">
+                    <p class="label">Taux de réponse</p>
+                    <p class="value">{{ getResponseRate() }}%</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div>
+
+  <!-- Bloc statut paiement — version avec sent_invitations -->
+  <div class="payment-status-block">
+
+    <!-- Aucun paiement -->
+    <div *ngIf="!eventPayment" class="status-banner status-none">
+      <span>⚠️ Aucun paiement enregistré</span>
+      <button class="btn btn-primary btn-sm" (click)="openPaymentModal()">
+        Payer maintenant
+      </button>
+    </div>
+
+    <!-- En attente de validation -->
+    <div *ngIf="eventPayment?.status === 'pending'" class="status-banner status-pending">
+      <span>⏳ Preuve soumise — En attente de validation admin</span>
+      <button class="btn btn-secondary btn-sm" (click)="openPaymentModal()">
+        Resoumettre une preuve
+      </button>
+    </div>
+
+    <!-- En cours de vérification -->
+    <div *ngIf="eventPayment?.status === 'under_review'" class="status-banner status-review">
+      <span>🔍 Paiement en cours de vérification par l'administrateur</span>
+    </div>
+
+    <!-- Validé — quota disponible -->
+    <div *ngIf="isQuotaFullyCovered" class="status-banner status-ok">
+      <div class="quota-info">
+        <span>✅ Paiement validé</span>
+        <!-- Compteur basé sur sent_invitations -->
+        <span class="quota-counter">
+          Invitations envoyées : <strong>{{ sentInvitations }}</strong>
+            / {{ eventPayment.total_validated_quota ?? eventPayment.quota }}
+          — Restantes : <strong>{{ invitationsRemaining }}</strong>
+        </span>
+      </div>
+    </div>
+
+    <!-- Validé — quota épuisé (sent_invitations === quota) -->
+    <div *ngIf="eventPayment?.status === 'validated' && !isQuotaFullyCovered && !needsAdditionalPayment"
+        class="status-banner status-warning">
+      <span>
+        ⚠️ Quota d'invitations épuisé
+        ({{ sentInvitations }}/{{ eventPayment.total_validated_quota ?? eventPayment.quota }})
+      </span>
+      <button class="btn btn-primary btn-sm" (click)="openPaymentModal()">
+        Augmenter le quota
+      </button>
+    </div>
+
+    <!-- Validé — quota augmenté sans nouveau paiement -->
+    <div *ngIf="needsAdditionalPayment && eventPayment?.status === 'validated'"
+        class="status-banner status-pending">
+      <span>
+        ⚠️ Quota augmenté — Nouveau paiement requis pour
+        {{ event.totalGuests - (eventPayment.total_validated_quota ?? eventPayment.quota) }} invités supplémentaires
+        ({{ (event.totalGuests - (eventPayment.total_validated_quota ?? eventPayment.quota)) * PRICE_PER_GUEST | number }} XAF)
+      </span>
+      <button class="btn btn-primary btn-sm" (click)="openPaymentModal()">
+        Payer le supplément
+      </button>
+    </div>
+
+    <!-- Rejeté -->
+    <div *ngIf="eventPayment?.status === 'rejected'" class="status-banner status-error">
+      <span>❌ Paiement rejeté</span>
+      <span *ngIf="eventPayment.rejection_reason" class="rejection-reason">
+        Motif : {{ eventPayment.rejection_reason }}
+      </span>
+      <button class="btn btn-primary btn-sm" (click)="openPaymentModal()">
+        Soumettre une nouvelle preuve
+      </button>
+    </div>
+  </div>
+
+  <!-- Modal de paiement -->
+  <app-payment-modal
+    [isOpen]="showPaymentModal"
+    [eventId]="eventId!"
+    [quota]="quotaNotPaid"
+    [amount]="quotaNotPaid * PRICE_PER_GUEST"
+    (closeEvent)="closePaymentModal()"
+    (proofSubmitted)="onProofSubmitted($event)">
+  </app-payment-modal>
+
+  <app-guest-limit-alert
+    [config]="alertConfigs"
+    [showAlert]="showGuestLimitAlert"
+    (dismissed)="onAlertDismissed()"
+    (upgradeClicked)="onUpgradeClicked()"
+    >
+  </app-guest-limit-alert>
+
+  <!-- Add Guest Modal -->
+  <app-add-guest-modal
+      *ngIf="showAddGuestModal()"
+      (guestAdded)="onGuestAdded($event)"
+      (closed)="closeAddGuestModal()"
+  ></app-add-guest-modal>
+
+  <app-link-modal
+      *ngIf="showAddLinkModal()"
+      [mode]="selectedMode"
+      [link]="linkToEdit"
+      [event]="eventToShare"
+      (linkAdded)="onLinkAdded($event)"
+      (resetLinks)="resetTabLinks()"
+      (closed)="closeAddLinkModal()"
+  ></app-link-modal>
+
+  <app-error-modal
+      [visible]="showErrorModal"
+      [message]="errorMessage"
+      (closed)="closeErrorModal()">
+  </app-error-modal>
+
+  <!-- Import Guests Modal -->
+  <app-import-guests-modal
+      *ngIf="showImportModal()"
+      (refresh)="getGuestsByEvent()"
+      (closed)="closeImportModal()"
+  ></app-import-guests-modal>
+
+  <!-- Modal de confirmation -->
+  <app-confirm-delete-modal
+      [visible]="showDeleteModal"
+      [message] = warningMessage
+      [action]="modalAction"
+      (confirmDelete)="confirmDelete()"
+      (cancel)="closeModal()">
+  </app-confirm-delete-modal>
+
+  <!-- Indicateur de chargement -->
+  <app-spinner [isLoading]="isLoading"></app-spinner>
+</div>

@@ -1,0 +1,219 @@
+<div class="contact-page">
+    <!-- Header -->
+    <div class="contact-header">
+    <div class="container">
+        <a (click)="retour()" class="back-link">← Retour</a>
+        <h1>Nous Contacter</h1>
+        <p>Nous sommes là pour vous aider. Contactez-nous pour toute question ou demande.</p>
+    </div>
+    </div>
+
+    <!-- Main content -->
+    <div class="container py-12">
+    <div class="contact-wrapper">
+        <!-- Contact Form -->
+        <div class="contact-form-section">
+        <h2>Envoyez-nous un message</h2>
+        <form (ngSubmit)="onSubmit()" #contactForm="ngForm">
+            <div class="form-group">
+            <label for="name">Nom complet *</label>
+            <input
+                type="text"
+                id="name"
+                name="name"
+                [(ngModel)]="formData.name"
+                placeholder="Will"
+                required
+                class="form-input"
+            />
+            </div>
+
+            <div class="form-group">
+            <label for="email">Adresse email *</label>
+            <input
+                type="email"
+                id="email"
+                name="email"
+                [(ngModel)]="formData.email"
+                placeholder="will@example.com"
+                required
+                class="form-input"
+            />
+            </div>
+
+            <div class="form-group">
+            <label for="phone">Téléphone</label>
+            <input
+                type="tel"
+                id="phone"
+                name="phone"
+                [(ngModel)]="formData.phone"
+                placeholder="+237 6 52 34 56 78"
+                class="form-input"
+            />
+            </div>
+
+            <div class="form-group">
+            <label for="subject">Sujet *</label>
+            <select
+                id="subject"
+                name="subject"
+                [(ngModel)]="formData.subject"
+                required
+                class="form-select"
+            >
+                <option value="">Sélectionnez un sujet</option>
+                <option value="support">Support technique</option>
+                <option value="sales">Demande commerciale</option>
+                <option value="partnership">Partenariat</option>
+                <option value="feedback">Retour d'expérience</option>
+                <option value="other">Autre</option>
+            </select>
+            </div>
+
+            <div class="form-group">
+            <label for="message">Message *</label>
+            <textarea
+                id="message"
+                name="message"
+                [(ngModel)]="formData.message"
+                placeholder="Décrivez votre demande..."
+                rows="6"
+                required
+                class="form-textarea"
+            ></textarea>
+            </div>
+
+            <div class="form-group checkbox-group checkbox-text">
+                <label class="custom-checkbox">
+                    <input
+                    type="checkbox"
+                    name="newsletter"
+                    [(ngModel)]="formData.newsletter"
+                    />
+                    <span class="checkmark"></span>
+                    <span class="label-text">
+                        Je souhaite recevoir les actualités de Smart Invite
+                    </span>
+                </label>
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="width: 100%;" [disabled]="!contactForm.valid">
+            {{ loading ? '⏳ Encoie en cours...' : '✓ Envoyer le message' }}
+            </button>
+        </form>
+
+        <div *ngIf="submitSuccess()" class="success-message">
+            ✓ Merci ! Votre message a été envoyé avec succès. Nous vous répondrons dans les 24 heures.
+        </div>
+        <div *ngIf="submitError()" class="error-message">
+            ❌ Désolé! Une erreur est survenue. Veuillez réessayer plutart.
+        </div>
+        </div>
+
+        <!-- Contact Info -->
+        <div class="contact-info-section">
+        <h2>Autres moyens de nous contacter</h2>
+
+        <!-- Email -->
+        <div class="contact-info-card">
+            <div class="info-icon">📧</div>
+            <h3>Email</h3>
+            <p>{{addressMail}}</p>
+            <p class="info-text">Réponse en moins de 24 heures</p>
+        </div>
+
+        <!-- Phone -->
+        <div class="contact-info-card">
+            <div class="info-icon">📱</div>
+            <h3>Téléphone</h3>
+            <p>{{telephone}}</p>
+            <p class="info-text">Lun-Ven : 9h-18h (GMT+1)</p>
+        </div>
+
+        <!-- Live Chat -->
+        <!-- <div class="contact-info-card">
+            <div class="info-icon">💬</div>
+            <h3>Chat en direct</h3>
+            <p>Disponible 24/7</p>
+            <button class="btn btn-outline" style="width: 100%; margin-top: 1rem;">
+            Ouvrir le chat
+            </button>
+        </div> -->
+
+        <!-- Address -->
+        <!-- <div class="contact-info-card">
+            <div class="info-icon">📍</div>
+            <h3>Adresse</h3>
+            <p>123 Avenue des Champs-Élysées</p>
+            <p>75008 Paris, France</p>
+        </div> -->
+
+        <!-- Social Media -->
+        <!-- <div class="contact-info-card">
+            <div class="info-icon">🌐</div>
+            <h3>Réseaux sociaux</h3>
+            <div class="social-links">
+            <a href="#" class="social-link">Facebook</a>
+            <a href="#" class="social-link">Twitter</a>
+            <a href="#" class="social-link">Instagram</a>
+            <a href="#" class="social-link">LinkedIn</a>
+            </div>
+        </div> -->
+
+        <!-- FAQ Link -->
+        <!-- <div class="contact-info-card">
+            <div class="info-icon">❓</div>
+            <h3>Besoin d'aide ?</h3>
+            <p>Consultez notre FAQ pour des réponses rapides</p>
+            <button class="btn btn-outline" style="width: 100%; margin-top: 1rem;">
+            Voir la FAQ
+            </button>
+        </div> -->
+        </div>
+    </div>
+
+    <!-- Map Section -->
+    <!-- <div class="map-section">
+        <h2>Nous trouver</h2>
+        <div class="map-container">
+        <iframe
+            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2624.9916256814156!2d2.3068137!3d48.8693!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x47e66fec0b5a5555%3A0x1234567890abcdef!2s123%20Avenue%20des%20Champs-%C3%89lys%C3%A9es%2C%2075008%20Paris!5e0!3m2!1sfr!2sfr!4v1234567890"
+            width="100%"
+            height="400"
+            style="border: 0; border-radius: 0.75rem;"
+            allowfullscreen=""
+            loading="lazy"
+            referrerpolicy="no-referrer-when-downgrade"
+        ></iframe>
+        </div>
+    </div> -->
+
+    <!-- FAQ Section -->
+    <div class="faq-section">
+        <h2>Questions Fréquemment Posées</h2>
+        <div class="faq-grid">
+        <div class="faq-item">
+            <h4>Quel est le délai de réponse ?</h4>
+            <p>Nous répondons à tous les messages en moins de 24 heures, généralement bien plus vite.</p>
+        </div>
+
+        <div class="faq-item">
+            <h4>Proposez-vous un support technique ?</h4>
+            <p>Oui, nous offrons un support technique complet pour tous les plans payants.</p>
+        </div>
+
+        <div class="faq-item">
+            <h4>Comment puis-je signaler un bug ?</h4>
+            <p>Vous pouvez nous contacter par email ou via le formulaire ci-dessus avec les détails du bug.</p>
+        </div>
+
+        <!-- <div class="faq-item">
+            <h4>Proposez-vous des formations ?</h4>
+            <p>Oui, nous proposons des formations gratuites pour les utilisateurs des plans Entreprise.</p>
+        </div> -->
+        </div>
+    </div>
+    </div>
+</div>
+<!-- <app-footer></app-footer> -->

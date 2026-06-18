@@ -1,0 +1,204 @@
+<div class="home">
+      <!-- Hero Section -->
+      <section id="accueil" class="hero">
+        <div class="container">
+          <div class="grid c-grid grid-2">
+            <!-- Left content -->
+            <div class="hero-content">
+              <h1 class="title-size">
+                Célébrez votre
+                <span class="text-gold"> moment magique</span>
+              </h1>
+              <p class="text-size">
+                Smart Invite rend la gestion de vos invitations de mariage simple, élégante et mémorable. 
+                Créez, partagez et suivez vos invitations en quelques clics.
+              </p>
+              <div *ngIf="!(isMobile | async)" class="hero-buttons">
+                <button class="btn btn-primary btn-align" (click)="navigateToLogin()">
+                  🚀Commencer maintenant
+                </button>
+              </div>
+            </div>
+
+            <!-- Right side - Image Commencer maintenant → -->
+            <div class="hero-image">
+              <img src="img/wedding-theme.jpg" alt="Wedding theme" />
+            </div>
+            <div *ngIf="isMobile | async" class="hero-buttons">
+                <button class="btn btn-primary btn-align" (click)="navigateToLogin()">
+                  🚀Commencer maintenant
+                </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Features Section -->
+      <section id="features" class="features py-12">
+        <div class="container">
+          <div class="section-header">
+            <h2>Tout ce dont vous avez besoin</h2>
+            <p>Une solution complète pour gérer vos invitations de mariage avec élégance et facilité.</p>
+          </div>        
+
+          <div class="grid grid-3">
+            <div class="card">
+              <div class="feature-icon">
+                <mat-icon style="color: #DAA520;">qr_code</mat-icon>
+              </div>
+              <h3>Créer facilement</h3>
+              <p>Générez des invitations en code QR uniques, en un seul clic pour un invité ou pour plusieurs invités à la fois.</p>
+            </div>
+
+            <div class="card">
+              <div class="feature-icon">
+                <mat-icon style="color: #DAA520;">share</mat-icon>
+              </div>
+
+              <h3>Invitations par lien partageable</h3>
+
+              <p>
+                Générer des liens d’invitation à usage limité.  
+                Ces liens peuvent être :
+              </p>
+              <p>- Single (1 personne)</p>
+              <p>- Couple (invité + accompagnant)</p>
+            </div>
+
+            <div class="card">
+              <div class="feature-icon">
+                <mat-icon style="color: #DAA520;">group</mat-icon>
+              </div>
+              <h3>Gestion des invités</h3>
+              <p>Importez ou gérez les listes d'invités et attribuez les tables sans effort en cas de confirmation.</p>
+              <!-- <p>Suivez les confirmations, les refus et les préférences alimentaires de tous vos invités en un seul endroit.</p> -->
+            </div>
+
+            <!-- <div class="card">
+              <div class="feature-icon">
+                <mat-icon style="color: #DAA520;">calendar_today</mat-icon>
+              </div>
+              <h3>Planifier parfaitement</h3>
+              <p>Organisez chaque aspect de votre mariage avec nos outils de planification intuitifs et complets.</p>
+            </div>
+
+            <div class="card">
+              <div class="feature-icon">
+                <mat-icon style="color: #DAA520;">auto_awesome</mat-icon>
+              </div>
+              <h3>Design élégant</h3>
+              <p>Des invitations magnifiques et modernes qui reflètent votre style personnel et votre amour.</p>
+            </div> -->
+
+            <div class="card">
+              <div class="feature-icon">
+                <mat-icon style="color:#DAA520;">notifications_active</mat-icon>
+              </div>
+              <h3>Suivi en temps réel</h3>
+              <p>Recevez des notifications instantanées quand vos invités répondent à vos invitations.</p>
+            </div>
+
+            <div class="card">
+              <div class="feature-icon">
+                <mat-icon style="color:#DAA520;">qr_code_scanner</mat-icon>
+              </div>
+              <h3>Scanner de Code QR</h3>
+              <p>Scannez les codes QR de vos invitations pour un contrôle d’accès rapide, sécurisé et sans erreur le jour de l’événement.</p>
+            </div>
+
+            <div class="card">
+              <!-- <div class="feature-icon">💍</div> -->
+              <div class="feature-icon">
+                <mat-icon style="color: #DAA520;">support_agent</mat-icon>
+              </div>
+              <h3>Support complet</h3>
+              <p>Notre équipe est toujours disponible pour vous accompagner.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- How it works -->
+      <section class="how-it-works py-12">
+        <div class="container">
+          <div class="section-header">
+            <h2>Comment ça marche</h2>
+            <p>Trois étapes simples pour créer vos invitations parfaites</p>
+          </div>
+
+          <div class="grid grid-3">
+            <div class="step">
+              <div class="step-number">1</div>
+              <h3>Créer un événement</h3>
+              <p>Remplissez les détails de votre mariage et ajoutez vos invités.</p>
+            </div>
+
+            <div class="step">
+              <div class="step-number">2</div>
+              <h3>Inviter vos proches</h3>
+              <p>Partagez vos invitations par email ou lien. Vos invités peuvent répondre en ligne.</p>
+            </div>
+
+            <div class="step">
+              <div class="step-number">3</div>
+              <h3>Suivre les réponses</h3>
+              <p>Consultez votre tableau de bord pour voir qui a confirmé et gérer tous les détails.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- CTA Section -->
+      <section class="cta gradient-gold">
+        <div class="container">
+          <div class="cta-content">
+            <h2>Prêt à commencer ?</h2>
+            <p>Créez vos invitations magnifiques dès aujourd'hui et rendez votre mariage inoubliable.</p>
+            <button class="btn btn-secondary" (click)="navigateToSignup()">
+              Créer mon compte →
+            </button>
+          </div>
+        </div>
+      </section>
+
+    <!-- Bandeau stats -->
+    <div class="footer-stats">
+      <div class="footer-stat">
+        <span class="footer-stat-number">{{ totalVisitors | number }}</span>
+        <span class="footer-stat-label">Visiteurs par jour en moyenne</span>
+      </div>
+      <div class="footer-stat-divider"></div>
+      <div class="footer-stat">
+        <span class="footer-stat-number">{{ totalUsers | number }}+</span>
+        <span class="footer-stat-label">Utilisateurs nous font confiance</span>
+      </div>
+      <div class="footer-stat-divider"></div>
+      <div class="footer-stat">
+        <span class="footer-stat-number">100%</span>
+        <span class="footer-stat-label">Dédié à vos événements</span>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <div class="container">
+        <div class="grid grid-2">
+          <div>
+            <h3>Smart Invite</h3>
+            <p>Créez des invitations magnifiques pour votre mariage.</p>
+          </div>
+          <div>
+            <h4>Liens rapides</h4>
+            <ul>
+              <li><a (click)="navigateToHome()">Fonctionnalités</a></li>
+              <li><a (click)="navigateToPricing()">Tarifs</a></li>
+              <li><a (click)="navigateToContact()">Contact</a></li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="divider-gold"></div>
+        <p class="footer-text">&copy; 2026 Smart Invite. Tous droits réservés. 💍</p>
+      </div>
+    </footer>
+    </div>

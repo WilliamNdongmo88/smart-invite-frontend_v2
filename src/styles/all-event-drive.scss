@@ -1,0 +1,325 @@
+// ============================================================
+//  Smart Invite — Tour Shepherd.js  |  Premium UI
+// ============================================================
+//  Identité visuelle : Cormorant Garamond + Lato, gold #D4AF37
+// ============================================================
+@use "sass:color";
+// ─── Variables ───────────────────────────────────────────────
+$gold:         #D4AF37;
+$gold-dark:    #b8941f;
+$gold-light:   #F4E4C1;
+$gold-glow:    rgba(212, 175, 55, 0.45);
+$overlay:      rgba(10, 10, 20, 0.82);
+$surface:      #ffffff;
+$surface-2:    #fafaf8;
+$text-heading: #111827;
+$text-body:    #4b5563;
+$text-muted:   #9ca3af;
+$radius-card:  20px;
+$radius-btn:   10px;
+$font-serif:   'Cormorant Garamond', serif;
+$font-sans:    'Lato', sans-serif;
+
+// ─── Overlay ─────────────────────────────────────────────────
+.shepherd-modal-overlay-container {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 9900 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+
+  path {
+    fill: $overlay !important;
+  }
+}
+
+// ─── Cible mise en valeur ────────────────────────────────────
+.shepherd-target.shepherd-enabled {
+  position: relative !important;
+  z-index: 9999 !important;
+  border-radius: 14px !important;
+  outline: none !important;
+  animation: targetPulse 2.4s ease-in-out infinite;
+}
+
+@keyframes targetPulse {
+  0%   { box-shadow: 0 0 0 3px $gold, 0 0 0 6px rgba($gold, .25), 0 0 20px rgba($gold, .2); }
+  50%  { box-shadow: 0 0 0 4px $gold, 0 0 0 12px rgba($gold, .18), 0 0 40px rgba($gold, .4); }
+  100% { box-shadow: 0 0 0 3px $gold, 0 0 0 6px rgba($gold, .25), 0 0 20px rgba($gold, .2); }
+}
+
+// ─── Popup (shepherd-element) ─────────────────────────────────
+.shepherd-element {
+  z-index: 10000 !important;
+  max-width: 440px !important;
+  width: 440px !important;
+  border: none !important;
+  border-radius: $radius-card !important;
+  overflow: visible !important;  // visible pour que la flèche ne soit pas coupée
+  background: $surface !important;
+  box-shadow:
+    0 4px 6px rgba(0,0,0,.04),
+    0 12px 32px rgba(0,0,0,.12),
+    0 40px 80px rgba(0,0,0,.1) !important;
+  animation: popIn .28s cubic-bezier(.34,1.56,.64,1) both;
+
+  // Masque les coins arrondis uniquement sur le contenu interne
+  .shepherd-content {
+    border-radius: $radius-card;
+    overflow: hidden;
+  }
+}
+
+@keyframes popIn {
+  from { opacity: 0; transform: scale(.92) translateY(8px); }
+  to   { opacity: 1; transform: scale(1)  translateY(0); }
+}
+
+// ─── Flèche ───────────────────────────────────────────────────
+// La flèche pointe VERS l'élément cible.
+// Sa couleur doit correspondre à la face du popup visible côté cible.
+// Quand le popup est en bas  → flèche en haut  → couleur du header (dark)
+// Quand le popup est en haut → flèche en bas   → couleur du footer (white)
+// Shepherd.js gère la direction via [data-popper-placement]
+
+.shepherd-arrow {
+  z-index: 1 !important;
+
+  &::before {
+    width: 16px !important;
+    height: 16px !important;
+    border-radius: 3px !important;
+  }
+}
+
+// Popup EN DESSOUS de la cible → flèche pointe vers le HAUT → couleur header dark
+.shepherd-element[data-popper-placement^='bottom'] .shepherd-arrow::before {
+  background: #1a1a1a !important;
+  box-shadow: -2px -2px 4px rgba(0,0,0,.15) !important;
+}
+
+// Popup AU DESSUS de la cible → flèche pointe vers le BAS → couleur footer white
+.shepherd-element[data-popper-placement^='top'] .shepherd-arrow::before {
+  background: $surface !important;
+  box-shadow: 2px 2px 4px rgba(0,0,0,.08) !important;
+}
+
+// Popup À DROITE de la cible → flèche pointe vers la GAUCHE → couleur header dark
+.shepherd-element[data-popper-placement^='right'] .shepherd-arrow::before {
+  background: #1a1a1a !important;
+  box-shadow: -2px 2px 4px rgba(0,0,0,.12) !important;
+}
+
+// Popup À GAUCHE de la cible → flèche pointe vers la DROITE → couleur header dark
+.shepherd-element[data-popper-placement^='left'] .shepherd-arrow::before {
+  background: #1a1a1a !important;
+  box-shadow: 2px -2px 4px rgba(0,0,0,.12) !important;
+}
+
+// ─── Header ───────────────────────────────────────────────────
+.shepherd-header {
+  display: flex !important;
+  align-items: flex-start !important;
+  gap: 14px !important;
+  padding: 22px 22px 18px !important;
+  background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%) !important;
+  position: relative;
+
+  // Accent doré en bas du header
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 22px;
+    right: 22px;
+    height: 2px;
+    background: linear-gradient(90deg, $gold, transparent);
+    border-radius: 2px;
+  }
+}
+
+// ─── Icône du header ─────────────────────────────────────────
+.shepherd-header-icon {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, $gold, $gold-dark);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba($gold, .35);
+
+  svg { width: 20px; height: 20px; color: #fff; }
+}
+
+// ─── Titre ────────────────────────────────────────────────────
+.shepherd-title {
+  flex: 1;
+  font-family: $font-serif !important;
+  font-size: 1.25rem !important;
+  font-weight: 600 !important;
+  letter-spacing: -0.01em !important;
+  line-height: 1.3 !important;
+  color: #ffffff !important;
+  margin: 0 !important;
+  padding-top: 2px;
+}
+
+// ─── Bouton fermeture ─────────────────────────────────────────
+.shepherd-cancel-icon {
+  position: relative !important;
+  inset: auto !important;
+  transform: none !important;
+  flex-shrink: 0;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 32px !important;
+  height: 32px !important;
+  border-radius: 8px !important;
+  background: rgba(255,255,255,.1) !important;
+  color: rgba(255,255,255,.7) !important;
+  font-size: 16px !important;
+  font-weight: 400 !important;
+  cursor: pointer !important;
+  transition: background .2s ease, color .2s ease, transform .15s ease;
+  margin-top: 4px;
+
+  &:hover {
+    background: rgba(255,255,255,.2) !important;
+    color: #fff !important;
+    transform: scale(1.08) !important;
+  }
+
+  &:active { transform: scale(.94) !important; }
+}
+
+// ─── Corps (texte + progression) ─────────────────────────────
+.shepherd-text {
+  padding: 20px 22px 0 !important;
+  font-family: $font-sans !important;
+  font-size: 14.5px !important;
+  line-height: 1.75 !important;
+  color: $text-body !important;
+  background: $surface !important;
+
+  // Indicateur de progression injecté via les services
+  .tour-progress {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 14px;
+
+    .tour-step-badge {
+      font-family: $font-sans;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      color: $gold-dark;
+      background: $gold-light;
+      padding: 2px 9px;
+      border-radius: 20px;
+      white-space: nowrap;
+    }
+
+    .tour-progress-bar {
+      flex: 1;
+      height: 4px;
+      background: #f0ece0;
+      border-radius: 4px;
+      overflow: hidden;
+
+      .tour-progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, $gold, $gold-dark);
+        border-radius: 4px;
+        transition: width .5s cubic-bezier(.4,0,.2,1);
+      }
+    }
+  }
+
+  // Texte principal
+  .tour-description {
+    color: $text-body;
+    line-height: 1.75;
+  }
+}
+
+// ─── Footer ──────────────────────────────────────────────────
+.shepherd-footer {
+  display: flex !important;
+  justify-content: flex-end !important;
+  gap: 8px !important;
+  padding: 16px 22px 20px !important;
+  background: $surface !important;
+}
+
+// ─── Bouton principal (Suivant / Terminer) ────────────────────
+.shepherd-button {
+  font-family: $font-sans !important;
+  font-size: 13.5px !important;
+  font-weight: 600 !important;
+  border: none !important;
+  border-radius: $radius-btn !important;
+  padding: 9px 20px !important;
+  cursor: pointer !important;
+  transition: transform .15s ease, box-shadow .2s ease, background .2s ease !important;
+
+  // Bouton primaire (dernier / suivant)
+  background: linear-gradient(135deg, $gold 0%, $gold-dark 100%) !important;
+  color: #1a1a1a !important;
+  box-shadow: 0 2px 8px rgba($gold, .3) !important;
+
+  &:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 6px 18px rgba($gold, .45) !important;
+    background: linear-gradient(135deg, color.adjust($gold, $lightness: 4%) 0%, $gold 100%) !important;
+  }
+
+  &:active { transform: translateY(0) !important; }
+}
+
+// ─── Bouton secondaire (Précédent) ───────────────────────────
+.shepherd-button-secondary {
+  background: transparent !important;
+  color: $text-body !important;
+  box-shadow: none !important;
+  border: 1.5px solid #e5e7eb !important;
+
+  &:hover {
+    background: #f9fafb !important;
+    border-color: #d1d5db !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 2px 6px rgba(0,0,0,.06) !important;
+  }
+}
+
+// ─── Responsive ──────────────────────────────────────────────
+@media (max-width: 768px) {
+  .shepherd-element {
+    // width non fixé : Popper gère le placement — on borne juste la largeur max
+    max-width: min(340px, calc(100vw - 24px)) !important;
+    width: auto !important;
+    border-radius: 16px !important;
+  }
+
+  .shepherd-title { font-size: 1.1rem !important; }
+
+  .shepherd-text  { font-size: 13.5px !important; }
+
+  .shepherd-header { padding: 18px 16px 14px !important; }
+
+  .shepherd-footer { padding: 12px 16px 16px !important; }
+
+  .shepherd-text  { padding: 16px 16px 0 !important; }
+}
+
+@media (max-width: 480px) {
+  .shepherd-footer {
+    flex-direction: column-reverse !important;
+
+    .shepherd-button { width: 100%; justify-content: center; }
+  }
+}

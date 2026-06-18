@@ -1,0 +1,136 @@
+<div class="dashboard">
+  <!-- Header -->
+  <div class="dashboard-header">
+    <div class="container c-container">
+      <div class="header-content">
+        <div>
+          <h1>Mes événements</h1>
+          <p>Bienvenue ! Gérez vos événements et invitations.</p>
+        </div>
+        <!-- affichage desktop -->
+        <button id="btn-create" class="btn btn-primary c-mtop" *ngIf="!(isMobile | async)" (click)="openEventDialog()">+ Nouvel événement</button>
+        <!-- affichage mobile -->
+        <button id="btn-create" class="btn btn-primary c-mtop" *ngIf="(isMobile | async)" (click)="openEventDialog()">
+          <span class="icon-add">+ Ajouter</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Indicateur de chargement -->
+  <app-spinner [isLoading]="isLoading"></app-spinner>
+
+  <!-- Main content -->
+  <div class="container c-container py-12">
+
+    <!-- Stats Overview -->
+    <div id="stats-section" class="grid grid-4 mt-8">
+      <div class="stat-card">
+        <div class="stat-header">
+          <p class="stat-label">Événements</p>
+          <span class="stat-icon">
+            <mat-icon style="color: #DAA520;">calendar_today</mat-icon>
+          </span>
+        </div>
+        <p class="stat-value">{{ events.length }}</p>
+        <p class="stat-subtitle">En cours</p>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-header">
+          <p class="stat-label">Total invités</p>
+          <span class="stat-icon">
+            <mat-icon style="color: #DAA520;">people</mat-icon>
+          </span>
+        </div>
+        <p class="stat-value">{{ getTotalGuests() }}</p>
+        <p class="stat-subtitle">Tous les événements</p>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-header">
+          <p class="stat-label">Confirmés</p>
+          <span class="stat-icon">
+            <mat-icon style="color: #6cdf92;">check_circle</mat-icon>
+          </span>
+        </div>
+        <p class="stat-value">{{ getTotalConfirmed() }}</p>
+        <p class="stat-subtitle">Réponses positives</p>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-header">
+          <p class="stat-label">En attente</p>
+          <span class="stat-icon">⏳</span>
+        </div>
+        <p class="stat-value">{{ getTotalPending() }}</p>
+        <p class="stat-subtitle">Réponses attendues</p>
+      </div>
+    </div>
+
+    <!-- Events List -->
+    <div class="mt-8 c-mt">
+      <!-- <h2 *ngIf="events.length > 0" class="c-ml">Vos événements</h2> -->
+
+      <div id="events-list" class="events-list">
+        <div *ngFor="let event of events" class="event-card card">
+          <div class="event-header" (click)="navigateToEventDetails(event.id)">
+            <div>
+              <h3>{{ event.title }}</h3>
+              <div class="detail-item c-mb">
+                <mat-icon style="color: #DAA520;">calendar_today</mat-icon>
+                <p class="event-meta">{{ formatDate(event.date) }}</p>
+              </div>
+              <div class="detail-item">
+                <mat-icon style="color: #DAA520;">location_on</mat-icon>
+                <p class="event-meta">{{ event.location }}</p>
+              </div>
+            </div>
+            <div class="event-actions">
+              <button class="btn btn-outline" (click)="navigateToInvitePage(event.id)">✉️ Inviter</button>
+              <button class="btn btn-outline" (click)="editEvent(event.id)">✏️ Éditer</button>
+            </div>
+          </div>
+
+          <div class="event-stats" (click)="navigateToEventDetails(event.id)">
+            <div class="stat-box">
+              <p class="label">Total</p>
+              <p class="value">{{ event.totalGuests }}</p>
+            </div>
+            <div class="stat-box confirmed">
+              <p class="label">Confirmés</p>
+              <p class="value">{{ event.confirmedGuests }}</p>
+            </div>
+            <div class="stat-box pending">
+              <p class="label">En attente</p>
+              <p class="value">{{ event.pendingGuests }}</p>
+            </div>
+            <div class="stat-box declined">
+              <p class="label">Refusés</p>
+              <p class="value">{{ event.declinedGuests }}</p>
+            </div>
+          </div>
+
+          <div class="progress-bar">
+            <div class="progress-label">
+              <span>Taux de réponse</span>
+              <span>{{ getResponseRate(event) }}%</span>
+            </div>
+            <div class="progress">
+              <div class="progress-fill" [style.width.%]="getResponseRate(event)"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Empty State -->
+    <div *ngIf="events.length === 0" class="empty-state">
+        <h3>Aucun événement trouvé</h3>
+        <button class="btn btn-primary" (click)="openEventDialog()">
+        + Nouvel événement
+        </button>
+    </div>
+  </div>
+</div>
+<!-- <app-footer></app-footer> -->

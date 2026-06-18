@@ -1,0 +1,60 @@
+{
+  "eventDatas": [
+    {
+      "organizerId": 2,
+      "title": "Mariage de Julie et Mark",
+      "type": "wedding",
+      "status": "active",
+
+      "description": "C'est avec un immense bonheur que nous vous invitons à célébrer notre union. Votre présence à nos côtés rendra cette journée inoubliable.",
+
+      "eventDate": "2026-05-29 11:00:00",
+
+      "eventNameConcerned1": "Mark",
+      "eventNameConcerned2": "Julie",
+
+      "eventCivilLocation": "Hotel de ville de Bafoussam",
+      "religiousLocation": "Eglise evangelique de Bafoussam",
+      "eventLocation": "Palais des fêtes de Bafoussam",
+
+      "religiousTime": "15:30",
+      "banquetTime": "21:30",
+
+      "showWeddingReligiousLocation": true,
+
+      "maxGuests": 50,
+      "hasPlusOne": false,
+      "footRestriction": false,
+
+      "budget": 0
+    }
+  ],
+
+  "eventInvitationNote": {
+    "invTitle": "L'ETTRE D'INVITATION",
+
+    "mainMessage": "C'est avec un immense bonheur que nous vous invitons à célébrer notre union. Votre présence à nos côtés rendra cette journée inoubliable.",
+
+    "eventTheme": "CHIC ET GLAMOUR",
+    "priorityColors": "Bleu, Blanc, Rouge, Noir",
+
+    "sousMainMessage": "Mini réception à la sortie de la mairie directement après la célébration de l'union par Mr le Maire.",
+
+    "dressCodeMessage": "Merci de respecter les couleurs vestimentaires choisies.",
+
+    "qrInstructions": "Prière de vous présenter uniquement avec votre code QR pour faciliter votre accueil.",
+
+    "closingMessage": "Votre présence illuminera ce jour si spécial pour nous.",
+    "thanksMessage1": "Merci pour votre compréhension.",
+
+    "hasInvitationModelCard": false,
+
+    "logoUrl": "img/logo.png",
+    "heartIconUrl": "img/heart.png",
+
+    "topBandColor": "#ffffff",
+    "bottomBandColor": "#e8d817",
+    "titleColor": "#b58b63",
+    "textColor": "#444444"
+  }
+}

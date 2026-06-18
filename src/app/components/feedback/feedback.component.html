@@ -1,0 +1,275 @@
+<div class="feedback-page">
+    <!-- Header -->
+    <div class="feedback-header">
+    <div class="container">
+        <a routerLink="/dashboard" class="back-link">← Retour</a>
+        <h1>Retour d'Impression Utilisateur</h1>
+        <p>Aidez-nous à améliorer Smart Invite</p>
+    </div>
+    </div>
+
+    <!-- Main content -->
+    <div class="container py-12">
+    <div class="feedback-wrapper">
+        <!-- Stats Section -->
+        <div class="stats-section">
+        <div class="stats-card">
+            <h2>Statistiques</h2>
+
+            <div class="stat-item">
+            <span class="stat-label">Total de retours</span>
+            <span class="stat-value">{{ feedbackStats.totalFeedback }}</span>
+            </div>
+
+            <div class="stat-item">
+            <span class="stat-label">Note moyenne</span>
+            <div class="rating-display">
+                <span class="rating-number">{{ (feedbackStats.averageRating) | number:'1.1-1' }}</span>
+                <div class="stars-display">
+                <span *ngFor="let i of [1,2,3,4,5]" class="star" [class.filled]="i <= Math.round(feedbackStats.averageRating)">
+                    ★
+                </span>
+                </div>
+            </div>
+            </div>
+
+            <div class="stat-item">
+            <span class="stat-label">Distribution des notes</span>
+            <div class="rating-distribution">
+                <div *ngFor="let rating of [5,4,3,2,1]" class="distribution-row">
+                <span class="rating-label">{{ rating }} ★</span>
+                <div class="distribution-bar">
+                    <div class="bar-fill" [style.width]="(feedbackStats.ratingDistribution[rating] / feedbackStats.totalFeedback * 100) + '%'"></div>
+                </div>
+                <span class="count">{{ feedbackStats.ratingDistribution[rating] }}</span>
+                </div>
+            </div>
+            </div>
+
+            <div class="stat-item">
+            <span class="stat-label">Catégories principales</span>
+            <div class="category-list">
+                <div *ngFor="let cat of getCategoryList()" class="category-item">
+                <span class="category-name">{{ cat.name }}</span>
+                <span class="category-count">{{ cat.count }}</span>
+                </div>
+            </div>
+            </div>
+        </div>
+        </div>
+
+        <!-- Feedback Form Section -->
+        <div class="form-section">
+        <div class="form-card">
+            <h2>Partager votre avis</h2>
+            <p class="form-subtitle">Votre retour nous aide à améliorer Smart Invite</p>
+
+            <!-- Step indicator -->
+            <div class="step-indicator">
+            <div [class.active]="currentStep === 1" class="step">
+                <span class="step-number">1</span>
+                <span class="step-label">Note</span>
+            </div>
+            <div class="step-line"></div>
+            <div [class.active]="currentStep === 2" class="step">
+                <span class="step-number">2</span>
+                <span class="step-label">Détails</span>
+            </div>
+            <div class="step-line"></div>
+            <div [class.active]="currentStep === 3" class="step">
+                <span class="step-number">3</span>
+                <span class="step-label">Confirmation</span>
+            </div>
+            </div>
+
+            <!-- Step 1: Rating -->
+            <div *ngIf="currentStep === 1" class="form-step">
+            <h3>Comment évaluez-vous votre expérience ?</h3>
+
+            <div class="rating-section">
+                <div class="rating-input">
+                <div class="stars-input">
+                    <button
+                    *ngFor="let i of [1,2,3,4,5]"
+                    (click)="setRating(i)"
+                    (mouseover)="hoverRating = i"
+                    (mouseleave)="hoverRating = 0"
+                    class="star-btn"
+                    [class.filled]="i <= (hoverRating || feedback.rating)"
+                    [class.half]="false"
+                    >
+                    ★
+                    </button>
+                </div>
+                <p class="rating-text">
+                    {{ getRatingText(hoverRating || feedback.rating) }}
+                </p>
+                </div>
+
+                <div class="quick-reactions">
+                <p>Ou choisissez rapidement :</p>
+                <div class="reaction-buttons">
+                    <button (click)="setRating(1)" class="reaction-btn">😞 Mauvais</button>
+                    <button (click)="setRating(2)" class="reaction-btn">😕 Moyen</button>
+                    <button (click)="setRating(3)" class="reaction-btn">😐 Acceptable</button>
+                    <button (click)="setRating(4)" class="reaction-btn">😊 Bon</button>
+                    <button (click)="setRating(5)" class="reaction-btn">😍 Excellent</button>
+                </div>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button class="btn btn-primary" (click)="nextStep()" [disabled]="feedback.rating === 0">
+                Suivant →
+                </button>
+            </div>
+            </div>
+
+            <!-- Step 2: Details -->
+            <div *ngIf="currentStep === 2" class="form-step">
+            <h3>Parlez-nous de votre expérience</h3>
+
+            <div class="form-group">
+                <label>Catégorie *</label>
+                <select [(ngModel)]="feedback.category" class="form-select">
+                <option value="feature">Demande de fonctionnalité</option>
+                <option value="design">Design et interface</option>
+                <option value="performance">Performance et vitesse</option>
+                <option value="support">Support client</option>
+                <option value="other">Autre</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Titre *</label>
+                <input
+                type="text"
+                [(ngModel)]="feedback.title"
+                placeholder="Ex: Amélioration de la recherche"
+                class="form-input"
+                maxlength="100"
+                />
+                <p class="char-count">{{ feedback.title.length }}/100</p>
+            </div>
+
+            <div class="form-group">
+                <label>Votre message *</label>
+                <textarea
+                [(ngModel)]="feedback.message"
+                placeholder="Décrivez votre expérience en détail..."
+                class="form-textarea"
+                maxlength="1000"
+                ></textarea>
+                <p class="char-count">{{ feedback.message.length }}/1000</p>
+            </div>
+
+            <div class="form-group">
+                <label>Email (optionnel)</label>
+                <input
+                type="email"
+                [(ngModel)]="feedback.email"
+                placeholder="votre@email.com"
+                class="form-input review-value"
+                [class.disabled]="feedback.email"
+                />
+                <p class="help-text">Pour que nous puissions vous contacter si besoin</p>
+            </div>
+
+            <div class="form-actions">
+                <button class="btn btn-outline" (click)="previousStep()">
+                ← Précédent
+                </button>
+                <button class="btn btn-primary" (click)="nextStep()" [disabled]="!feedback.title || !feedback.message">
+                Suivant →
+                </button>
+            </div>
+            </div>
+
+            <!-- Step 3: Confirmation -->
+            <div *ngIf="currentStep === 3" class="form-step">
+            <h3>Vérifiez votre retour</h3>
+
+            <div class="review-card">
+                <div class="review-item">
+                <span class="review-label">Note :</span>
+                <div class="review-value">
+                    <div class="stars-display">
+                    <span *ngFor="let i of [1,2,3,4,5]" class="star" [class.filled]="i <= feedback.rating">
+                        ★
+                    </span>
+                    </div>
+                    <span class="rating-text">{{ getRatingText(feedback.rating) }}</span>
+                </div>
+                </div>
+
+                <div class="review-item">
+                <span class="review-label">Catégorie :</span>
+                <span class="review-value">{{ getCategoryLabel(feedback.category) }}</span>
+                </div>
+
+                <div class="review-item">
+                <span class="review-label">Titre :</span>
+                <span class="review-value">{{ feedback.title }}</span>
+                </div>
+
+                <div class="review-item">
+                <span class="review-label">Message :</span>
+                <p class="review-value message">{{ feedback.message }}</p>
+                </div>
+
+                <div *ngIf="feedback.email" class="review-item">
+                <span class="review-label">Email :</span>
+                <span class="review-value">{{ feedback.email }}</span>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button class="btn btn-outline" (click)="previousStep()">
+                ← Modifier
+                </button>
+                <button class="btn btn-primary" (click)="submitFeedback()">
+                📤 Envoyer le retour
+                </button>
+            </div>
+            </div>
+
+            <!-- Success Message -->
+            <div *ngIf="submissionSuccess" class="success-message">
+            <div class="success-icon">✓</div>
+            <h3>Merci pour votre retour !</h3>
+            <p>Votre avis a été enregistré avec succès. Nous l'examinerons attentivement.</p>
+            <button class="btn btn-primary" (click)="resetForm()">
+                Envoyer un autre retour
+            </button>
+            </div>
+        </div>
+        </div>
+    </div>
+
+    <!-- Recent Feedback Section -->
+    <div class="recent-feedback-section" *ngIf="recentFeedback.length > 0">
+        <h2>Retours récents</h2>
+
+        <div class="feedback-list">
+        <div *ngFor="let item of recentFeedback" class="feedback-item">
+            <div class="feedback-header-item">
+            <div class="feedback-rating">
+                <span *ngFor="let i of [1,2,3,4,5]" class="star" [class.filled]="i <= item.rating">
+                ★
+                </span>
+            </div>
+            <span class="feedback-category">{{ getCategoryLabel(item.category) }}</span>
+            <span class="feedback-date">{{ formatDate(item.createdAt) }}</span>
+            </div>
+
+            <h4 class="feedback-title">{{ item.title }}</h4>
+            <p class="feedback-message">{{ item.message }}</p>
+
+            <div class="feedback-status" [class]="item.status">
+            {{ getStatusLabel(item.status) }}
+            </div>
+        </div>
+        </div>
+    </div>
+    </div>
+</div>

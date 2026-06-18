@@ -1,0 +1,951 @@
+    <div class="add-event">
+      <!-- Header -->
+      <div class="add-event-header">
+        <div class="container c-container">
+          <a routerLink="/evenements" class="back-link">← Retour au tableau de bord</a>
+          <h1>Créer un nouvel événement</h1>
+          <p>Remplissez les détails de votre mariage pour commencer</p>
+        </div>
+      </div>
+
+      <!-- Indicateur de chargement -->
+      <app-spinner [isLoading]="isLoading"></app-spinner>
+
+      <!-- Main content -->
+      <div class="container py-12">
+        <div class="form-wrapper" [class.wide-wrapper]="currentStep() === 3">
+          <form (ngSubmit)="onSubmit()" #eventForm="ngForm" class="event-form">
+            <!-- Step indicator -->
+            <div class="step-indicator">
+              <div
+                class="step"
+                (click)="changeStep(eventForm, 1)"
+                [class.active]="currentStep() === 1"
+                [class.completed]="currentStep() > 1"
+              >
+                <span>1</span>
+                <p>Informations</p>
+              </div>
+
+              <div class="step-line" [class.completed]="currentStep() > 1"></div>
+
+              <div
+                class="step"
+                (click)="changeStep(eventForm, 2)"
+                [class.active]="currentStep() === 2"
+                [class.completed]="currentStep() > 2"
+              >
+                <span>2</span>
+                <p>Détails</p>
+              </div>
+
+              <div class="step-line" [class.completed]="currentStep() > 2"></div>
+
+              <div
+                class="step"
+                (click)="changeStep(eventForm, 3)"
+                [class.active]="currentStep() === 3"
+                [class.completed]="currentStep() > 3"
+              >
+                <span>3</span>
+                <p>Personnalisation</p>
+              </div>
+
+              <div class="step-line" [class.completed]="currentStep() > 3"></div>
+
+              <div
+                class="step"
+                (click)="changeStep(eventForm, 4)"
+                [class.active]="currentStep() === 4"
+              >
+                <span>4</span>
+                <p>Confirmation</p>
+              </div>
+            </div>
+
+            <!-- Step 1: Basic Information -->
+            <div *ngIf="currentStep() === 1" class="step-content">
+              <h2>Informations de base</h2>
+
+              <div class="form-group">
+                <label for="eventTitle">Titre de l'événement</label>
+                <input
+                  type="text"
+                  id="eventTitle"
+                  name="eventTitle"
+                  [(ngModel)]="eventData.title"
+                  placeholder="Ex: Mariage de Julie et Mark"
+                  required
+                  #eventTitle="ngModel"
+                  class="form-input"
+                />
+                <div class="error" *ngIf="eventTitle.invalid && eventTitle.touched">
+                  Le titre de l'événement est obligatoire
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="eventType">Type d'événement</label>
+                  <select
+                    id="eventType"
+                    name="eventType"
+                    [(ngModel)]="eventData.type"
+                    (ngModelChange)="onEventTypeChange($event)"
+                    required
+                    #eventType="ngModel"
+                    class="form-input"
+                  >
+                    <option value="">Sélectionner un type</option>
+                    <option value="wedding">Mariage</option>
+                    <option value="engagement">Fiançailles</option>
+                    <option value="anniversary">Anniversaire de Mariage</option>
+                    <option value="birthday">Anniversaire</option>
+                    <option value="other">Autre</option>
+                  </select>
+                  <div class="error" *ngIf="eventType.invalid && eventType.touched">
+                    Le type de l'événement est obligatoire
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label for="eventDate">Date de l'événement</label>
+                  <input
+                    type="date"
+                    id="eventDate"
+                    name="eventDate"
+                    [(ngModel)]="eventData.date"
+                    required
+                    #eventDate="ngModel"
+                    class="form-input"
+                  />
+                  <div class="error" *ngIf="eventDate.invalid && eventDate.touched">
+                    La date de l'événement est obligatoire
+                  </div>
+                </div>
+              </div>
+
+              <!-- Checkbox -->
+              <div class="form-group checkbox-group checkbox-text">
+                <label class="custom-checkbox">
+                  <input
+                    type="checkbox"
+                    [(ngModel)]="hasInvitationModelCard"
+                    name="hasInvitationModelCard"
+                    (change)="toggleInvitationModelCard()"
+                  />
+                  <span class="checkmark"></span>
+                  <span class="label-text">
+                    Je vais importer mon modèle de carte d'invitation
+                  </span>
+                </label>
+              </div>
+
+              <div *ngIf="!hasInvitationModelCard">
+                <div class="form-row conditional-fields">
+                  <div *ngIf="showWeddingCivilLocation" class="form-group">
+                    <label for="eventCivilLocation">Lieu de célébration du mariage civil</label>
+                    <input
+                      type="text"
+                      id="eventCivilLocation"
+                      name="eventCivilLocation"
+                      [(ngModel)]="eventData.civilLocation"
+                      placeholder="Ex: Hôtel de ville de Bafoussam"
+                      [required]="!hasInvitationModelCard"
+                      #eventCivilLocation="ngModel"
+                      class="form-input"
+                    />
+                    <div class="error" *ngIf="eventCivilLocation.invalid && eventCivilLocation.touched">
+                      Localisation obligatoire
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <label for="eventTime">Heure de l'événement</label>
+                    <input
+                      type="time"
+                      id="eventTime"
+                      name="eventTime"
+                      [(ngModel)]="eventData.time"
+                      [required]="!hasInvitationModelCard"
+                      #eventTime="ngModel"
+                      class="form-input"
+                    />
+                    <div class="error" *ngIf="eventTime.invalid && eventTime.touched">
+                      Heure obligatoire
+                    </div>
+                  </div>
+                  <div *ngIf="!showWeddingCivilLocation" class="form-group">
+                    <label for="eventLocation">Lieu de l'événement</label>
+                    <input
+                      type="text"
+                      id="eventLocation"
+                      name="eventLocation"
+                      [(ngModel)]="eventData.location"
+                      placeholder="Ex: Palais de Fête, Bafoussam"
+                      [required]="!hasInvitationModelCard"
+                      #eventLocation="ngModel"
+                      class="form-input"
+                    />
+                    <div class="error" *ngIf="eventLocation.invalid && eventLocation.touched">
+                      Localisation obligatoire
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Checkbox -->
+                <div *ngIf="showWeddingCivilLocation" class="form-group checkbox-group checkbox-text">
+                  <label class="custom-checkbox">
+                    <input
+                      type="checkbox"
+                      [(ngModel)]="showWeddingReligiousLocation"
+                      name="hasReligiousCeremony"
+                      (change)="toggleReligiousCeremony()"
+                    />
+                    <span class="checkmark"></span>
+                    <span class="label-text">
+                      Cérémonie religieuse
+                    </span>
+                  </label>
+                </div>
+
+                <!-- Formulaire cérémonie religieuse -->
+                <div *ngIf="showWeddingReligiousLocation && eventData.type == 'wedding'" class="form-row conditional-fields">
+                  <div class="form-group">
+                    <label for="eventReligiousLocation">
+                      Lieu de la Cérémonie Religieuse
+                    </label>
+                    <input
+                      type="text"
+                      id="eventReligiousLocation"
+                      name="eventReligiousLocation"
+                      [(ngModel)]="eventData.religiousLocation"
+                      placeholder="Ex: Église Saint Pierre de Bafoussam"
+                      class="form-input"
+                    />
+                  </div>
+                  <div class="form-group">
+                    <label for="eventReligiousTime">Heure de la cérémonie</label>
+                    <input
+                      type="time"
+                      id="eventReligiousTime"
+                      name="eventReligiousTime"
+                      [(ngModel)]="eventData.religiousTime"
+                      class="form-input"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <!-- C1 FIX : id et name renommés en eventBanquetLocation pour éviter le doublon avec eventLocation -->
+              <div *ngIf="eventData.type == 'wedding'" class="form-row conditional-fields">
+                <div class="form-group">
+                  <label for="eventBanquetLocation">Lieu du Banquet de Mariage</label>
+                  <input
+                    type="text"
+                    id="eventBanquetLocation"
+                    name="eventBanquetLocation"
+                    [(ngModel)]="eventData.location"
+                    placeholder="Ex: Palais de Fête, Bafoussam"
+                    required
+                    #eventBanquetLocation="ngModel"
+                    class="form-input"
+                  />
+                  <div class="error" *ngIf="eventBanquetLocation.invalid && eventBanquetLocation.touched">
+                      Localisation obligatoire
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label for="eventBanquetTime">Heure du Banquet</label>
+                  <input
+                    type="time"
+                    id="eventBanquetTime"
+                    name="eventBanquetTime"
+                    [(ngModel)]="eventData.banquetTime"
+                    required
+                    #eventBanquetTime="ngModel"
+                    class="form-input"
+                  />
+                  <div class="error" *ngIf="eventBanquetTime.invalid && eventBanquetTime.touched">
+                      Heure obligatoire
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-actions">
+                <button type="button" class="btn btn-primary btn-text-right" (click)="nextStep(eventForm)">
+                  Suivant →
+                </button>
+              </div>
+            </div>
+
+            <!-- Step 2: Event Details -->
+            <div *ngIf="currentStep() === 2" class="step-content">
+              <h2>Détails de l'événement</h2>
+
+              <div *ngIf="showWeddingNames || showEngagementNames || showAnniversaryNames" class="form-row">
+                <div class="form-group">
+                  <label *ngIf="showWeddingNames">Prénom du futur marié *</label>
+                  <label *ngIf="showEngagementNames">Prénom du fiancé *</label>
+                  <label *ngIf="showAnniversaryNames">Nom du marié *</label>
+                  <input
+                    type="text"
+                    name="name1"
+                    [(ngModel)]="eventData.eventNameConcerned1"
+                    placeholder="Ex: Mark"
+                    required
+                    #eventNameConcerned1="ngModel"
+                    class="form-input" />
+                  <div class="error" *ngIf="eventNameConcerned1.invalid && eventNameConcerned1.touched">
+                      Champ obligatoire
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label *ngIf="showWeddingNames">Prénom de la future mariée *</label>
+                  <label *ngIf="showEngagementNames">Prénom de la fiancée *</label>
+                  <label *ngIf="showAnniversaryNames">Nom de la mariée *</label>
+                  <input type="text" name="name2"
+                    placeholder="Ex: Julie"
+                    [(ngModel)]="eventData.eventNameConcerned2" class="form-input"
+                    required
+                    #eventNameConcerned2="ngModel" />
+                  <div class="error" *ngIf="eventNameConcerned2.invalid && eventNameConcerned2.touched">
+                      Champ obligatoire
+                  </div>
+                </div>
+              </div>
+
+              <!-- C2 FIX : name renommé en nameConcerned1Single pour éviter le conflit avec name1 du bloc mariage -->
+              <div *ngIf="showBirthdayNames || showAnother" class="form-group">
+                <label>Nom de la personne concernée</label>
+                <input type="text" name="nameConcerned1Single"
+                  placeholder="Ex: Mark"
+                  [(ngModel)]="eventData.eventNameConcerned1" class="form-input"
+                  required
+                  #eventNameConcerned1Single="ngModel"
+                />
+                <div class="error" *ngIf="eventNameConcerned1Single.invalid && eventNameConcerned1Single.touched">
+                    Champ obligatoire
+                </div>
+              </div>
+              
+              <div class="form-group">
+                <label for="totalGuests">Nombre d'invités</label>
+                <input type="number" 
+                  id="totalGuests" 
+                  name="totalGuests" 
+                  [(ngModel)]="eventData.totalGuests"
+                  (ngModelChange)="onQuotaChange()" 
+                  class="form-input"
+                  min="1" required/>
+                  <p *ngIf="eventData.totalGuests > 0" class="amount-preview">
+                    💳 Montant à payer : <strong>{{ calculatedAmount | number }} XAF</strong>
+                    ({{ eventData.totalGuests }} invités × {{ PRICE_PER_GUEST }} XAF)
+                  </p>
+              </div>
+
+              <div class="form-group checkbox-group checkbox-text">
+                <label class="custom-checkbox">
+                  <input type="checkbox" name="allowPlusOne" [(ngModel)]="eventData.allowPlusOne" />
+                  <span class="checkmark"></span>
+                  <span class="label-text">
+                    Autoriser les "+1"
+                  </span>
+                </label>
+              </div>
+
+              <div class="form-group checkbox-group checkbox-text">
+                <label class="custom-checkbox">
+                  <input type="checkbox" name="allowDietaryRestrictions" [(ngModel)]="eventData.allowDietaryRestrictions" />
+                  <span class="checkmark"></span>
+                  <span class="label-text">
+                    Gérer les restrictions alimentaires
+                  </span>
+                </label>
+              </div>
+
+              <div class="form-actions">
+                <button type="button" class="btn btn-outline btn-text-left" (click)="previousStep()">← Précédent</button>
+                <button type="button" class="btn btn-primary btn-text-right" (click)="nextStep(eventForm)">Suivant →</button>
+              </div>
+            </div>
+
+            <!-- Step 3: Invitation Editor -->
+            <div *ngIf="currentStep() === 3" class="step-content invitation-editor-step">
+              <h2 class="txt-title">Personnalisation de l'invitation</h2>
+              <div class="editor-wrapper">
+                <!-- Form Section -->
+                <div class="editor-form">
+                  <div class="form-card">
+                    <!-- Section 1: Détails de l'événement -->
+                    <div *ngIf="!hasInvitationModelCard" class="form-section">
+
+                      <div class="form-group">
+                        <label for="inv-eventName">Nom de l'événement *</label>
+                        <input
+                          type="text"
+                          id="inv-eventName"
+                          name="eventName"
+                          [(ngModel)]="invitationData.eventName"
+                          placeholder="Ex: Mariage de Sophie et Pierre"
+                          class="form-input"
+                        />
+                      </div>
+
+                      <div class="form-row">
+                        <div class="form-group">
+                          <label for="inv-eventDate">Date *</label>
+                          <input
+                            type="date"
+                            id="inv-eventDate"
+                            name="invEventDate"
+                            [(ngModel)]="invitationData.eventDate"
+                            class="form-input"
+                          />
+                        </div>
+
+                        <div class="form-group">
+                          <label for="inv-eventTime">Heure *</label>
+                          <input
+                            type="time"
+                            id="inv-eventTime"
+                            name="invEventTime"
+                            [(ngModel)]="invitationData.eventTime"
+                            class="form-input"
+                          />
+                        </div>
+                      </div>
+
+                      <div *ngIf="eventData.type == 'wedding'" class="form-group">
+                        <label for="inv-eventCivilLocation">Lieu de la cérémonie civile *</label>
+                        <input
+                          type="text"
+                          id="inv-eventCivilLocation"
+                          name="eventCivilLocation"
+                          [(ngModel)]="invitationData.eventCivilLocation"
+                          placeholder="Ex: Mairie de Bangangte"
+                          class="form-input"
+                        />
+                      </div>
+
+                      <div class="form-group">
+                        <label for="inv-eventLocation">Lieu de la réception *</label>
+                        <input
+                          type="text"
+                          id="inv-eventLocation"
+                          name="eventLocation"
+                          [(ngModel)]="invitationData.eventLocation"
+                          placeholder="Ex: Palais de Fête, Bafoussam"
+                          class="form-input"
+                        />
+                      </div>
+
+                      <div *ngIf="eventData.type == 'wedding'" class="form-group">
+                        <label for="inv-banquetTime">Heure de la réception *</label>
+                        <input
+                          type="time"
+                          id="inv-banquetTime"
+                          name="banquetTime"
+                          [(ngModel)]="invitationData.banquetTime"
+                          class="form-input"
+                        />
+                      </div>
+
+                      <!-- Cérémonie religieuse (optionnelle) -->
+                       <div *ngIf="eventData.type == 'wedding'">
+                          <div *ngIf="invitationData.showReligiousCeremony" class="form-group">
+                            <label class="checkbox-label">
+                              <input
+                                type="checkbox"
+                                name="showReligiousCeremony"
+                                [(ngModel)]="invitationData.showReligiousCeremony"
+                              />
+                              <span>Afficher la cérémonie religieuse</span>
+                            </label>
+                          </div>
+                       </div>
+
+                      <div *ngIf="invitationData.showReligiousCeremony" class="conditional-fields">
+                        <div class="form-group">
+                          <label for="inv-religiousLocation">Lieu de la cérémonie religieuse</label>
+                          <input
+                            type="text"
+                            id="inv-religiousLocation"
+                            name="religiousLocation"
+                            [(ngModel)]="invitationData.religiousLocation"
+                            placeholder="Ex: Cathédrale Notre-Dame"
+                            class="form-input"
+                          />
+                        </div>
+
+                        <div class="form-group">
+                          <label for="inv-religiousTime">Heure de la cérémonie religieuse</label>
+                          <input
+                            type="time"
+                            id="inv-religiousTime"
+                            name="religiousTime"
+                            [(ngModel)]="invitationData.religiousTime"
+                            class="form-input"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Section 2: Personnes concernées -->
+                    <div *ngIf="!hasInvitationModelCard" class="form-section">
+                      <h3>👥 Personnes concernées</h3>
+
+                      <div class="form-row">
+                        <div class="form-group">
+                          <label for="inv-nameConcerned1">Première personne *</label>
+                          <input
+                            type="text"
+                            id="inv-nameConcerned1"
+                            name="nameConcerned1"
+                            [(ngModel)]="invitationData.nameConcerned1"
+                            placeholder="Ex: Sophie"
+                            class="form-input"
+                          />
+                        </div>
+
+                        <div class="form-group">
+                          <label for="inv-nameConcerned2">Deuxième personne *</label>
+                          <input
+                            type="text"
+                            id="inv-nameConcerned2"
+                            name="nameConcerned2"
+                            [(ngModel)]="invitationData.nameConcerned2"
+                            placeholder="Ex: Pierre"
+                            class="form-input"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Section 3: Contenu principal -->
+                    <div *ngIf="!hasInvitationModelCard" class="form-section">
+                      <h3>✍️ Contenu principal</h3>
+                      <div class="form-group">
+                        <label for="inv-title">Titre</label>
+                        <input
+                          type="text"
+                          id="inv-title"
+                          name="invtile"
+                          [(ngModel)]="invitationData.title"
+                          placeholder="Ex: L'ETTRE D'INVITATION"
+                          class="form-input"
+                        />
+                      </div>
+
+                      <div class="form-group">
+                        <label for="inv-mainMessage">Message principal</label>
+                        <textarea
+                          id="inv-mainMessage"
+                          name="mainMessage"
+                          [(ngModel)]="invitationData.mainMessage"
+                          class="form-textarea"
+                          placeholder="C'est avec un immense bonheur que nous vous invitons..."
+                        ></textarea>
+                      </div>
+
+                      <!-- C4 FIX : div form-group "Sous Message" correctement fermée -->
+                      <div class="form-group">
+                        <label for="inv-sousMainMessage">Sous Message</label>
+                        <textarea
+                          id="inv-sousMainMessage"
+                          name="sousMainMessage"
+                          [(ngModel)]="invitationData.sousMainMessage"
+                          class="form-textarea"
+                          placeholder="Mini réception à la sortie de la mairie..."
+                        ></textarea>
+                      </div>
+
+                      <div class="form-group">
+                        <label for="inv-eventTheme">Thème de la soirée</label>
+                        <input
+                          type="text"
+                          id="inv-eventTheme"
+                          name="eventTheme"
+                          [(ngModel)]="invitationData.eventTheme"
+                          placeholder="Ex: CHIC ET GLAMOUR"
+                          class="form-input"
+                        />
+                      </div>
+
+                      <div class="form-group">
+                        <label for="inv-priorityColors">Couleurs priorisées</label>
+                        <input
+                          type="text"
+                          id="inv-priorityColors"
+                          name="priorityColors"
+                          [(ngModel)]="invitationData.priorityColors"
+                          placeholder="Ex: Bleu, Blanc, Rouge, Noir"
+                          class="form-input"
+                        />
+                      </div>
+
+                      <div class="form-group">
+                        <label for="inv-qrInstructions">Instructions QR Code</label>
+                        <textarea
+                          id="inv-qrInstructions"
+                          name="qrInstructions"
+                          [(ngModel)]="invitationData.qrInstructions"
+                          class="form-textarea"
+                          placeholder="Prière de vous présenter uniquement avec votre code QR..."
+                        ></textarea>
+                      </div>
+
+                      <div class="form-group">
+                        <label for="inv-dressCodeMessage">Message sur le code vestimentaire</label>
+                        <input
+                          type="text"
+                          id="inv-dressCodeMessage"
+                          name="dressCodeMessage"
+                          [(ngModel)]="invitationData.dressCodeMessage"
+                          placeholder="Ex: Merci de respecter les couleurs vestimentaires choisies."
+                          class="form-input"
+                        />
+                      </div>
+
+                      <div class="form-group">
+                        <label for="inv-thanksMessage1">Premier message de remerciement</label>
+                        <input
+                          type="text"
+                          id="inv-thanksMessage1"
+                          name="thanksMessage1"
+                          [(ngModel)]="invitationData.thanksMessage1"
+                          placeholder="Ex: Merci pour votre compréhension."
+                          class="form-input"
+                        />
+                      </div>
+
+                      <div class="form-group">
+                        <label for="inv-closingMessage">Message de fermeture</label>
+                        <input
+                          type="text"
+                          id="inv-closingMessage"
+                          name="closingMessage"
+                          [(ngModel)]="invitationData.closingMessage"
+                          placeholder="Ex: Votre présence illuminera ce jour si spécial pour nous."
+                          class="form-input"
+                        />
+                      </div>
+                    </div>
+
+                    <!-- Section 4: Couleurs et design -->
+                    <div *ngIf="!hasInvitationModelCard" class="form-section">
+                      <h3>🎨 Couleurs et design</h3>
+
+                      <div class="form-row">
+                        <div class="form-group">
+                          <label for="inv-titleColorText">Couleur du titre</label>
+                          <div class="color-input-group">
+                            <!-- C3 FIX : name du color picker renommé pour éviter le doublon dans le formulaire -->
+                            <input
+                              type="color"
+                              name="titleColorPicker"
+                              [(ngModel)]="invitationData.titleColor"
+                              class="color-input"
+                              aria-label="Sélecteur couleur du titre"
+                            />
+                            <input
+                              type="text"
+                              id="inv-titleColorText"
+                              name="titleColor"
+                              [(ngModel)]="invitationData.titleColor"
+                              class="form-input"
+                            />
+                          </div>
+                        </div>
+
+                        <div class="form-group">
+                          <label for="inv-textColorText">Couleur du texte</label>
+                          <div class="color-input-group">
+                            <input
+                              type="color"
+                              name="textColorPicker"
+                              [(ngModel)]="invitationData.textColor"
+                              class="color-input"
+                              aria-label="Sélecteur couleur du texte"
+                            />
+                            <input
+                              type="text"
+                              id="inv-textColorText"
+                              name="textColor"
+                              [(ngModel)]="invitationData.textColor"
+                              class="form-input"
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      <div class="form-row">
+                        <div class="form-group">
+                          <label for="inv-topBandColorText">Couleur de la bande supérieure</label>
+                          <div class="color-input-group">
+                            <input
+                              type="color"
+                              name="topBandColorPicker"
+                              [(ngModel)]="invitationData.topBandColor"
+                              class="color-input"
+                              aria-label="Sélecteur couleur bande supérieure"
+                            />
+                            <input
+                              type="text"
+                              id="inv-topBandColorText"
+                              name="topBandColor"
+                              [(ngModel)]="invitationData.topBandColor"
+                              class="form-input"
+                            />
+                          </div>
+                        </div>
+
+                        <div class="form-group">
+                          <label for="inv-bottomBandColorText">Couleur de la bande inférieure</label>
+                          <div class="color-input-group">
+                            <input
+                              type="color"
+                              name="bottomBandColorPicker"
+                              [(ngModel)]="invitationData.bottomBandColor"
+                              class="color-input"
+                              aria-label="Sélecteur couleur bande inférieure"
+                            />
+                            <input
+                              type="text"
+                              id="inv-bottomBandColorText"
+                              name="bottomBandColor"
+                              [(ngModel)]="invitationData.bottomBandColor"
+                              class="form-input"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="form-actions">
+                        <input
+                          type="file"
+                          #fileInput
+                          (change)="onFileSelected($event)"
+                          accept="application/pdf"
+                          style="display: none"
+                        />
+                        <button type="button" class="btn btn-primary c_j_txt" (click)="fileInput.click()">
+                          📥 Importer un model PDF
+                        </button>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Preview Section -->
+                <div class="editor-preview">
+                  <div class="preview-card">
+                    <h2 class="txt-title c-size">Aperçu de la carte</h2>
+
+                      <!-- Affichage du PDF importé s'il existe -->
+                      <div *ngIf="hasInvitationModelCard" class="pdf-preview-container">
+                        <div class="pdf-header">
+                          <span>Modèle PDF importé</span>
+                          <button type="button" class="btn-remove" (click)="removePdfModel()">✕</button>
+                        </div>
+                        <!-- C5/C11 FIX : title et sandbox ajoutés sur l'iframe -->
+                        <iframe
+                          [src]="currentPdfUrl | safe"
+                          width="100%"
+                          height="500px"
+                          title="Aperçu du modèle PDF d'invitation"
+                          sandbox="allow-scripts allow-same-origin"
+                        ></iframe>
+                      </div>
+
+                      <!-- Aperçu par défaut -->
+                    <div *ngIf="!hasInvitationModelCard" class="preview-container">
+                      <!-- Top band -->
+                      <div class="preview-top-band" [style.background-color]="invitationData.topBandColor"></div>
+
+                      <!-- Content -->
+                      <div class="preview-content">
+                        <!-- Logo -->
+                        <div class="preview-logo" *ngIf="invitationData.logoUrl">
+                          <img [src]="invitationData.logoUrl" alt="Logo" />
+                        </div>
+
+                        <!-- Title -->
+                        <h1 class="preview-title" [style.color]="invitationData.titleColor">
+                          {{ invitationData.title }}
+                        </h1>
+
+                        <!-- Guest greeting -->
+                        <p class="preview-greeting">
+                          Cher/Chère invité,
+                        </p>
+
+                        <!-- Main message -->
+                        <p class="preview-message">{{ invitationData.mainMessage }}</p>
+
+                        <!-- Event details -->
+                        <div *ngIf="currentProgram.length" class="preview-event-details">
+                          <h3>PROGRAMME DE LA JOURNÉE</h3>
+
+                          <div *ngIf="eventData.type == 'wedding'">
+                            <ng-container *ngFor="let item of currentProgram">
+                              <p *ngIf="!item.conditionField || getInvitationValue(item.conditionField)">
+                                <strong>
+                                  {{ item.title }}
+                                  le {{ formatDate(invitationData.eventDate) }}
+                                  à {{ getInvitationValue(item.timeField) }}
+                                </strong>
+                                <br *ngIf="eventData.type == 'wedding'">
+                                {{ getInvitationValue(item.locationField) }}
+                                <span *ngIf="item.descriptionField">
+                                  <br>
+                                  {{ getInvitationValue(item.descriptionField) }}
+                                </span>
+                              </p>
+                            </ng-container>
+                          </div>
+                          
+                          <ng-container *ngIf="eventData.type != 'wedding'">
+                            <p *ngIf="!current_program[0].conditionField || getInvitationValue(current_program[0].conditionField)">
+                              <strong>
+                                {{ current_program[0].title }}
+                                le {{ formatDate(invitationData.eventDate) }}
+                                à {{ getInvitationValue(current_program[0].timeField) }}
+                              </strong>
+                              <br>
+                              {{ getInvitationValue(current_program[0].locationField) }}
+                              <span *ngIf="current_program[1].descriptionField">
+                                <br>
+                                {{ getInvitationValue(current_program[1].descriptionField) }}
+                              </span>
+                            </p>
+                          </ng-container>
+                        </div>
+
+                        <!-- Theme -->
+                        <h3 class="preview-theme">THEME DE LA SOIRÉE : {{ invitationData.eventTheme }}</h3>
+
+                        <p class="preview-colors-label">Couleurs priorisées</p>
+                        <p class="preview-colors">{{ invitationData.priorityColors }}</p>
+
+                        <!-- QR Instructions -->
+                        <p class="preview-qr-text">{{ invitationData.qrInstructions }}</p>
+
+                        <!-- Thanks messages -->
+                        <p class="preview-thanks">{{ invitationData.dressCodeMessage }}</p>
+                        <p class="preview-thanks">{{ invitationData.thanksMessage1 }}</p>
+
+                        <!-- Closing message -->
+                        <p class="preview-closing">{{ invitationData.closingMessage }}</p>
+
+                        <!-- Signature -->
+                        <p class="preview-signature" [style.color]="invitationData.titleColor">
+                          {{ invitationData.nameConcerned1 }} & {{ invitationData.nameConcerned2 }}
+                        </p>
+
+                        <!-- Heart icon -->
+                        <div class="preview-heart" *ngIf="invitationData.heartIconUrl">
+                          <img [src]="invitationData.heartIconUrl" alt="Heart" />
+                        </div>
+                      </div>
+
+                      <!-- Bottom band -->
+                      <div class="preview-bottom-band" [style.background-color]="invitationData.bottomBandColor"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-actions">
+                <button type="button" class="btn btn-outline btn-text-left" (click)="previousStep()">← Précédent</button>
+                <button type="button" class="btn btn-primary btn-text-right" (click)="nextStep(eventForm)">Suivant →</button>
+              </div>
+            </div>
+
+            <!-- Step 4: Confirmation -->
+            <div *ngIf="currentStep() === 4" class="step-content">
+              <h2>Confirmation</h2>
+
+              <div class="confirmation-card">
+                <h3>Résumé de votre événement</h3>
+
+                <div class="confirmation-item">
+                  <span class="label">Titre :</span>
+                  <span class="value">{{ eventData.title }}</span>
+                </div>
+
+                <div class="confirmation-item">
+                  <span class="label">Date :</span>
+                  <span class="value">
+                    {{ formatDate(eventData.date) }}
+                    <ng-container *ngIf="eventData.time"> à {{ eventData.time }}</ng-container>
+                  </span>
+                </div>
+
+                <div class="confirmation-item">
+                  <span class="label">Lieu :</span>
+                  <span class="value">{{ eventData.location }}</span>
+                </div>
+
+                <div class="confirmation-item">
+                  <span class="label">Nombre d'invités :</span>
+                  <span class="value">{{ eventData.totalGuests }}</span>
+                </div>
+
+                <div class="confirmation-item" *ngIf="eventData.budget">
+                  <span class="label">Budget :</span>
+                  <span class="value">{{ eventData.budget }}€</span>
+                </div>
+
+                <div class="confirmation-item">
+                  <span class="label">Type :</span>
+                  <span class="value">{{ getEventTypeLabel(eventData.type) }}</span>
+                </div>
+
+                <div *ngIf="showWeddingNames || showEngagementNames || showAnniversaryNames" class="confirmation-item">
+                  <span *ngIf="showWeddingNames" class="label">Prenom du future marié :</span>
+                  <span *ngIf="showEngagementNames" class="label">Prenom du fiancé :</span>
+                  <span *ngIf="showAnniversaryNames" class="label">Nom du marié :</span>
+                  <span class="value">{{ eventData.eventNameConcerned1 }}</span>
+                </div>
+
+                <div *ngIf="showWeddingNames || showEngagementNames || showAnniversaryNames" class="confirmation-item">
+                  <span *ngIf="showWeddingNames" class="label">Prenom de la future mariée :</span>
+                  <span *ngIf="showEngagementNames" class="label">Prenom de la fiancée :</span>
+                  <span *ngIf="showAnniversaryNames" class="label">Nom de la mariée :</span>
+                  <span class="value">{{ eventData.eventNameConcerned2 }}</span>
+                </div>
+
+                <div *ngIf="showBirthdayNames || showAnother" class="confirmation-item">
+                  <span class="label">Nom du concerné :</span>
+                  <span class="value">{{ eventData.eventNameConcerned1 }}</span>
+                </div>
+
+                <div class="confirmation-item">
+                  <span class="label">Restrictions alimentaires :</span>
+                  <span class="value">{{ eventData.allowDietaryRestrictions ? 'Activées' : 'Désactivées' }}</span>
+                </div>
+
+                <div class="confirmation-item">
+                  <span class="label">+1 autorisés :</span>
+                  <span class="value">{{ eventData.allowPlusOne ? 'Oui' : 'Non' }}</span>
+                </div>
+              </div>
+
+              <div class="form-actions">
+                <button type="button" class="btn btn-outline btn-text-left" (click)="previousStep()">
+                  ← Précédent
+                </button>
+                <button type="submit" class="btn btn-primary btn-text-center" [disabled]="!eventForm.valid">
+                  ✓ Créer l'événement
+                </button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+    <app-error-modal
+        [visible]="showErrorModal"
+        [message]="errorMessage"
+        (closed)="closeErrorModal()">
+    </app-error-modal>

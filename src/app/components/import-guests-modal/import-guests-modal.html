@@ -1,0 +1,173 @@
+<div class="modal-overlay" (click)="closeModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+    <button class="modal-close" (click)="closeModal()">✕</button>
+
+    <!-- Step 1: Upload -->
+    <div *ngIf="currentStep() === 'upload'" class="modal-body">
+        <div class="modal-header">
+        <h2>Importer des invités</h2>
+        <p>Téléchargez un fichier CSV ou Excel avec vos invités</p>
+        </div>
+
+        <!-- File Upload Area -->
+        <div class="upload-area" (click)="fileInput.click()" [class.dragover]="isDragOver()">
+        <input
+            #fileInput
+            type="file"
+            accept=".csv,.xlsx,.xls"
+            (change)="onFileSelected($event)"
+            (dragover)="onDragOver($event)"
+            (dragleave)="onDragLeave($event)"
+            (drop)="onDrop($event)"
+            hidden
+        />
+
+        <div class="upload-content">
+            <div class="upload-icon">📁</div>
+            <p class="upload-title">Glissez-déposez votre fichier ici</p>
+            <p class="upload-subtitle">ou cliquez pour sélectionner</p>
+            <p class="upload-formats">Formats acceptés: CSV, XLSX, XLS</p>
+        </div>
+        </div>
+
+        <!-- File Info -->
+        <div *ngIf="selectedFile() as file" class="file-info">
+        <p class="file-name">📄 {{ file.name }}</p>
+        <p class="file-size">{{ formatFileSize(file.size) }}</p>
+        </div>
+
+        <!-- Template Download -->
+        <div class="template-section">
+        <p class="template-label">Besoin d'aide ?</p>
+        <button type="button" class="btn btn-outline" (click)="downloadTemplate()">
+            📋 Télécharger le modèle CSV
+        </button>
+        </div>
+
+        <!-- Actions -->
+        <div class="modal-actions">
+        <button type="button" class="btn btn-outline" (click)="closeModal()">
+            Annuler
+        </button>
+        <button
+            type="button"
+            class="btn btn-primary"
+            (click)="uploadFile()"
+            [disabled]="!selectedFile() || isLoading"
+        >
+            {{ isLoading ? '⏳ Chargement...' : '📤 Continuer' }}
+        </button>
+        </div>
+    </div>
+
+    <!-- Step 2: Preview -->
+    <div *ngIf="currentStep() === 'preview'" class="modal-body">
+        <div class="modal-header">
+            <h2>Aperçu des invités</h2>
+            <p>{{ importedGuests.length }} invité(s) à importer</p>
+        </div>
+
+        <!-- Errors -->
+        <div *ngIf="importErrors.length > 0" class="errors-section">
+            <p class="errors-title">⚠️ Erreurs trouvées:</p>
+            <ul class="errors-list">
+                <li *ngFor="let error of importErrors">{{ error }}</li>
+            </ul>
+        </div>
+
+        <app-error-modal
+            [visible]="showErrorModal"
+            [message]="errorMessage"
+            (closed)="closeErrorModal()">
+        </app-error-modal>
+
+        <!-- Preview Table -->
+        <div class="preview-table">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Nom</th>
+                        <th>Email</th>
+                        <th>Téléphone</th>
+                        <th>Status-RSVP</th>
+                        <th>+1</th>
+                        <th>Mode de notification</th>
+                    </tr>
+                </thead>
+                <tbody>
+                <tr *ngFor="let guest of paginatedGuests()">
+                    <td>{{ guest.nom }}</td>
+                    <td>{{ guest.email || '-' }}</td>
+                    <td>{{ guest.phone || '-' }}</td>
+                    <td>{{ guest.rsvpstatus || '-' }}</td>
+                    <td>{{ guest.plusone }}</td>
+                    <td>{{ guest.notificationmode || '-' }}</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination Controls -->
+        <div class="pagination">
+            <button
+                (click)="prevPage()"
+                [disabled]="currentPage === 1"
+                class="page-btn">
+                ◀
+            </button>
+
+            <button
+                *ngFor="let page of totalPagesArray()"
+                (click)="goToPage(page)"
+                [class.active]="page === currentPage"
+                class="page-btn">
+                {{ page }}
+            </button>
+
+            <button
+                (click)="nextPage()"
+                [disabled]="currentPage === totalPages"
+                class="page-btn">
+                ▶
+            </button>
+        </div>
+
+        <!-- Actions -->
+        <div class="modal-actions">
+            <button type="button" class="btn btn-outline" (click)="goBack()">
+                ← Retour
+            </button>
+            <button
+                type="button"
+                class="btn btn-primary"
+                (click)="confirmImport()"
+                [disabled]="importedGuests.length === 0 || isLoading"
+            >
+                {{ isLoading ? '⏳ Importation...' : '✓ Importer' }}
+            </button>
+        </div>
+        <!-- Indicateur de chargement -->
+        <app-spinner [isLoading]="isModalLoading"></app-spinner>
+    </div>
+
+    <!-- Step 3: Success -->
+    <div *ngIf="currentStep() === 'success'" class="modal-body success-body">
+        <div class="success-icon">✓</div>
+        <h2>Importation réussie !</h2>
+        <p class="success-message">
+        {{ importedGuests.length }} invité(s) ont été ajoutés avec succès
+        </p>
+
+        <div class="success-stats">
+        <div class="stat">
+            <span class="stat-value">{{ importedGuests.length }}</span>
+            <span class="stat-label">Invités importés</span>
+        </div>
+        </div>
+
+        <button type="button" class="btn btn-primary" style="width: 100%;" (click)="closeModal()">
+        ✓ Fermer
+        </button>
+    </div>
+    </div>
+</div>

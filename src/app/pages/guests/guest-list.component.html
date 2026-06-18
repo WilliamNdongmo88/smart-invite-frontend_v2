@@ -1,0 +1,392 @@
+<div class="guest-list">
+
+    <!-- Indicateur de chargement -->
+    <app-spinner [isLoading]="isLoading"></app-spinner>
+
+    <!-- Notification conditionnelle -->
+    <app-conditional-alert [config]="alertConfig"></app-conditional-alert>
+
+    <!-- Header eventId, eventTitle-->
+    <div [class]="guest_list_header_extended">
+      <div class="guest-list-header">
+        <div id="guest-management-header" class="container">
+            <a (click)="navigateToEventPage()" class="back-link">← Retour a l'événement</a>
+            <div id="guest-management-header" class="header-content">
+              <div>
+                  <h1>Gestion des invités</h1>
+                  <p>{{ eventTitle }} - {{ totalGuests }} invités</p>
+              </div>
+              <div class="header-actions">
+                  <button id="add-guest-btn" class="btn btn-outline" (click)="openAddGuestModal()">
+                  ➕  Nouveau
+                  </button>
+                  <button id="import-guests-btn" class="btn btn-outline" (click)="openImportModal()">
+                  📥 Importer
+                  </button>
+                  <button id="send-reminder-btn" class="btn btn-primary" (click)="openDeleteModal(guestIdList, 'resend')">
+                      {{ loading ? '⏳ Renvoie...' : '✉️ Rappel' }}
+                  </button>
+              </div>
+            </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main content -->
+    <div class="container py-15">
+        <!-- Search and Filter -->
+        <div id="search-filter-section" *ngIf="guests.length > 0" class="search-filter-section">
+            <div class="search-box">
+                <input
+                    type="text"
+                    placeholder="Rechercher par nom, email ou téléphone..."
+                    [(ngModel)]="searchTerm"
+                    (ngModelChange)="filterGuests()"
+                    class="search-input"
+                />
+                <span class="search-icon">🔍</span>
+            </div>
+
+            <div class="filter-buttons">
+                <button
+                    *ngFor="let filter of filters"
+                    [class.active]="filterStatus() === filter.value"
+                    (click)="setFilterStatus(filter.value)"
+                    class="filter-btn"
+                >
+                    {{ getFilterLabel(filter.value) }}
+                    <span class="count">{{ getStatusCount(filter.value) }}</span>
+                </button>
+                <div class="view-controls">
+                    <span class="view-label texte-desktop">Affichage :</span>
+                    <div id="guests-container" class="view-buttons">
+                        <button
+                            class="view-btn"
+                            [class.active]="viewMode === 'grid'"
+                            (click)="setViewMode('grid')"
+                            title="Affichage en grille">
+                            <span class="view-icon">⊞</span>
+                            Grille
+                        </button>
+                        <button
+                            class="view-btn"
+                            [class.active]="viewMode === 'table'"
+                            (click)="setViewMode('table')"
+                            title="Affichage en tableau">
+                            <span class="view-icon">☰</span>
+                            Tableau
+                        </button>
+                    </div>
+                </div>
+                <button
+                    id="bulk-send-btn"
+                    [disabled]="guestIdList.length === 0 || canSend"
+                    (click)="openDeleteModal(guestIdList, 'send')"
+                    class="filter-btn send"
+                    >
+                    {{ loading ? '⏳ Envoie...' : 'Envoyer ' + guestIdList.length + ' invitation(s)' }}
+                </button>
+                <button
+                    id="bulk-delete-btn"
+                    [disabled]="guestIdList.length === 0 || canDelete"
+                    (click)="openDeleteModal(guestIdList, 'delete')"
+                    class="filter-btn delete"
+                    >
+                    {{ loadingDelete ? '⏳ Suppression...' : 'Supprimer ' + guestIdList.length + ' invité(s)'}}
+                </button>
+            </div>
+        </div>
+
+        <!-- Guests Grid View -->
+        <div *ngIf="viewMode === 'grid' && filteredGuests.length > 0" class="guests-grid">
+            <div *ngFor="let guest of paginatedGuests()" class="guest-card" [class]="'status-' + guest.status">
+                <!-- Card Header -->
+                <div class="card-header click" (click)="goToGuestDetail(guest.id)">
+                    <div class="guest-avatar">
+                    {{ guest.name.charAt(0).toUpperCase() }}
+                    </div>
+                    <div class="guest-status">
+                    <span class="status-badge" [class]="'status-' + guest.status">
+                        {{ getStatusIcon(guest.status) }} {{ getStatusLabel(guest.status) }}
+                    </span>
+                    </div>
+                </div>
+
+                <!-- Card Body -->
+                <div class="card-body click" (click)="goToGuestDetail(guest.id)">
+                    <h3>{{ guest.name }}</h3>
+                    <p class="guest-email">{{ guest.email || guest.phone }}</p>
+
+                    <div class="guest-info">
+                    <div class="info-item" *ngIf="guest.table_number">
+                        <span class="label">🪑 Table: </span>
+                        <span class="value">{{ guest.table_number }}</span>
+                    </div>
+
+
+                    <div class="info-item" *ngIf="guest.dietaryRestrictions">
+                        <span class="label">🍽️</span>
+                        <span class="value">{{ guest.dietaryRestrictions }}</span>
+                    </div>
+
+                    <div class="info-item" *ngIf="guest.plusOne">
+                        <span class="label">👥</span>
+                        <span class="value">+1 autorisé</span>
+                    </div>
+
+                    <div class="info-item" *ngIf="guest.responseDate">
+                        <span class="label">📅</span>
+                        <span class="value">{{ formatDate(guest.responseDate) }}</span>
+                    </div>
+                    </div>
+
+                    <!-- QR Code Badge -->
+                    <div class="qr-badge" *ngIf="guest.qrCodeGenerated">
+                    <span class="qr-icon">📱</span>
+                    <span class="qr-text">QR Code généré</span>
+                    </div>
+                </div>
+
+                <!-- Card Footer -->
+                <div class="card-footer">
+                    <button
+                      class="btn-action view"
+                      (click)="viewGuestDetails(guest)"
+                      title="Voir les détails"
+                      >
+                      👁️ Détails
+                    </button>
+                    <button
+                      class="btn-action edit"
+                      (click)="editGuest(guest)"
+                      title="Éditer"
+                    >
+                    ✏️ Éditer
+                    </button>
+                    <button
+                      class="btn-action delete"
+                      (click)="openDeleteModal(guest, 'one')"
+                      title="Supprimer"
+                    >
+                    🗑️ Supprimer
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Guests Table View -->
+        <div *ngIf="viewMode === 'table' && filteredGuests.length > 0" class="guests-grid" class="guests-table">
+            <table>
+                <thead>
+                    <tr>
+                        <th><input
+                            type="checkbox"
+                            [checked]="isAllSelected"
+                            (change)="toggleSelectAll($event)"
+                            class="modern-checkbox"
+                        /></th>
+                        <th>Nom</th>
+                        <th>Email / Phone</th>
+                        <th>Statut</th>
+                        <th>Restrictions</th>
+                        <th>+1</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let guest of paginatedGuests()" [ngClass]="'status-' + guest.status">
+                        <td>
+                           <input
+                            type="checkbox"
+                            [checked]="guestIdList.includes(guest.id)"
+                            (change)="onGuestSelected(guest, $event)"
+                            class="modern-checkbox"
+                            />
+                        </td>
+                        <td>{{ guest.name }}</td>
+                        <td class="email">{{ guest.email || guest.phone }}</td>
+                        <td>
+                        <span class="status-badge" [class]="'status-' + guest.status">
+                            {{ getStatusIcon(guest.status) }} {{ getStatusLabel(guest.status) }}
+                        </span>
+                        </td>
+                        <td class="restrictions">{{ guest.dietaryRestrictions || '-' }}</td>
+                        <td class="center">{{ guest.plusOne ? '✓' : '-' }}</td>
+                        <td class="actions action-width">
+                        <button class="btn-small" (click)="viewGuestDetails(guest)">Envoyer invitation</button>
+                        <button class="btn-small-delete" (click)="openDeleteModal(guest, 'one')">Supprimer</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <div *ngIf="filteredGuests.length === 0" class="no-guests">
+                <p>Aucun invité trouvé</p>
+            </div>
+        </div>
+
+        <!-- Pagination Controls -->
+        <div *ngIf="guests.length > 0" class="pagination">
+            <button
+                (click)="prevPage()"
+                [disabled]="currentPage === 1"
+                class="page-btn">
+                ◀
+            </button>
+
+            <button
+                *ngFor="let page of totalPagesArray()"
+                (click)="goToPage(page)"
+                [class.active]="page === currentPage"
+                class="page-btn">
+                {{ page }}
+            </button>
+
+            <button
+                (click)="nextPage()"
+                [disabled]="currentPage === totalPages"
+                class="page-btn">
+                ▶
+            </button>
+        </div>
+        <!-- END Guests Table View -->
+
+        <!-- Empty State -->
+        <div *ngIf="filteredGuests.length === 0" class="empty-state">
+            <div class="empty-icon">👥</div>
+            <h3>Aucun invité trouvé</h3>
+            <p>Essayez de modifier vos filtres ou invitez de nouveaux invités</p>
+            <button class="btn btn-primary" (click)="openAddGuestModal()">
+            ✉️ Inviter des invités
+            </button>
+        </div>
+
+        <!-- Stats Footer -->
+        <div id="guest-stats-footer" class="stats-footer">
+            <div class="stat">
+                <span class="label">Total</span>
+                <span class="value">{{ totalGuests }}</span>
+            </div>
+            <div class="stat confirmed">
+                <span class="label">Confirmés</span>
+                <span class="value">{{ confirmedCount }}</span>
+            </div>
+            <div class="stat pending">
+                <span class="label">En attente</span>
+                <span class="value">{{ pendingCount }}</span>
+            </div>
+            <div class="stat declined">
+                <span class="label">Refusés</span>
+                <span class="value">{{ declinedCount }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Guest Detail Modal -->
+    <div *ngIf="selectedGuest() as guest" class="modal-overlay" (click)="closeGuestDetails()">
+        <div class="modal-content" (click)="$event.stopPropagation()">
+            <!-- Indicateur de chargement -->
+            <app-spinner [isLoading]="isModalLoading"></app-spinner>
+            <button class="modal-close" (click)="closeGuestDetails()">✕</button>
+
+            <div class="modal-body">
+                <!-- Guest Avatar and Name -->
+                <div class="modal-header">
+                    <div class="large-avatar">
+                    {{ guest.name.charAt(0).toUpperCase() }}
+                    </div>
+                    <div>
+                    <h2>{{ guest.name }}</h2>
+                    <p class="email">{{ guest.email }}</p>
+                    </div>
+                </div>
+
+                <!-- Status Badge -->
+                <div class="status-section">
+                    <span class="status-badge large" [class]="'status-' + guest.status">
+                    {{ getStatusIcon(guest.status) }} {{ getStatusLabel(guest.status) }}
+                    </span>
+                </div>
+
+                <!-- QR Code Section -->
+                <div class="qr-section" *ngIf="guest.qrCodeGenerated; else noQr">
+                    <h3>Code QR</h3>
+                    <div class="qr-code-container">
+                    <img [src]="guest.qrCodeUrl" alt="QR Code" class="qr-code-image" />
+                    <!-- <p class="qr-description">Scannez ce code pour accéder à l'invitation</p> -->
+                    </div>
+                    <button class="btn btn-outline" (click)="downloadQRCode(guest)">📥 Télécharger le QR Code</button>
+                </div>
+
+                <ng-template #noQr>
+                    <div class="no-qr-section">
+                    <div class="no-qr-icon">📱</div>
+                    <p>Aucune invitation (code QR) généré pour cet invité</p>
+                    <button class="btn btn-primary" (click)="generateQRCode(guest.id)">✨ Envoyer une invitation</button>
+                    </div>
+                </ng-template>
+
+                <!-- Actions -->
+                <div class="modal-actions">
+                    <button class="btn btn-outline" (click)="closeGuestDetails()">Fermer</button>
+                    <button class="btn btn-primary"
+                    (click)="deleteInvitationFromModal(guest)"
+                    [disabled]="guest.qrCodeGenerated && !loadingDelete ? false : true">
+                    {{loadingDelete ? '⏳ Suppression...' : '🗑️ Supprimer'}}</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div>
+
+    <!-- Add Guest Modal -->
+    <app-add-guest-modal
+        *ngIf="showAddGuestModal()"
+        (guestAdded)="onGuestAdded($event)"
+        (closed)="closeAddGuestModal()"
+    ></app-add-guest-modal>
+
+    <app-error-modal
+        [visible]="showErrorModal"
+        [message]="errorMessage"
+        (closed)="closeErrorModal()">
+    </app-error-modal>
+
+    <!-- Modal de paiement -->
+  <app-payment-modal
+    [isOpen]="showPaymentModal"
+    [eventId]="eventId!"
+    [quota]="quotaNotPaid"
+    [amount]="quotaNotPaid * PRICE_PER_GUEST"
+    (closeEvent)="closePaymentModal()"
+    (proofSubmitted)="onProofSubmitted($event)">
+  </app-payment-modal>
+
+    <app-guest-limit-alert
+      [config]="alertConfigs"
+      [showAlert]="showGuestLimitAlert"
+      (dismissed)="onAlertDismissed()"
+      (upgradeClicked)="onUpgradeClicked()"
+      >
+    </app-guest-limit-alert>
+
+    <!-- Import Guests Modal -->
+    <app-import-guests-modal
+        *ngIf="showImportModal()"
+        [eventId]="eventsId"
+        (refresh)="getGuestsByEvent()"
+        (closed)="closeImportModal()"
+    ></app-import-guests-modal>
+
+    <!-- Modal de confirmation -->
+    <app-confirm-delete-modal
+        [visible]="showDeleteModal"
+        [message] = warningMessage
+        [action]="modalAction"
+        (confirmDelete)="confirmDelete()"
+        (confirmSend)="sendInvitation()"
+        (confirmReSend)="sendReminder()"
+        (cancel)="closeModal()">
+    </app-confirm-delete-modal>
+</div>

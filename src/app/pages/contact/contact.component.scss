@@ -1,0 +1,318 @@
+@use "sass:color";
+
+.contact-page {
+    min-height: 100vh;
+    background-color: #FFFFFF;
+}
+
+.contact-header {
+    background: linear-gradient(135deg, rgba(212, 175, 55, 0.15) 0%, rgba(244, 228, 193, 0.1) 100%);
+    border-bottom: 1px solid #E0E0E0;
+    padding: 1rem 0;
+    text-align: center;
+}
+
+.contact-header h1 {
+    margin-bottom: 0.5rem;
+    font-size: 2.5rem;
+}
+
+.contact-header p {
+    color: #666666;
+    font-size: 1.125rem;
+}
+
+.contact-wrapper {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3rem;
+    margin-bottom: 4rem;
+    padding: 0 0.75rem;
+    margin: 0;
+}
+
+.contact-form-section h2,
+.contact-info-section h2 {
+    margin-bottom: 2rem;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.checkbox-group {
+  margin-top: 1rem;
+
+  .custom-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    cursor: pointer;
+    user-select: none;
+    font-size: 0.95rem;
+    color: #6a6b6c; // gris foncé
+    line-height: 1.4;
+
+    input {
+      display: none;
+    }
+
+    /* Switch */
+    .checkmark {
+      position: relative;
+      width: 42px;
+      height: 22px;
+      background-color: #e5e7eb;
+      border-radius: 999px;
+      transition: background-color 0.25s ease;
+      flex-shrink: 0;
+
+      &::before {
+        content: '';
+        position: absolute;
+        top: 2px;
+        left: 2px;
+        width: 18px;
+        height: 18px;
+        background: #fff;
+        border-radius: 50%;
+        transition: transform 0.25s ease;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+      }
+    }
+
+    /* Checked */
+    input:checked + .checkmark {
+      background-color: #D4AF37; // bleu principal
+
+      &::before {
+        transform: translateX(20px);
+      }
+    }
+
+    /* Focus (accessibilité) */
+    input:focus-visible + .checkmark {
+      outline: 2px solid #93c5fd;
+      outline-offset: 2px;
+    }
+
+    .label-text {
+      transition: color 0.2s ease;
+    }
+
+    input:checked ~ .label-text {
+      color: #D4AF37;
+      font-weight: 500;
+    }
+  }
+}
+
+.form-group label {
+    display: block;
+    font-weight: 600;
+    color: #1A1A1A;
+    margin-bottom: 0.5rem;
+    font-size: 0.875rem;
+}
+
+.form-input,
+.form-select,
+.form-textarea {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 1px solid #E0E0E0;
+    border-radius: 0.5rem;
+    font-family: 'Lato', sans-serif;
+    font-size: 0.875rem;
+    transition: all 0.3s ease;
+
+    &:focus {
+    outline: none;
+    border-color: #D4AF37;
+    box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.1);
+    }
+}
+
+.form-textarea {
+    resize: vertical;
+    min-height: 120px;
+}
+
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    color: #1A1A1A;
+    font-size: 0.875rem;
+
+    input {
+    cursor: pointer;
+    }
+}
+
+.success-message {
+    background-color: rgba(34, 197, 94, 0.1);
+    border-left: 3px solid #22C55E;
+    color: #22C55E;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    margin-top: 1rem;
+    font-size: 0.875rem;
+}
+
+.error-message{
+    background-color: rgba(197, 34, 34, 0.1);
+    border-left: 3px solid #ff0000;
+    color: #ff0000;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    margin-top: 1rem;
+    font-size: 0.875rem;
+}
+
+.contact-info-section {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.contact-info-card {
+    background-color: #F5F5F5;
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    text-align: center;
+    transition: all 0.3s ease;
+
+    &:hover {
+    background-color: #E0E0E0;
+    transform: translateY(-2px);
+    }
+}
+
+.info-icon {
+    font-size: 2rem;
+    margin-bottom: 0.75rem;
+}
+
+.contact-info-card h3 {
+    margin-bottom: 0.5rem;
+}
+
+.contact-info-card p {
+    margin: 0.25rem 0;
+    color: #666666;
+    font-size: 0.875rem;
+}
+
+.info-text {
+    color: #999999;
+    font-size: 0.75rem;
+}
+
+.social-links {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: 1rem;
+}
+
+.social-link {
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    background-color: #FFFFFF;
+    border: 1px solid #E0E0E0;
+    border-radius: 0.25rem;
+    color: #D4AF37;
+    text-decoration: none;
+    font-size: 0.75rem;
+    transition: all 0.2s ease;
+
+    &:hover {
+    background-color: #D4AF37;
+    color: #1A1A1A;
+    }
+}
+
+.map-section {
+    margin-bottom: 4rem;
+}
+
+.map-section h2 {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.map-container {
+    border-radius: 0.75rem;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.faq-section {
+    margin: 1rem 0 0 0;
+    padding: 0 0.75rem;
+}
+
+.faq-section h2 {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.faq-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+}
+
+.faq-item {
+    background-color: #F5F5F5;
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+}
+
+.faq-item h4 {
+    margin-bottom: 0.75rem;
+    color: #1A1A1A;
+}
+
+.faq-item p {
+    margin: 0;
+    color: #666666;
+    font-size: 0.875rem;
+    line-height: 1.6;
+}
+
+.back-link {
+    cursor: pointer;
+    display: inline-block;
+    color: #D4AF37;
+    text-decoration: none;
+    margin-bottom: 0rem;
+    transition: color 0.3s ease;
+
+    &:hover {
+    color: color.adjust(#D4AF37, $lightness: -10%);
+    }
+}
+
+@media (max-width: 768px) {
+    .contact-header h1 {
+        font-size: clamp(1.5rem, 5vw, 2rem);
+    }
+
+    .contact-wrapper {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+        padding: 0 0.75rem;
+    }
+
+    .faq-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .faq-item {
+        margin: 0;
+    }
+}

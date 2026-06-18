@@ -1,0 +1,1017 @@
+// ============================================================================
+// HEADER COMPONENT STYLES
+// ============================================================================
+@use "sass:color";
+
+// Variables de design
+$primary-gold: #D4AF37;
+$primary-dark: #1A1A1A;
+$text-main: #333333;
+$text-muted: #666666;
+$bg-light: #F8F9FA;
+$white: #FFFFFF;
+$shadow-sm: 0 2px 10px rgba(0, 0, 0, 0.05);
+$shadow-md: 0 4px 20px rgba(0, 0, 0, 0.08);
+$transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+$border-radius: 12px;
+// Variables
+$color-primary: #D4AF37;
+$color-dark: #1A1A1A;
+$color-light: #FFFFFF;
+$color-gray: #666666;
+$color-light-gray: #F5F5F5;
+$color-border: #E0E0E0;
+$color-success: #4CAF50;
+$color-danger: #FF6B6B;
+
+$transition-fast: 0.2s ease;
+$transition-normal: 0.3s ease;
+$transition-slow: 0.4s ease;
+
+$shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.08);
+$shadow-md: 0 4px 16px rgba(0, 0, 0, 0.12);
+$shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.15);
+
+$breakpoint-mobile: 768px;
+$breakpoint-tablet: 1024px;
+
+// ============================================================================
+// HEADER MAIN STYLES
+// ============================================================================
+
+.header {
+  background: linear-gradient(135deg, $color-light 0%, #FAFAFA 100%);
+  border-bottom: 1px solid $color-border;
+  box-shadow: $shadow-sm;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  transition: all $transition-normal;
+
+  .container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 2.5rem;
+  }
+}
+
+// ============================================================================
+// HEADER WRAPPER
+// ============================================================================
+
+.header-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2rem;
+  padding: 1rem 0;
+  min-height: 70px;
+}
+
+// ============================================================================
+// LOGO SECTION
+// ============================================================================
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  text-decoration: none;
+  transition: all $transition-normal;
+  flex-shrink: 0;
+
+  &:hover {
+    transform: translateY(-2px);
+  }
+
+  .logo-icon-wrapper {
+    width: 55px;
+    height: 40px;
+    //background: linear-gradient(135deg, $color-primary 0%, #E8A825 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba($color-primary, 0.3);
+    transition: all $transition-normal;
+
+    &:hover {
+      transform: scale(1.05);
+      box-shadow: 0 6px 16px rgba($color-primary, 0.4);
+    }
+
+    img {
+      width: 160%;
+      height: 160%;
+      border-radius: 33px;
+    }
+  }
+
+  .logo-text {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: $primary-gold;
+    letter-spacing: -0.02em;
+  }
+}
+
+// ============================================================================
+// NAVIGATION
+// ============================================================================
+
+.nav {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  flex: 1;
+  justify-content: flex-end;
+
+  .nav-link {
+    font-size: 0.95rem;
+    color: $color-gray;
+    text-decoration: none;
+    font-weight: 500;
+    transition: all $transition-normal;
+    cursor: pointer;
+    position: relative;
+
+    &::after {
+      content: '';
+      position: absolute;
+      bottom: -4px;
+      left: 0;
+      width: 0;
+      height: 2px;
+      background: $color-primary;
+      transition: width $transition-normal;
+    }
+
+    &:hover {
+      color: $color-dark;
+
+      &::after {
+        width: 100%;
+      }
+    }
+
+    &.admin-link {
+      color: $color-primary;
+      font-weight: 600;
+
+      &:hover {
+        color: color.adjust(#D4AF37, $lightness: 10%);
+      }
+    }
+  }
+}
+
+// ============================================================================
+// PLAN INDICATOR
+// ============================================================================
+
+.plan-indicator {
+
+  .plan-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    background-color: #E9ECEF;
+    color: $text-muted;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border: 1px solid rgba(0,0,0,0.05);
+    cursor: pointer;
+  }
+
+  &.plan-pro .plan-badge {
+    background: linear-gradient(135deg, $primary-gold, color.adjust($primary-gold, $lightness: 15%));
+    color: $white;
+    border: none;
+    box-shadow: 0 2px 8px rgba($primary-gold, 0.3);
+  }
+}
+
+// ============================================================================
+// HEADER ACTIONS
+// ============================================================================
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding-left: 1rem;
+  border-left: 1px solid rgba(0, 0, 0, 0.1);
+  flex-shrink: 0;
+}
+
+// Buttons
+.btn {
+  padding: 0.625rem 1.25rem;
+  border-radius: $border-radius;
+  font-weight: 600;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: $transition;
+  border: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+
+  &-primary {
+    background-color: $primary-dark;
+    color: $white;
+    
+    &:hover {
+      background-color: color.adjust(#1A1A1A, $lightness: 10%);
+      transform: translateY(-1px);
+      box-shadow: $shadow-md;
+    }
+  }
+
+  &-login {
+    background-color: $primary-gold;
+    color: $white;
+    
+    &:hover {
+      background-color: color.adjust($primary-gold, $lightness: 5%);
+    }
+  }
+
+  &-logout {
+    background-color: transparent;
+    color: $color-danger;
+    border: 1.5px solid rgba($color-danger, 0.4);
+    border-radius: 8px;
+    padding: 0.5rem 0.75rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.375rem;
+    transition: $transition;
+
+    &:hover {
+      background-color: $color-danger;
+      border-color: $color-danger;
+      color: $white;
+      box-shadow: 0 2px 8px rgba($color-danger, 0.3);
+    }
+  }
+}
+
+// ============================================================================
+// NOTIFICATION WRAPPER
+// ============================================================================
+
+// Notifications
+.notification-wrapper {
+  position: relative;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: $transition;
+  cursor: pointer;
+  color: $primary-gold;
+  flex-shrink: 0;
+
+  &:hover {
+    background-color: $bg-light;
+    color: $primary-dark;
+  }
+
+  .notification-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+
+  .notification-badge {
+    position: absolute;
+    top: 0;
+    right: 0;
+    background-color: #dc3545;
+    color: $white;
+    font-size: 0.625rem;
+    font-weight: 700;
+    min-width: 18px;
+    height: 18px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid $white;
+    transform: translate(30%, -30%);
+  }
+}
+
+// ============================================================================
+// USER PROFILE SECTION
+// ============================================================================
+
+// User Profile Trigger
+.user-profile-trigger {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.375rem 0.75rem;
+  border-radius: 30px;
+  cursor: pointer;
+  transition: $transition;
+  background-color: $bg-light;
+
+  &:hover {
+    background-color: color.adjust(#F8F9FA, $lightness: 10%);
+    // background-color: darken($bg-light, 2%);
+  }
+
+  .user-avatar {
+    width: 32px;
+    height: 32px;
+    background-color: $primary-gold;
+    color: $white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.875rem;
+  }
+
+  .welcome-text {
+    font-size: 0.875rem;
+    color: $text-main;
+    max-width: 150px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    
+    strong {
+      color: $primary-dark;
+    }
+  }
+}
+
+// ============================================================================
+// MOBILE CONTROLS
+// ============================================================================
+
+// Mobile Controls
+.mobile-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.mobile-menu-btn {
+  width: 40px;
+  height: 40px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  
+  &:hover {
+    background-color: $bg-light;
+  }
+
+  .hamburger {
+    width: 20px;
+    height: 14px;
+    position: relative;
+    
+    span {
+      display: block;
+      position: absolute;
+      height: 2px;
+      width: 100%;
+      background: $primary-dark;
+      border-radius: 2px;
+      transition: $transition;
+      
+      &:nth-child(1) { top: 0; }
+      &:nth-child(2) { top: 6px; }
+      &:nth-child(3) { top: 12px; }
+    }
+  }
+
+  &.active .hamburger span {
+    &:nth-child(1) { transform: translateY(6px) rotate(45deg); }
+    &:nth-child(2) { opacity: 0; }
+    &:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
+  }
+}
+
+// ============================================================================
+// MOBILE NAVIGATION
+// ============================================================================
+
+.mobile-nav-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.4);
+  backdrop-filter: blur(4px);
+  z-index: 1001;
+}
+
+.mobile-nav {
+  position: fixed;
+  top: 0;
+  right: -100%;
+  width: 85%;
+  max-width: 320px;
+  height: fit-content;
+  max-height: 100dvh;
+  border-radius: 15px;
+  background: $white;
+  z-index: 1002;
+  transition: right 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  flex-direction: column;
+  box-shadow: -10px 0 30px rgba(0,0,0,0.1);
+
+  &.open {
+    right: 0;
+  }
+
+  .mobile-nav-header {
+    padding: 1.25rem 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+    flex-shrink: 0;
+
+    .mobile-nav-title {
+      font-weight: 700;
+      font-size: 1.125rem;
+    }
+
+    .close-btn {
+      background: transparent;
+      border: none;
+      font-size: 1.5rem;
+      cursor: pointer;
+      color: $text-muted;
+    }
+  }
+
+  .mobile-nav-content {
+    overflow-y: auto;
+    padding: 1rem;
+  }
+}
+
+.mobile-actions {
+  margin-top: 1rem;
+  padding-top: 1.5rem;
+  //border-top: 1px solid rgba(0,0,0,0.05);
+}
+
+// ============================================================================
+// MOBILE USER INFO
+// ============================================================================
+
+.mobile-user-info {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  padding: 1rem;
+  background: $bg-light;
+  border-radius: $border-radius;
+
+  .user-avatar-large {
+    width: 48px;
+    height: 48px;
+    background: $primary-gold;
+    color: $white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    font-weight: 700;
+  }
+
+  .user-details {
+    display: flex;
+    flex-direction: column;
+    cursor: pointer;
+    
+    .user-name {
+      font-weight: 700;
+      color: $primary-dark;
+    }
+
+    .plan-indicator-mobile {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: $text-muted;
+      
+      &.plan-pro {
+        color: $primary-gold;
+      }
+    }
+  }
+}
+
+// ============================================================================
+// MOBILE LINKS
+// ============================================================================
+
+.mobile-links {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin-top: 0;
+
+  .mobile-nav-link {
+    display: block;
+    padding: 0.5rem 0.5rem;
+    color: $color-gray;
+    text-decoration: none;
+    font-weight: 500;
+    transition: all $transition-normal;
+    border-top: 1px solid $color-border;
+    border-bottom: 1px solid $color-border;
+    cursor: pointer;
+    margin-top: 5px;
+
+    &:hover {
+      background-color: $color-light-gray;
+      color: $color-dark;
+      padding-left: 2rem;
+    }
+
+    &.admin-link {
+      color: $color-primary;
+      font-weight: 600;
+    }
+  }
+
+  .mobile-actions {
+    padding: 1rem 1rem;
+    display: flex;
+    gap: 0.75rem;
+
+    .btn {
+      flex: 1;
+    }
+
+    .btn-logout-mobile {
+      background-color: rgba($color-danger, 0.06);
+      color: $color-danger;
+      border: 1.5px solid rgba($color-danger, 0.35);
+      border-radius: 8px;
+      font-weight: 600;
+      letter-spacing: 0.01em;
+
+      &:hover {
+        background-color: $color-danger;
+        border-color: $color-danger;
+        color: $white;
+        box-shadow: 0 2px 8px rgba($color-danger, 0.3);
+      }
+    }
+
+    .w-100 {
+      width: 100%;
+    }
+  }
+}
+
+// ============================================================================
+// NOTIFICATIONS PANEL
+// ============================================================================
+
+@keyframes slideInDown {
+  from { opacity: 0; transform: translateY(-10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.notifications-backdrop {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.35);
+  z-index: 1099;
+}
+
+.notifications-panel {
+  position: fixed;
+  top: 80px;
+  right: 1.25rem;
+  width: 400px;
+  max-width: calc(100vw - 2rem);
+  max-height: calc(100vh - 96px);
+  background: $white;
+  border-radius: $border-radius;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.18);
+  z-index: 1100;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: slideInDown 0.25s ease-out;
+
+  // ── Header ──────────────────────────────────────────────────────────────
+  .notifications-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.125rem 1.25rem;
+    border-bottom: 1px solid $color-border;
+    flex-shrink: 0;
+    background: $white;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+
+    .header-title {
+      display: flex;
+      align-items: center;
+      gap: 0.625rem;
+
+      h2 {
+        margin: 0;
+        font-size: 1rem;
+        font-weight: 700;
+        color: $color-dark;
+      }
+
+      .notif-count {
+        background: $primary-gold;
+        color: $white;
+        font-size: 0.7rem;
+        font-weight: 700;
+        min-width: 20px;
+        height: 20px;
+        padding: 0 0.375rem;
+        border-radius: 10px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+      }
+    }
+
+    .close-btn-round {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      border: none;
+      background: $color-light-gray;
+      color: $color-gray;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: $transition;
+      padding: 0;
+      flex-shrink: 0;
+
+      &:hover {
+        background: $color-border;
+        color: $color-dark;
+      }
+
+      svg { display: block; }
+    }
+  }
+
+  // ── List ────────────────────────────────────────────────────────────────
+  .notifications-list {
+    flex: 1;
+    overflow-y: auto;
+  }
+
+  // ── Item ────────────────────────────────────────────────────────────────
+  .notification-item {
+    display: flex;
+    gap: 0.875rem;
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    cursor: pointer;
+    transition: background $transition-normal;
+    position: relative;
+
+    &:last-child { border-bottom: none; }
+
+    &:hover { background: $bg-light; }
+
+    &.unread {
+      background: rgba($primary-gold, 0.04);
+      border-left: 3px solid $primary-gold;
+
+      &:hover { background: rgba($primary-gold, 0.08); }
+    }
+
+    .notification-icon-circle {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.125rem;
+      flex-shrink: 0;
+      background: $bg-light;
+
+      &[data-type='invitation'] { background: rgba(76,  175,  80, 0.12); }
+      &[data-type='reminder']   { background: rgba(255, 152,   0, 0.12); }
+      &[data-type='update']     { background: rgba(33,  150, 243, 0.12); }
+      &[data-type='info']       { background: rgba(156,  39, 176, 0.12); }
+    }
+
+    .notification-body {
+      flex: 1;
+      min-width: 0;
+
+      .notification-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 0.5rem;
+        margin-bottom: 0.25rem;
+
+        .notification-title {
+          margin: 0;
+          font-weight: 700;
+          font-size: 0.875rem;
+          color: $color-dark;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+
+        .notification-time {
+          font-size: 0.7rem;
+          color: $text-muted;
+          white-space: nowrap;
+          flex-shrink: 0;
+        }
+      }
+
+      .notification-message {
+        margin: 0;
+        font-size: 0.8125rem;
+        color: $color-gray;
+        line-height: 1.45;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+
+      .notification-actions {
+        display: flex;
+        gap: 0.375rem;
+        margin-top: 0.625rem;
+
+        .action-btn {
+          width: 26px;
+          height: 26px;
+          border-radius: 6px;
+          border: 1px solid rgba(0, 0, 0, 0.1);
+          background: $white;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          color: $text-muted;
+          transition: $transition;
+          padding: 0;
+          flex-shrink: 0;
+
+          svg { display: block; stroke: currentColor; }
+
+          &.check:hover  { color: #28a745; background: rgba(#28a745, 0.06); border-color: #28a745; }
+          &.delete:hover { color: #dc3545; background: rgba(#dc3545, 0.06); border-color: #dc3545; }
+        }
+      }
+    }
+  }
+
+  // ── Empty state ─────────────────────────────────────────────────────────
+  .no-notifications {
+    padding: 3rem 2rem;
+    text-align: center;
+    color: $text-muted;
+
+    .empty-icon {
+      font-size: 2.5rem;
+      margin-bottom: 0.75rem;
+      opacity: 0.35;
+    }
+
+    p {
+      margin: 0;
+      font-size: 0.875rem;
+    }
+  }
+}
+
+// ── Mobile : bottom-sheet style ────────────────────────────────────────────
+@keyframes slideUpMobile {
+  from { opacity: 0; transform: translateY(100%); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: $breakpoint-mobile) {
+  .notifications-backdrop {
+    background-color: rgba(0, 0, 0, 0.55);
+    backdrop-filter: blur(3px);
+    z-index: 1099;
+  }
+
+  .notifications-panel {
+    top: auto;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    max-width: 100%;
+    max-height: 88dvh;
+    border-radius: 20px 20px 0 0;
+    box-shadow: 0 -8px 40px rgba(0, 0, 0, 0.22);
+    animation: slideUpMobile 0.35s cubic-bezier(0.32, 0.72, 0, 1);
+
+    // Handle de glissement
+    &::before {
+      content: '';
+      display: block;
+      width: 40px;
+      height: 4px;
+      background: $color-border;
+      border-radius: 2px;
+      margin: 10px auto 0;
+      flex-shrink: 0;
+    }
+
+    // Header mobile : fond clair avec bordure dorée subtile
+    .notifications-header {
+      background: $white;
+      border-bottom: 2px solid rgba($primary-gold, 0.3);
+      padding: 1rem 1.25rem;
+      border-radius: 0;
+
+      .header-title h2 {
+        color: $color-dark;
+        font-size: 1rem;
+      }
+
+      .notif-count {
+        background: $primary-gold;
+        color: $white;
+      }
+
+      .close-btn-round {
+        background: $color-light-gray;
+        color: $color-gray;
+
+        &:hover {
+          background: $color-border;
+          color: $color-dark;
+        }
+      }
+    }
+
+    // Items mobile : cards avec séparateur plein
+    .notification-item {
+      padding: 0.875rem 1rem;
+      border-bottom: 1px solid $color-border;
+      gap: 0.75rem;
+
+      &.unread {
+        background: rgba($primary-gold, 0.06);
+        border-left: 3px solid $primary-gold;
+      }
+
+      .notification-icon-circle {
+        width: 36px;
+        height: 36px;
+        font-size: 1rem;
+      }
+
+      .notification-body {
+        .notification-top .notification-title {
+          font-size: 0.8125rem;
+          white-space: normal;
+        }
+
+        .notification-time {
+          font-size: 0.6875rem;
+        }
+
+        .notification-message {
+          font-size: 0.75rem;
+          -webkit-line-clamp: 2;
+        }
+
+        // Boutons d'action plus grands pour les doigts
+        .notification-actions .action-btn {
+          width: 32px;
+          height: 32px;
+          border-radius: 8px;
+        }
+      }
+    }
+
+    // Empty state mobile
+    .no-notifications {
+      padding: 3.5rem 2rem;
+
+      .empty-icon {
+        font-size: 3rem;
+        opacity: 0.3;
+      }
+    }
+  }
+}
+// ============================================================================
+// UTILITY CLASSES
+// ============================================================================
+
+.hide-mobile {
+  @media (max-width: $breakpoint-mobile) {
+    display: none;
+  }
+}
+
+.w-100 {
+  width: 100%;
+}
+
+// ============================================================================
+// RESPONSIVE ADJUSTMENTS
+// ============================================================================
+
+@media (max-width: $breakpoint-tablet) {
+  .header {
+    .container {
+      padding: 0 1.5rem;
+    }
+  }
+
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding-left: 0;
+    border-left: 1px solid rgba(0, 0, 0, 0.1);
+  }
+
+  .header-wrapper {
+    gap: 1rem;
+  }
+
+  .nav {
+    gap: 1rem;
+  }
+
+  .logo-text {
+    font-size: 1.1rem;
+  }
+
+  .welcome-text {
+    max-width: 110px;
+  }
+}
+
+@media (max-width: $breakpoint-mobile) {
+  .header {
+    .container {
+      padding: 0 1rem;
+    }
+  }
+
+  .header-wrapper {
+    min-height: 60px;
+    padding: 0.75rem 0;
+  }
+
+  .logo-icon-wrapper {
+    width: 40px;
+    height: 40px;
+  }
+
+  .logo-img {
+    width: 28px;
+    height: 28px;
+  }
+
+  .notifications-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.35);
+    z-index: 1000;
+  }
+}

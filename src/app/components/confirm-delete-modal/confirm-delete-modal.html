@@ -1,0 +1,23 @@
+<div class="modal-backdrop" *ngIf="visible">
+  <div class="modal-content" [ngClass]="styleAction">
+    <div class="modal-header" [ngClass]="styleAction">
+      <h3 *ngIf="!isConfirmAlert">⚠️ Confirmation</h3>
+      <h3 *ngIf="isConfirmAlert">⚠️ Alert</h3>
+      <button class="close-btn" [ngClass]="styleAction" (click)="onCancel()">✖</button>
+    </div>
+
+    <div *ngIf="!isConfirmAlert" class="modal-body">
+      {{ message }}
+    </div>
+    <div *ngIf="isConfirmAlert" class="modal-body">
+      {{ messageAlert }}
+    </div>
+
+    <div class="modal-footer">
+      <button *ngIf="!isConfirmAlert" class="cancel-btn" [ngClass]="styleAction" (click)="onCancel()">Annuler</button>
+      <button *ngIf="isDelete" class="delete-btn" (click)="onConfirm()">Supprimer</button>
+      <button *ngIf="isSender || isReSender" class="sender-btn" (click)="onConfirm()">Envoyer</button>
+      <button *ngIf="isConfirmAlert" class="cancel-btn" (click)="onConfirm()">Ok</button>
+    </div>
+  </div>
+</div>

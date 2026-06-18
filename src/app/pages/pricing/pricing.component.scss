@@ -1,0 +1,216 @@
+@use "sass:color";
+
+.pricing-page {
+  min-height: 100vh;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 3rem 1rem 5rem;
+  text-align: center;
+  background: #fff;
+
+  h1 {
+    font-size: 2.8rem;
+    margin-bottom: 1rem;
+    color: #1a1a1a;
+  }
+
+  > p {
+    color: #666;
+    font-size: 1.1rem;
+    margin-bottom: 3rem;
+  }
+}
+
+/* Carte tarif principal */
+.pricing-card {
+  max-width: 500px;
+  margin: 0 auto 3rem;
+  background: #fff;
+  border: 2px solid #d4af37;
+  border-radius: 1rem;
+  padding: 2rem;
+  box-shadow: 0 10px 30px rgba(212, 175, 55, 0.15);
+
+  .price-highlight {
+    font-size: 4rem;
+    font-weight: 700;
+    color: #d4af37;
+    line-height: 1;
+    margin-bottom: 0.5rem;
+  }
+
+  p {
+    color: #666;
+    margin-bottom: 1.5rem;
+  }
+
+  ul {
+    text-align: left;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  li {
+    padding: 0.75rem 0;
+    border-bottom: 1px solid #f1f1f1;
+    color: #444;
+
+    &:last-child {
+      border-bottom: none;
+    }
+  }
+}
+
+/* Simulateur */
+.simulator {
+  max-width: 600px;
+  margin: 0 auto 4rem;
+  background: #fafaf8;
+  border: 1px solid #e0e0e0;
+  border-radius: 1rem;
+  padding: 2rem;
+
+  h2 {
+    margin-bottom: 1.5rem;
+    color: #1a1a1a;
+  }
+
+  input {
+    width: 100%;
+    max-width: 250px;
+    padding: 0.9rem 1rem;
+    border: 1px solid #d0d0d0;
+    border-radius: 0.5rem;
+    font-size: 1rem;
+    text-align: center;
+    margin-bottom: 1rem;
+
+    &:focus {
+      outline: none;
+      border-color: #d4af37;
+      box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.15);
+    }
+  }
+
+  p {
+    margin: 0;
+    font-size: 1.1rem;
+
+    strong {
+      color: #d4af37;
+      font-size: 1.3rem;
+    }
+  }
+}
+
+/* Exemples */
+.examples-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 4rem;
+}
+
+.example-card {
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  transition: all 0.3s ease;
+
+  &:hover {
+    transform: translateY(-4px);
+    border-color: #d4af37;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+  }
+
+  span {
+    display: block;
+    color: #666;
+    margin-bottom: 0.5rem;
+  }
+
+  strong {
+    color: #d4af37;
+    font-size: 1.4rem;
+  }
+}
+
+/* FAQ */
+.faq {
+  margin-bottom: 4rem;
+
+  h2 {
+    margin-bottom: 2rem;
+    color: #1a1a1a;
+  }
+}
+
+.faq-item {
+  text-align: left;
+  background: #fafaf8;
+  border: 1px solid #eaeaea;
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  margin-bottom: 1rem;
+
+  strong {
+    display: block;
+    margin-bottom: 0.75rem;
+    color: #1a1a1a;
+  }
+
+  p {
+    margin: 0;
+    color: #666;
+    line-height: 1.6;
+  }
+}
+
+/* Bouton CTA */
+button {
+  background: #d4af37;
+  color: #1a1a1a;
+  border: none;
+  border-radius: 0.75rem;
+  padding: 1rem 2rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+
+  &:hover {
+    background: color.adjust(#d4af37, $lightness: -8%);
+    transform: translateY(-2px);
+  }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .pricing-page {
+    padding: 2rem 1rem 4rem;
+
+    h1 {
+      font-size: 2rem;
+    }
+  }
+
+  .pricing-card {
+    .price-highlight {
+      font-size: 3rem;
+    }
+  }
+
+  .examples-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .faq-item {
+    text-align: left;
+  }
+
+  button {
+    width: 100%;
+  }
+}

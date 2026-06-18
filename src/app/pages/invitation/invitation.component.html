@@ -1,0 +1,276 @@
+    <div class="invitation" *ngIf="!submitted(); else successTemplate">
+      <!-- Header -->
+      <div class="invitation-header">
+        <div class="container">
+          <h1 class="text-elegant">{{ data.eventTitle }}</h1>
+          <p>Vous êtes cordialement invité</p>
+        </div>
+      </div>
+
+      <!-- Main content -->
+      <div class="container c-container py-12">
+        <div class="invitation-card card">
+          <!-- Image -->
+          <div class="invitation-image">
+            <img
+              [src]="url"
+              alt="QR Code généré"
+              class="qr-image"
+            />
+          </div>
+
+          <!-- Content -->
+          <div class="invitation-content">
+            <!-- Greeting -->
+            <div *ngIf="!isFromGeneratedLink" class="greeting">
+              <p>Cher(e) {{ data.guestName }},</p>
+              <h2>{{ data.eventTitle }}</h2>
+            </div>
+
+            <!-- Description -->
+            <p class="description">
+              {{ data.description }}
+            </p>
+
+            <!-- Event Details -->
+            <div class="event-details">
+              <h3>Détails de l'événement</h3>
+              <div class="details-grid">
+                <div class="detail-item">
+                  <mat-icon style="color: #DAA520;">calendar_today</mat-icon>
+                  <div>
+                    <p class="detail-label">Date</p>
+                    <p class="detail-value">{{ formatDate(data.eventDate) }}</p>
+                    <!-- <p class="detail-value">{{ data.eventTime }}</p> -->
+                  </div>
+                </div>
+
+                <div *ngIf="showWeddingCivilLocation" class="detail-item">
+                  <mat-icon style="color: #DAA520;">location_on</mat-icon>
+                  <div class="c-mt">
+                    <p class="detail-label">Lieu de la Cérémonie Civile</p>
+                    <p class="detail-value">{{ data.eventCivilLocation}}</p>
+                    <span class="time-icon">🕒</span> {{ data.eventTime }}
+                  </div>
+                </div>
+                <div class="detail-item">
+                  <mat-icon style="color: #DAA520;">info</mat-icon>
+                  <div class="c-mt">
+                    <p class="detail-value">La suite du planning vous</p>
+                    <p class="detail-value">sera transmise par Whatsapp</p>
+                    <p class="detail-value">ou via e-mail</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Response Section -->
+            <div class="response-section">
+              <h3>Votre réponse</h3>
+
+              <!-- Response buttons -->
+              <div class="response-buttons">
+                <button
+                  class="response-btn confirmed"
+                  [class.active]="response() === 'confirmed'"
+                  (click)="response.set('confirmed')"
+                  (click)="checkResponse()"
+                >
+                  <span class="icon">✓</span>
+                  <div>
+                    <p class="btn-title">Je confirme ma présence</p>
+                    <p class="btn-subtitle">Avec plaisir !</p>
+                  </div>
+                </button>
+
+                <button
+                  class="response-btn declined"
+                  [class.active]="response() === 'declined'"
+                  (click)="response.set('declined')"
+                  (click)="checkResponse()"
+                >
+                  <span class="icon">✕</span>
+                  <div>
+                    <p class="btn-title">Je ne peux pas venir</p>
+                    <p class="btn-subtitle">Mes excuses</p>
+                  </div>
+                </button>
+              </div>
+
+              <!-- Additional info -->
+              <div *ngIf="response() === 'confirmed'" [ngClass]="additionalInfo">
+                <div *ngIf="data.footRestriction" class="form-group">
+                  <label>Restrictions alimentaires (optionnel)</label>
+                  <textarea
+                    [(ngModel)]="dietaryRestrictions"
+                    placeholder="Ex: Végétarien, Sans gluten, Allergies..."
+                    rows="3"
+                    [disabled]="loading"
+                  ></textarea>
+                </div>
+
+                <!-- Info guest from link-->
+                <div *ngIf="isFromGeneratedLink" class="form-group">
+                  <!-- NOM -->
+                  <label>Nom *</label>
+                  <input
+                    type="text"
+                    placeholder="Entrez votre nom"
+                    [(ngModel)]="name"
+                    name="name"
+                    #nameCtrl="ngModel"
+                    required
+                    (ngModelChange)="checkField()"
+                    [disabled]="loading"
+                  />
+                  <div class="error" *ngIf="nameCtrl.invalid && nameCtrl.touched">
+                    Le nom est obligatoire.
+                  </div>
+
+                  <!-- Notification Means -->
+                  <div class="form-group checkbox-group checkbox-text">
+                    <p class="notification-title">
+                      Notifiez-moi des détails de l'événement via :
+                    </p>
+                    <label class="custom-switch">
+                      <input
+                        type="checkbox"
+                        [(ngModel)]="notificationMeans.whatsapp"
+                        name="notificationMeans"
+                        (change)="toggleNotificationMeans()"
+                      />
+                      <span class="checkmark"></span>
+                      <div class="label-text">
+                        <span class="on">WhatsApp</span>
+                        <span class="off">Email</span>
+                      </div>
+                    </label>
+                  </div>
+
+                  <!-- EMAIL -->
+                  <div *ngIf="notificationMethod=='email'">
+                    <label>Email *</label>
+                    <input
+                      type="email"
+                      placeholder="Adresse email"
+                      [(ngModel)]="email"
+                      name="email"
+                      #emailCtrl="ngModel"
+                      required
+                      email
+                      (ngModelChange)="checkField()"
+                      [disabled]="loading"
+                    />
+                    <div class="error" *ngIf="emailCtrl.invalid && emailCtrl.touched">
+                      <span *ngIf="emailCtrl.errors?.['required']">L’email est obligatoire.</span>
+                      <span *ngIf="emailCtrl.errors?.['email']">Format email invalide.</span>
+                    </div>
+                  </div>
+
+                  <!-- TELEPHONE -->
+                   <div *ngIf="notificationMethod=='whatsapp'">
+                      <label>Whatsapp *</label>
+                      <input
+                        type="text"
+                        placeholder="+237655002318"
+                        [(ngModel)]="phone"
+                        name="phone"
+                        #phoneCtrl="ngModel"
+                        pattern="^\+?[1-9][0-9]{7,14}$"
+                        (ngModelChange)="checkField()"
+                        required
+                        [disabled]="loading"
+                      />
+                      <div *ngIf="errorPhoneMessage" class="error">
+                        {{ errorPhoneMessage }}
+                      </div>
+                      <div class="error" *ngIf="phoneCtrl.invalid && phoneCtrl.touched">
+                        <span *ngIf="phoneCtrl.errors?.['required']">Le numéro whatsapp est obligatoire.</span>
+                      </div>
+                   </div>
+                </div>
+
+                <label *ngIf="data.eventHasPlusOne && data.guestHasPlusOneAutoriseByAdmin" class="checkbox-label">
+                  <input type="checkbox" name="plusOne" [(ngModel)]="plusOne" (ngModelChange)="boxChecked()" />
+                  <span>Je souhaite amener un accompagnant (+1)</span>
+                </label>
+              </div>
+
+              <!-- Info plus one -->
+              <div *ngIf="plusOne" class="form-group">
+                <label>Nom de votre accompagnant *</label>
+                <input
+                  type="text"
+                  [(ngModel)]="plusOneName"
+                  (ngModelChange)="checkField()"
+                  [disabled]="loading"
+                />
+                <label *ngIf="data.footRestriction" class="label-mt">Restrictions alimentaires (optionnel)</label>
+                <textarea
+                  *ngIf="data.footRestriction"
+                  [(ngModel)]="plusOneNameDietRestr"
+                  placeholder="Ex: Végétarien, Sans gluten, Allergies..."
+                  rows="3"
+                  [disabled]="loading"
+                ></textarea>
+              </div>
+
+              <button
+                class="btn btn-primary submit-btn"
+                [disabled]="!response() || isValidating"
+                (click)="submitResponse()"
+              >
+                {{loading ? '⏳ Confirmation...' :'❤️ Confirmer ma réponse'}}
+              </button>
+
+              <!-- Affichage du message d'erreur -->
+              <div *ngIf="errorMessage" class="error-message">
+                {{ errorMessage }}
+              </div>
+
+              <!-- Footer message -->
+              <div class="invitation-footer">
+                <p>Nous attendons votre réponse avant le <strong>{{ formatDate(data.eventDate) }}</strong></p>
+                <p class="footer-contact">
+                  Pour toute question, contactez-nous à
+                  <a href="mailto:contact@example.com">{{data.emailOrganizer}}</a>
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Trust message -->
+        <div class="trust-message">
+          <p>Vos données sont sécurisées et ne seront jamais partagées</p>
+          <div class="trust-icons">
+            <span>🔒 Chiffré</span>
+            <span>•</span>
+            <span>✓ Sécurisé</span>
+            <span>•</span>
+            <span>🔐 Privé</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <ng-template #successTemplate>
+      <div class="success-page">
+        <div class="container">
+          <div class="success-card card">
+            <div class="success-icon">✓</div>
+            <h1>Merci !</h1>
+            <p>Votre réponse a été enregistrée avec succès.</p>
+
+            <div class="success-response">
+              <p class="label">Votre réponse</p>
+              <p class="value">
+                {{ response() === 'confirmed' ? '✓ Confirmé' : '✕ Refusé' }}
+              </p>
+            </div>
+
+            <p class="success-message">Les organisateurs ont reçu votre réponse. À bientôt !</p>
+          </div>
+        </div>
+      </div>
+    </ng-template>

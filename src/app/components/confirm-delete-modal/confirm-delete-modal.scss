@@ -1,0 +1,146 @@
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(10, 10, 10, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  animation: fadeIn 0.2s ease;
+}
+
+.modal-content {
+  background-color: #222;
+  color: white;
+  border: 2px solid #D4AF37;
+  border-radius: 10px;
+  width: 350px;
+  padding: 20px;
+  box-shadow: 0 0 15px #D4AF37;
+  animation: scaleIn 0.25s ease;
+}
+
+.modal-content.send{
+  background-color: #efefef;
+  color: #222;
+  border: 2px solid #22C55E;
+  box-shadow: 0 0 15px #22C55E;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 8px;
+}
+
+.modal-header.send{
+  border-bottom: 1px solid #22C55E;
+}
+.modal-header.delete{
+  border-bottom: 1px solid #D4AF37;
+}
+
+.modal-body {
+  margin: 15px 0;
+  font-size: 15px;
+  text-align: center;
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 15px;
+}
+
+.cancel-btn,
+.sender-btn,
+.delete-btn {
+  flex: 1;
+  margin: 0 5px;
+  padding: 8px 14px;
+  border: none;
+  border-radius: 6px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.cancel-btn {
+  background-color: transparent;
+  border: 1px solid #D4AF37;
+  color: #D4AF37;
+}
+.cancel-btn.send {
+  border: 1px solid #22C55E;
+  color: #22C55E;
+}
+.cancel-btn.delete {
+  border: 1px solid #D4AF37;
+  color: #D4AF37;
+}
+
+.cancel-btn:hover {
+  background-color: #D4AF37;
+  color: #222;
+}
+.cancel-btn.send:hover {
+  background-color: #22C55E;
+  color: #222;
+}
+
+.delete-btn {
+  background-color: #d9534f;
+  color: white;
+}
+
+.delete-btn:hover {
+  background-color: #ff4d4d;
+}
+
+.sender-btn {
+  background-color: #22C55E;
+  color: white;
+}
+
+.sender-btn:hover {
+  background-color: #22C55E;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+}
+
+.close-btn.send{
+  color: #22C55E;
+}
+.close-btn.delete{
+  color: #D4AF37;
+}
+
+.close-btn:hover {
+  color: white;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes scaleIn {
+  from { transform: scale(0.9); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+@media (max-width: 768px) {
+  .modal-content {
+    width: 255px;
+    padding: 8px;
+  }
+}

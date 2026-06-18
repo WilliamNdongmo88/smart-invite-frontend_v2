@@ -1,0 +1,133 @@
+    <div class="maintenance-container">
+      <!-- Background Animation -->
+      <div class="background-animation">
+        <div class="circle circle-1"></div>
+        <div class="circle circle-2"></div>
+        <div class="circle circle-3"></div>
+      </div>
+
+      <!-- Main Content -->
+      <div class="maintenance-content">
+        <!-- Logo -->
+        <div class="logo-section">
+          <img src="img/logo.png" alt="Smart Invite" class="logo" />
+        </div>
+
+        <!-- Status -->
+        <div class="status-badge">
+          🔧 En Maintenance
+        </div>
+
+        <!-- Title -->
+        <h1 class="main-title">
+          Nous serons bientôt de retour !
+        </h1>
+
+        <!-- Description -->
+        <p class="description">
+          Smart Invite est actuellement en maintenance pour vous offrir une meilleure expérience.
+          Nous travaillons dur pour améliorer la plateforme avec de nouvelles fonctionnalités et des performances optimisées.
+        </p>
+
+        <!-- Progress -->
+        <div class="progress-section">
+          <div class="progress-label">
+            <span>Progression de la maintenance</span>
+            <span class="progress-percent">{{ maintenanceProgress }}%</span>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill" [style.width.%]="maintenanceProgress"></div>
+          </div>
+        </div>
+
+        <!-- Estimated Time -->
+        <div class="info-box">
+          <div class="info-item">
+            <span class="info-icon">⏱️</span>
+            <div>
+              <p class="info-label">Temps estimé</p>
+              <p class="info-value">{{ estimatedTime }}</p>
+            </div>
+          </div>
+          <div class="info-item">
+            <span class="info-icon">🔔</span>
+            <div>
+              <p class="info-label">Dernière mise à jour</p>
+              <p class="info-value">{{ lastUpdate }}</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Features Coming -->
+        <div class="features-section">
+          <h2>Nouvelles fonctionnalités en cours</h2>
+          <div class="features-grid">
+            <div class="feature-card">
+              <span class="feature-icon">⚡</span>
+              <p class="feature-title">Performance améliorée</p>
+              <p class="feature-desc">Chargement plus rapide et expérience optimisée</p>
+            </div>
+            <div class="feature-card">
+              <span class="feature-icon">🎨</span>
+              <p class="feature-title">Nouveau design</p>
+              <p class="feature-desc">Interface modernisée et plus intuitive</p>
+            </div>
+            <div class="feature-card">
+              <span class="feature-icon">🔒</span>
+              <p class="feature-title">Sécurité renforcée</p>
+              <p class="feature-desc">Protocoles de sécurité avancés</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Newsletter Signup -->
+        <div class="newsletter-section">
+          <h3>Soyez notifié du retour</h3>
+          <p>Entrez votre email pour recevoir une notification dès que nous serons de retour.</p>
+          <form (ngSubmit)="subscribeNewsletter()" class="newsletter-form">
+            <div class="form-group">
+              <input
+                type="email"
+                [(ngModel)]="email"
+                name="email"
+                placeholder="Votre adresse email"
+                class="email-input"
+                required
+              />
+              <button type="submit" class="btn btn-primary">
+                {{ subscribed ? '✓ Inscrit' : 'S\'inscrire' }}
+              </button>
+            </div>
+            <p *ngIf="subscribed" class="success-message">
+              ✓ Merci ! Vous recevrez une notification dès que nous serons de retour.
+            </p>
+          </form>
+        </div>
+
+        <!-- Contact Support -->
+        <div class="support-section">
+          <p>Besoin d'aide ? <a href="mailto:support@smartinvite.com">Contactez notre support</a></p>
+        </div>
+
+        <!-- Social Links -->
+        <!-- <div class="social-links">
+          <a href="https://facebook.com/smartinvite" target="_blank" class="social-link">
+            f
+          </a>
+          <a href="https://twitter.com/smartinvite" target="_blank" class="social-link">
+            𝕏
+          </a>
+          <a href="https://instagram.com/smartinvite" target="_blank" class="social-link">
+            📷
+          </a>
+          <a href="https://linkedin.com/company/smartinvite" target="_blank" class="social-link">
+            in
+          </a>
+        </div> -->
+      </div>
+
+      <!-- Footer -->
+      <!-- <div class="maintenance-footer">
+        <p>&copy; 2026 Smart Invite. Tous droits réservés.</p>
+      </div> -->
+    </div>

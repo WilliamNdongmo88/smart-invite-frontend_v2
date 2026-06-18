@@ -1,0 +1,90 @@
+    <div class="signup-container">
+      <!-- Left side - Image -->
+      <div class="signup-image">
+        <div class="image-content">
+          <img src="img/carte.jpg" alt="Wedding theme" />
+          <div class="overlay">
+            <h2>Créez votre compte</h2>
+            <p>Commencez à gérer vos invitations de mariage dès aujourd'hui</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right side - Form -->
+      <div class="signup-form-container">
+        <div class="signup-form">
+          <!-- Logo -->
+          <div class="form-header">
+            <img src="img/logo-original.png" alt="Smart Invite" class="logo" />
+            <h1>Inscription</h1>
+            <p>Créez votre compte Smart Invite</p>
+          </div>
+
+          <!-- Right side - Form -->
+          <div class="forgot-password-form-container">
+            <div class="forgot-password-form">
+
+              <!-- Step 2: Verification Code -->
+              <div *ngIf="currentStep() === 'verification'" class="step-content">
+                <div class="step-info">
+                  <p class="step-description">
+                    Validé le code envoyé à <strong>{{ isActiveAccount ? email : email_confirmed }}</strong>
+                  </p>
+                </div>
+
+                <form (ngSubmit)="submitVerificationCode()" #verificationForm="ngForm">
+                  <div class="form-group">
+                    <label for="verificationCode">Code de vérification</label>
+                    <input
+                      type="text"
+                      id="verificationCode"
+                      name="verificationCode"
+                      [(ngModel)]="verificationCode"
+                      placeholder="000000"
+                      maxlength="6"
+                      required
+                      class="form-input code-input"
+                    />
+                    <p *ngIf="!errorMessage" class="form-hint">Entrez le code à 6 chiffres reçu par email</p>
+                  </div>
+
+                  <button type="submit" class="btn btn-primary submit-btn" [disabled]="!verificationForm.valid">
+                    {{ loading ? '⏳ Vérification en cours...' : 'Vérifier le code' }}
+                  </button>
+
+                  <!-- Message d'erreur -->
+                  <div *ngIf="errorMessage" class="alert alert-error">
+                    {{ errorMessage }}
+                  </div>
+
+                  <div class="resend-code">
+                    <p class="resend-text">Vous n'avez pas reçu le code ?</p>
+                    <button type="button" class="link-resend" (click)="resendCode()">
+                      Renvoyer le code
+                    </button>
+                  </div>
+
+                  <div class="back-to-login">
+                    <a routerLink="/login" class="link-back">← Retour à la connexion</a>
+                  </div>
+                </form>
+              </div>
+
+              <!-- Step 4: Success -->
+              <div *ngIf="currentStep() === 'success'" class="step-content success-content">
+                <div class="success-icon">✓</div>
+                <h2>Compte activé !</h2>
+                <p class="success-message">
+                  Votre compte a été activé avec succès. Vous pouvez maintenant vous connecter.
+                </p>
+
+                <button class="btn btn-primary submit-btn" (click)="redirectToLogin()">
+                  Aller à la connexion
+                </button>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>

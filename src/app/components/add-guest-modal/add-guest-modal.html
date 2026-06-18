@@ -1,0 +1,108 @@
+<div class="modal-overlay" (click)="closeModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+        <button class="modal-close" (click)="closeModal()">✕</button>
+
+        <div class="modal-header">
+            <h2>Ajouter un nouvel invité</h2>
+            <p>Remplissez les informations de l'invité</p>
+        </div>
+
+        <form (ngSubmit)="onSubmit()" #addGuestForm="ngForm" class="modal-form">
+            <!-- Name -->
+            <div class="form-group">
+            <label for="name">Nom complet *</label>
+            <input
+                type="text"
+                id="name"
+                name="name"
+                [(ngModel)]="newGuest.name"
+                placeholder="William Ndongmo"
+                required
+                class="form-input"
+            />
+            </div>
+
+            <!-- Notification Means -->
+            <div class="form-group checkbox-group checkbox-text">
+              <p class="notification-title">
+                Notifiez l'invité des détails de l'événement via :
+              </p>
+              <label class="custom-switch">
+                <input
+                  type="checkbox"
+                  [(ngModel)]="notificationMeans.whatsapp"
+                  name="notificationMeans"
+                  (change)="toggleNotificationMeans()"
+                />
+                <span class="checkmark"></span>
+                <div class="label-text">
+                  <span class="on">WhatsApp</span>
+                  <span class="off">Email</span>
+                </div>
+              </label>
+            </div>
+
+            <!-- Email -->
+            <div *ngIf="notificationMode=='email'" class="form-group">
+            <label for="email">Adresse email *</label>
+            <input
+                type="email"
+                id="email"
+                name="email"
+                [(ngModel)]="newGuest.email"
+                placeholder="will.ndon@gmail.com"
+                required
+                class="form-input"
+            />
+            </div>
+
+            <!-- Phone -->
+            <div *ngIf="notificationMode=='whatsapp'" class="form-group">
+            <label for="phone">Whatsapp *</label>
+            <input
+                type="tel"
+                id="phone"
+                name="phone"
+                [(ngModel)]="newGuest.phone"
+                placeholder="+237655345678"
+                required
+                class="form-input"
+            />
+            </div>
+
+            <!-- Plus One -->
+            <div class="form-group">
+            <label class="checkbox-label">
+                <input
+                type="checkbox"
+                name="plusOne"
+                [(ngModel)]="newGuest.plusOne"
+                />
+                <span>Autoriser un +1</span>
+            </label>
+            </div>
+
+            <!-- Form Actions -->
+            <div class="form-actions">
+            <button type="button" class="btn btn-outline" (click)="closeModal()">
+                Annuler
+            </button>
+            <button
+                type="submit"
+                class="btn btn-primary"
+                [disabled]="!addGuestForm.valid"
+            >
+                ✓ Ajouter l'invité
+            </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal de confirmation -->
+<app-confirm-delete-modal
+    [visible]="showAlerteModal"
+    [action]="'confirm-alert'"
+    (confirmAlert)="confirmAlert()"
+    (cancel)="closeModal()">
+</app-confirm-delete-modal>

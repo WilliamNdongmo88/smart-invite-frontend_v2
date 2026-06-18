@@ -1,0 +1,862 @@
+<div class="admin-layout">
+  <!-- Sidebar à gauche -->
+  <aside *ngIf="!(isMobile | async)" class="admin-sidebar">
+    <div class="sidebar-header">
+      <h3>Admin Panel</h3>
+    </div>
+    <nav class="sidebar-nav">
+      <button
+        *ngFor="let tab of tabs"
+        [class.active]="activeTab === tab.id"
+        (click)="activeTab = tab.id; currentPage = 1"
+        class="nav-item"
+      >
+        <span class="nav-label">{{ tab.label }}</span>
+      </button>
+    </nav>
+  </aside>
+
+  <!-- Contenu principal à droite -->
+  <main class="admin-main">
+    <!-- Header -->
+    <div class="admin-header">
+    <div class="container">
+        <a routerLink="/evenements" class="back-link">← Retour</a>
+        <h1>Panneau d'Administration</h1>
+        <p>Gestion complète de la plateforme</p>
+    </div>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <div *ngIf="isMobile | async" class="admin-tabs">
+        <button
+        *ngFor="let tab of tabs"
+        [class.active]="activeTab === tab.id"
+        (click)="activeTab = tab.id"
+        class="tab-btn"
+        >
+        {{ tab.label }}
+        </button>
+    </div>
+
+    <!-- TAB: FEEDBACK -->
+    <div *ngIf="activeTab === 'feedback'" class="tab-content">
+      <div class="section-card">
+        <h2>Retours d'Impression</h2>
+
+        <div class="filters">
+          <input type="text" [(ngModel)]="feedbackSearch" placeholder="Rechercher..." class="form-input" (ngModelChange)="currentPage = 1">
+        </div>
+
+        <div class="list-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Email</th>
+                <th>Note</th>
+                <th>Titre</th>
+                <th>Statut</th>
+                <th>Date</th>
+              </tr>
+            </thead>
+            <tbody>
+                <tr *ngFor="let feedback of getPaginatedData(getFilteredFeedback())" class="feedback-row">
+                    <td
+                        class="email-cell"
+                        [ngClass]="feedback.isSubscriber">
+                        {{ feedback.email }}
+                    </td>
+                    <td>
+                        <div class="rating-display">
+                        <span *ngFor="let i of [1,2,3,4,5]" class="star" [class.filled]="i <= feedback.rating">★</span>
+                        </div>
+                    </td>
+                    <td>{{ feedback.title }}</td>
+                    <td>{{ feedback.category }}</td>
+                    <td>
+                        <select [(ngModel)]="feedback.status" class="status-select"
+                        [ngClass]="feedback.status" (change)="updateFeedbackStatus(feedback)">
+                        <option value="pending">En attente</option>
+                        <option value="reviewed">Examiné</option>
+                        <option value="resolved">Résolu</option>
+                        </select>
+                    </td>
+                    <td>{{ formatDate(feedback.createdAt) }}</td>
+                    <td>
+                        <button class="btn-small btn-view" (click)="viewFeedbackDetails(feedback)">
+                        👁️ Voir
+                        </button>
+                    </td>
+                </tr>
+            </tbody>
+          </table>
+
+          <!-- Feedback Details Modal -->
+          <div *ngIf="selectedFeedback" class="modal-overlay" (click)="selectedFeedback = null">
+            <div class="modal-content" (click)="$event.stopPropagation()">
+                <button class="modal-close" (click)="selectedFeedback = null">✕</button>
+                <h3>{{ selectedFeedback.title }}</h3>
+                <p class="feedback-message">{{ selectedFeedback.message }}</p>
+                <div class="modal-actions">
+                        <textarea
+                        [(ngModel)]="selectedFeedback.adminNotes"
+                        placeholder="Ajouter une note interne..."
+                        class="form-textarea"
+                        ></textarea>
+                        <button class="btn btn-primary" (click)="saveFeedbackNotes()">
+                        💾 Enregistrer les notes
+                        </button>
+                </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pagination Controls -->
+        <div class="pagination" *ngIf="getFilteredFeedback().length > pageSize">
+          <button [disabled]="currentPage === 1" (click)="changePage(currentPage - 1)">Précédent</button>
+          <span>Page {{ currentPage }} sur {{ getTotalPages(getFilteredFeedback()) }}</span>
+          <button [disabled]="currentPage === getTotalPages(getFilteredFeedback())" (click)="changePage(currentPage + 1)">Suivant</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 2: VISITORS -->
+    <div *ngIf="activeTab === 'visitors'" class="tab-content">
+      <div class="section-card">
+        <h2>Visiteurs du Site</h2>
+
+        <!-- Stats globales -->
+        <div class="stats-grid" *ngIf="visitorStats">
+          <div class="stat-box">
+            <span class="stat-label">Visiteurs uniques</span>
+            <span class="stat-value">{{ visitorStats.total_visitors }}</span>
+          </div>
+          <div class="stat-box">
+            <span class="stat-label">Visiteurs récurrents</span>
+            <span class="stat-value">{{ visitorStats.returning_count }} ({{ visitorStats.returning_rate }}%)</span>
+          </div>
+          <!-- <div class="stat-box">
+            <span class="stat-label">Sessions</span>
+            <span class="stat-value">{{ visitorStats.total_sessions }}</span>
+          </div> -->
+          <div class="stat-box">
+            <span class="stat-label">Pages vues</span>
+            <span class="stat-value">{{ visitorStats.total_pages }}</span>
+          </div>
+          <div class="stat-box">
+            <span class="stat-label">Durée moyenne</span>
+            <span class="stat-value">{{ formatDuration(visitorStats.avg_duration || 0) }}</span>
+          </div>
+        </div>
+
+        <!-- Stats secondaires -->
+        <div class="visitor-stats-row" *ngIf="visitorStats">
+          <div class="stats-mini-card">
+            <h4>Top Pays</h4>
+            <div *ngFor="let c of visitorStats.byCountry" class="stat-bar-row">
+              <span class="stat-bar-label">{{ c.country }}</span>
+              <span class="stat-bar-count">{{ c.count }}</span>
+            </div>
+          </div>
+          <div class="stats-mini-card">
+            <h4>Navigateurs</h4>
+            <div *ngFor="let b of visitorStats.byBrowser" class="stat-bar-row">
+              <span class="stat-bar-label">{{ b.browser }}</span>
+              <span class="stat-bar-count">{{ b.count }}</span>
+            </div>
+          </div>
+          <div class="stats-mini-card">
+            <h4>Systèmes d'exploitation</h4>
+            <div *ngFor="let o of visitorStats.byOS" class="stat-bar-row">
+              <span class="stat-bar-label">{{ o.os }}</span>
+              <span class="stat-bar-count">{{ o.count }}</span>
+            </div>
+          </div>
+          <div class="stats-mini-card">
+            <h4>Appareils</h4>
+            <div *ngFor="let d of visitorStats.byDevice" class="stat-bar-row">
+              <span class="stat-bar-label">{{ d.device }}</span>
+              <span class="stat-bar-count">{{ d.count }}</span>
+            </div>
+          </div>
+          <div class="stats-mini-card">
+            <h4>Pages populaires</h4>
+            <div *ngFor="let p of visitorStats.topPages" class="stat-bar-row">
+              <span class="stat-bar-label">{{ p.page_url }}</span>
+              <span class="stat-bar-count">{{ p.count }}</span>
+            </div>
+          </div>
+          <div class="stats-mini-card">
+            <h4>Visites / Jour (30j)</h4>
+            <div *ngFor="let d of visitorStats.byDay" class="stat-bar-row">
+              <span class="stat-bar-label">{{ d.day }}</span>
+              <span class="stat-bar-count">{{ d.count }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Filtres -->
+        <div class="filters visitors-filters">
+          <input type="text" [(ngModel)]="visitorSearch" placeholder="Rechercher par IP, pays, ville, navigateur..." class="form-input" />
+          <select [(ngModel)]="visitorCountryFilter" class="form-select">
+            <option value="">Tous les pays</option>
+            <option *ngFor="let c of getUniqueCountries()" [value]="c">{{ c }}</option>
+          </select>
+          <select [(ngModel)]="visitorCityFilter" class="form-select">
+            <option value="">Toutes les villes</option>
+            <option *ngFor="let c of getUniqueCities()" [value]="c">{{ c }}</option>
+          </select>
+          <select [(ngModel)]="visitorDeviceFilter" class="form-select">
+            <option value="">Tous les appareils</option>
+            <option *ngFor="let d of getUniqueDevices()" [value]="d">{{ d }}</option>
+          </select>
+          <select [(ngModel)]="visitorBrowserFilter" class="form-select">
+            <option value="">Tous les navigateurs</option>
+            <option *ngFor="let b of getUniqueBrowsers()" [value]="b">{{ b }}</option>
+          </select>
+          <input type="date" [(ngModel)]="visitorDateFrom" class="form-input" title="Date de début" />
+          <input type="date" [(ngModel)]="visitorDateTo" class="form-input" title="Date de fin" />
+          <button class="btn btn-primary" (click)="applyVisitorFilters()">Filtrer</button>
+          <button class="btn btn-secondary" (click)="resetVisitorFilters()">Réinitialiser</button>
+        </div>
+
+        <div *ngIf="visitorsLoading" class="empty-state">⏳ Chargement...</div>
+
+        <!-- Table -->
+        <div class="list-container" *ngIf="!visitorsLoading">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Première visite</th>
+                <th>Pays / Ville</th>
+                <th>Appareil / OS</th>
+                <th>Navigateur</th>
+                <th>Pages vues</th>
+                <th>Sessions</th>
+                <th>Durée (dernière)</th>
+                <th>Type</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let visitor of getPaginatedData(visitors)">
+                <td>{{ formatDate(visitor.first_visit) }}</td>
+                <td>{{ visitor.country }} / {{ visitor.city }}</td>
+                <td>{{ visitor.device }} / {{ visitor.os }}</td>
+                <td>{{ visitor.browser }}</td>
+                <td>{{ visitor.total_pages }}</td>
+                <td>{{ visitor.total_visits }}</td>
+                <td>{{ formatDuration(visitor.duration || 0) }}</td>
+                <td>
+                  <span class="status-badge" [class]="visitor.is_returning ? 'reviewed' : 'active'">
+                    {{ visitor.is_returning ? 'Récurrent' : 'Nouveau' }}
+                  </span>
+                </td>
+                <td>
+                  <button class="btn-small btn-view" (click)="openVisitorDetail(visitor)">👁️ Détails</button>
+                </td>
+              </tr>
+              <tr *ngIf="visitors.length === 0">
+                <td colspan="9" class="empty-state">Aucun visiteur trouvé.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="pagination" *ngIf="visitors.length > pageSize">
+          <button [disabled]="currentPage === 1" (click)="changePage(currentPage - 1)">Précédent</button>
+          <span>Page {{ currentPage }} sur {{ getTotalPages(visitors) }}</span>
+          <button [disabled]="currentPage === getTotalPages(visitors)" (click)="changePage(currentPage + 1)">Suivant</button>
+        </div>
+      </div>
+
+      <!-- Modal détail visiteur -->
+      <div *ngIf="selectedVisitor" class="modal-overlay" (click)="closeVisitorDetail()">
+        <div class="modal-content visitor-detail-modal" (click)="$event.stopPropagation()">
+          <button class="modal-close" (click)="closeVisitorDetail()">✕</button>
+          <h3>Détail du visiteur</h3>
+
+          <!-- Infos générales -->
+          <div class="user-details">
+            <div class="detail-row"><span class="label">IP :</span><span class="value mono">{{ selectedVisitor.ip_address }}</span></div>
+            <div class="detail-row"><span class="label">Pays / Ville :</span><span class="value">{{ selectedVisitor.country }} / {{ selectedVisitor.city }}</span></div>
+            <div class="detail-row"><span class="label">Région :</span><span class="value">{{ selectedVisitor.region }}</span></div>
+            <div class="detail-row"><span class="label">Fuseau horaire :</span><span class="value">{{ selectedVisitor.timezone }}</span></div>
+            <div class="detail-row"><span class="label">Langue :</span><span class="value">{{ selectedVisitor.language }}</span></div>
+            <div class="detail-row"><span class="label">Appareil / OS :</span><span class="value">{{ selectedVisitor.device }} / {{ selectedVisitor.os }}</span></div>
+            <div class="detail-row"><span class="label">Navigateur :</span><span class="value">{{ selectedVisitor.browser }}</span></div>
+            <div class="detail-row"><span class="label">Première visite :</span><span class="value">{{ formatDate(selectedVisitor.first_visit) }}</span></div>
+            <div class="detail-row"><span class="label">Dernière visite :</span><span class="value">{{ formatDate(selectedVisitor.last_visit) }}</span></div>
+            <div class="detail-row"><span class="label">Total visites :</span><span class="value">{{ selectedVisitor.total_visits }}</span></div>
+            <div class="detail-row"><span class="label">Total pages :</span><span class="value">{{ selectedVisitor.total_pages }}</span></div>
+            <div class="detail-row"><span class="label">Type :</span><span class="value">{{ selectedVisitor.is_returning ? 'Visiteur récurrent' : 'Nouveau visiteur' }}</span></div>
+          </div>
+
+          <div *ngIf="visitorDetailLoading" class="empty-state">⏳ Chargement du détail...</div>
+
+          <!-- Sessions -->
+          <ng-container *ngIf="selectedVisitorDetail && !visitorDetailLoading">
+            <h4 style="margin-top:1rem">Sessions ({{ selectedVisitorDetail.sessions.length }})</h4>
+            <table class="data-table" style="font-size:0.85rem">
+              <thead>
+                <tr><th>Session</th><th>Début</th><th>Fin</th><th>Durée</th><th>Pages</th></tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let s of selectedVisitorDetail.sessions">
+                  <td class="mono" style="font-size:0.75rem">{{ s.session_id.slice(0,8) }}…</td>
+                  <td>{{ formatDate(s.start_time) }}</td>
+                  <td>{{ s.end_time ? formatDate(s.end_time) : '—' }}</td>
+                  <td>{{ formatDuration(s.duration) }}</td>
+                  <td>{{ s.pages_count }}</td>
+                </tr>
+              </tbody>
+            </table>
+
+            <!-- Pages consultées -->
+            <h4 style="margin-top:1rem">Pages consultées ({{ selectedVisitorDetail.pageViews.length }})</h4>
+            <table class="data-table" style="font-size:0.85rem">
+              <thead>
+                <tr><th>URL</th><th>Referrer</th><th>Date</th></tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let pv of selectedVisitorDetail.pageViews">
+                  <td class="mono">{{ pv.page_url }}</td>
+                  <td class="mono">{{ pv.referrer || '—' }}</td>
+                  <td>{{ formatDate(pv.visit_time) }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </ng-container>
+
+          <div class="modal-actions">
+            <button class="btn btn-dark" (click)="closeVisitorDetail()">Fermer</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 3: USERS -->
+    <div *ngIf="activeTab === 'users'" class="tab-content">
+      <div class="section-card">
+        <h2>Utilisateurs de la Plateforme</h2>
+
+        <!-- Stats -->
+        <div class="stats-grid">
+          <div class="stat-box">
+            <span class="stat-label">Total utilisateurs</span>
+            <span class="stat-value">{{ users.length }}</span>
+          </div>
+          <div class="stat-box">
+            <span class="stat-label">Actifs</span>
+            <span class="stat-value">{{ getActiveUsersCount() }}</span>
+          </div>
+          <div class="stat-box">
+            <span class="stat-label">Bloqués</span>
+            <span class="stat-value">{{ getBlockedUsersCount() }}</span>
+          </div>
+          <div class="stat-box">
+            <span class="stat-label">Total événements</span>
+            <span class="stat-value">{{ getTotalEventsCount() }}</span>
+          </div>
+        </div>
+
+        <!-- Filtres -->
+        <div class="filters">
+          <input
+            type="text"
+            [(ngModel)]="userSearch"
+            placeholder="Rechercher par nom ou email..."
+            class="form-input"
+            (ngModelChange)="currentPage = 1"
+          />
+          <select [(ngModel)]="userStatusFilter" class="form-select" (ngModelChange)="currentPage = 1">
+            <option value="">Tous les statuts</option>
+            <option value="active">✅ Actifs</option>
+            <option value="blocked">🔒 Bloqués</option>
+          </select>
+        </div>
+
+        <!-- Liste -->
+        <div class="list-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Utilisateur</th>
+                <th>Email</th>
+                <th>Événements</th>
+                <th>Invités</th>
+                <th>Dernière connexion</th>
+                <th>Preuve paiement</th>
+                <th>Statut</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let user of getPaginatedData(getFilteredUsers()); let i = index" [class.blocked]="user.isBlocked">
+                <td class="mono">{{ (currentPage - 1) * pageSize + i + 1 }}</td>
+                <td>
+                  <div class="user-cell">
+                    <div class="user-avatar">{{ user.name?.charAt(0)?.toUpperCase() }}</div>
+                    <span>{{ user.name }}</span>
+                  </div>
+                </td>
+                <td>{{ user.email }}</td>
+                <td>
+                  <span class="badge-count">{{ user.eventsCreated || 0 }}</span>
+                </td>
+                <td>
+                  <span class="badge-count">{{ user.totalGuests || 0 }}</span>
+                </td>
+                <td class="mono" style="font-size:0.75rem">
+                  {{ user.lastLogin ? formatDate(user.lastLogin) : '—' }}
+                </td>
+                <td>
+                  <button *ngIf="user.userPaymentProof" class="btn-small btn-view" (click)="openProofModal(user.userPaymentProof)">
+                    🖼️ Voir
+                  </button>
+                  <span *ngIf="!user.userPaymentProof">—</span>
+                </td>
+                <td>
+                  <span class="status-badge" [class]="user.isBlocked ? 'blocked' : 'active'">
+                    {{ user.isBlocked ? '🔒 Bloqué' : '✅ Actif' }}
+                  </span>
+                </td>
+                <td>
+                  <button class="btn-small btn-view" (click)="viewUserDetails(user)">
+                    👁️ Détails
+                  </button>
+                  <button class="btn-small btn-view" (click)="viewUserEvents(user)">
+                    📅 Événements
+                  </button>
+                  <button class="btn-small btn-danger" (click)="toggleBlockUser(user)">
+                    {{ user.isBlocked ? '🔓 Débloquer' : '🔒 Bloquer' }}
+                  </button>
+                  <button class="btn-small btn-danger" (click)="deleteUser(user)">
+                    🗑️ Supprimer
+                  </button>
+                </td>
+              </tr>
+              <tr *ngIf="getFilteredUsers().length === 0">
+                <td colspan="9" class="empty-state">Aucun utilisateur trouvé.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Pagination -->
+        <div class="pagination" *ngIf="getFilteredUsers().length > pageSize">
+          <button [disabled]="currentPage === 1" (click)="changePage(currentPage - 1)">Précédent</button>
+          <span>Page {{ currentPage }} sur {{ getTotalPages(getFilteredUsers()) }}</span>
+          <button [disabled]="currentPage === getTotalPages(getFilteredUsers())" (click)="changePage(currentPage + 1)">Suivant</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 4: Paiements — Historique complet -->
+    <div *ngIf="activeTab === 'payments'" class="tab-content">
+      <div class="section-card">
+        <h2>Historique des Paiements</h2>
+
+        <!-- Filtres -->
+        <div class="filters">
+          <input
+            type="text"
+            [(ngModel)]="paymentHistorySearch"
+            placeholder="Rechercher organisateur, email, événement..."
+            class="form-input"
+          />
+          <select [(ngModel)]="paymentHistoryFilter" class="form-select">
+            <option value="all">Tous les statuts</option>
+            <option value="pending">En attente</option>
+            <option value="under_review">En vérification</option>
+            <option value="validated">Validés</option>
+            <option value="rejected">Rejetés</option>
+          </select>
+        </div>
+
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Organisateur</th>
+              <th>Événement</th>
+              <th>Quota payé</th>
+              <th>Quota demandé</th>
+              <th>Invitations envoyées</th>
+              <th>Montant</th>
+              <th>Référence</th>
+              <th>Statut</th>
+              <th>Preuve</th>
+              <th>Créé le</th>
+              <th>Validé / Rejeté le</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let payment of getPaginatedData(getFilteredPayments())">
+              <td>
+                {{ payment.organizer_name }}<br>
+                <small>{{ payment.organizer_email }}</small>
+              </td>
+              <td>{{ payment.event_title }}</td>
+              <td>{{ payment.paid_quota }}</td>
+              <td>{{ payment.quota }} invités</td>
+              <td>
+                <span *ngIf="payment.status === 'validated'">
+                  {{ payment.sent_invitations ?? 0 }} / {{ payment.quota }}
+                </span>
+                <span *ngIf="payment.status !== 'validated'">—</span>
+              </td>
+              <td>{{ payment.amount | number }} XAF</td>
+              <td>{{ payment.proof_reference || '—' }}</td>
+              <td>
+                <span class="status-badge" [class]="payment.status">
+                  {{ payment.status }}
+                </span>
+              </td>
+              <td>
+                <!-- Preuve affichée dans un modal interne (pas un onglet externe) -->
+                <button
+                  *ngIf="payment.proof_url"
+                  class="btn-small btn-view"
+                  (click)="openProofModal(payment.proof_url)">
+                  🖼️ Voir la preuve
+                </button>
+                <span *ngIf="!payment.proof_url">—</span>
+              </td>
+              <td>{{ formatDate(payment.created_at) }}</td>
+              <td>
+                <span *ngIf="payment.validated_at">{{ formatDate(payment.validated_at) }}</span>
+                <span *ngIf="!payment.validated_at">—</span>
+              </td>
+              <td>
+                <!-- Actions uniquement sur les paiements actifs -->
+                <ng-container *ngIf="payment.status === 'pending' || payment.status === 'under_review'">
+                  <button
+                    *ngIf="payment.status === 'pending'"
+                    class="btn-small btn-view"
+                    (click)="markUnderReview(payment)">
+                    🔍 En cours
+                  </button>
+                  <!-- Valider : désactivé si pas de preuve (Anomalie 5) -->
+                  <button
+                    class="btn-small btn-approve"
+                    [disabled]="!payment.proof_url"
+                    [title]="!payment.proof_url ? 'Aucune preuve de paiement' : 'Valider le paiement'"
+                    (click)="payment.proof_url && validatePayment(payment)">
+                    ✔️ Valider
+                  </button>
+                  <button
+                    class="btn-small btn-danger"
+                    (click)="rejectPayment(payment)">
+                    ❌ Rejeter
+                  </button>
+                </ng-container>
+                <span *ngIf="payment.status === 'validated'" class="status-badge validated">✔ Validé</span>
+                <span *ngIf="payment.status === 'rejected'" class="status-badge rejected">
+                  ❌ {{ payment.rejection_reason || 'Rejeté' }}
+                </span>
+              </td>
+            </tr>
+            <tr *ngIf="getFilteredPayments().length === 0">
+              <td colspan="11" class="empty-state">Aucun paiement trouvé.</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <!-- Pagination -->
+        <div class="pagination" *ngIf="getFilteredPayments().length > pageSize">
+          <button [disabled]="currentPage === 1" (click)="changePage(currentPage - 1)">Précédent</button>
+          <span>Page {{ currentPage }} sur {{ getTotalPages(getFilteredPayments()) }}</span>
+          <button [disabled]="currentPage === getTotalPages(getFilteredPayments())" (click)="changePage(currentPage + 1)">Suivant</button>
+        </div>
+      </div>
+
+      <!-- Modal preuve de paiement (image/pdf inline) -->
+      <div *ngIf="selectedPaymentProof" class="modal-overlay" (click)="closeProofModal()">
+        <div class="modal-content proof-modal" (click)="$event.stopPropagation()">
+          <button class="modal-close" (click)="closeProofModal()">✕</button>
+          <h3>Preuve de paiement</h3>
+          <!-- Affichage image -->
+          <img
+            *ngIf="selectedPaymentProof?.toLowerCase()?.includes('.png') || selectedPaymentProof?.toLowerCase()?.includes('.jpg') || selectedPaymentProof?.toLowerCase()?.includes('.jpeg') || selectedPaymentProof?.toLowerCase()?.includes('image')"
+            [src]="selectedPaymentProof"
+            alt="Preuve de paiement"
+          />
+          <!-- Affichage PDF -->
+          <iframe
+            *ngIf="selectedPaymentProof?.toLowerCase()?.includes('.pdf') || selectedPaymentProof?.toLowerCase()?.includes('pdf')"
+            [src]="selectedPaymentProof"
+          ></iframe>
+          <!-- Affichage générique pour autres types de fichiers -->
+          <div *ngIf="!(selectedPaymentProof?.toLowerCase()?.includes('.png') || selectedPaymentProof?.toLowerCase()?.includes('.jpg') || selectedPaymentProof?.toLowerCase()?.includes('.jpeg') || selectedPaymentProof?.toLowerCase()?.includes('image') || selectedPaymentProof?.toLowerCase()?.includes('.pdf') || selectedPaymentProof?.toLowerCase()?.includes('pdf'))">
+            <div style="text-align: center; padding: 2rem;">
+              <p>📄 Preuve de paiement disponible</p>
+              <a [href]="selectedPaymentProof" target="_blank" rel="noopener noreferrer" class="btn btn-primary" style="margin-top: 1rem;">
+                Ouvrir la preuve
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- USER DETAILS MODAL -->
+    <div *ngIf="selectedUser && showDetail" class="modal-overlay" (click)="selectedUser = null">
+
+        <div class="modal-content user-modal" (click)="$event.stopPropagation()">
+
+            <button class="modal-close" (click)="selectedUser = null">✕</button>
+
+            <h3>Détails de {{ selectedUser.name }}</h3>
+
+            <div class="user-details">
+
+            <div class="detail-row">
+                <span class="label">Nom :</span>
+                <span class="value">{{ selectedUser.name }}</span>
+            </div>
+
+            <div class="detail-row">
+                <span class="label">Email :</span>
+                <span class="value">{{ selectedUser.email }}</span>
+            </div>
+
+            <div class="detail-row">
+                <span class="label">Événements créés :</span>
+                <span class="value highlight">
+                {{ selectedUser.eventsCreated || 0 }}
+                </span>
+            </div>
+
+            <div class="detail-row">
+                <span class="label">Total invités :</span>
+                <span class="value highlight">
+                {{ selectedUser.totalGuests || 0 }}
+                </span>
+            </div>
+
+            </div>
+
+            <div class="modal-actions">
+            <button class="btn btn-dark" (click)="selectedUser = null">
+                Fermer
+            </button>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- User Events Detail -->
+    <div *ngIf="activeTab === 'events'" >
+        <div *ngIf="selectedUser" class="section-card detail-card">
+            <h3>Événements de {{ selectedUser.name }}</h3>
+            <button class="btn-close" (click)="selectedUser = null">✕ Fermer</button>
+
+            <div class="list-container">
+                <table class="data-table">
+                <thead>
+                    <tr>
+                    <th>Titre</th>
+                    <th>Type</th>
+                    <th>Invités</th>
+                    <th>Étape</th>
+                    <th>Date/Heure</th>
+                    <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let event of getPaginatedData(selectedUserEvents)" class="event-row">
+                    <td>{{ event.title }}</td>
+                    <td>{{ event.type }}</td>
+                    <td>
+                        <span class="guest-count">{{ event.guestCount }}</span>
+                        <span class="guest-status">
+                        ✓ {{ event.confirmedGuests }} | ⏳ {{ event.pendingGuests }} | ✕ {{ event.declinedGuests }}
+                        </span>
+                    </td>
+                    <td>
+                        <span class="stage-badge" [class]="event.stage">{{ event.stage }}</span>
+                    </td>
+                    <td>{{ event.date }} {{ event.time }}</td>
+                    <td>
+                        <button class="btn-small btn-view" (click)="viewEventGuests(event)">
+                        👥 Invités
+                        </button>
+                        <!-- <button class="btn-small btn-danger" (click)="deleteEvent(event)">
+                        🗑️ Supprimer
+                        </button> -->
+                    </td>
+                    </tr>
+                </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- TAB 4: EVENT GUESTS -->
+    <div *ngIf="activeTab === 'guests'" class="tab-content">
+        <div *ngIf="selectedEvent" class="section-card">
+        <h3>Invités de l'événement: {{ selectedEvent.title }}</h3>
+        <button class="btn-close" (click)="selectedEvent = null; selectedEventGuests = []">✕ Fermer</button>
+
+        <!-- Guest Filters -->
+        <div class="filters">
+            <select [(ngModel)]="guestStatusFilter" class="form-select">
+            <option value="">Tous les statuts</option>
+            <option value="confirmed">Confirmés</option>
+            <option value="pending">En attente</option>
+            <option value="declined">Refusés</option>
+            </select>
+        </div>
+
+        <!-- Guests List -->
+        <div class="list-container">
+            <table class="data-table">
+            <thead>
+                <tr>
+                <th>
+                    <input type="checkbox" (change)="toggleSelectAllGuests($event)" />
+                </th>
+                <th>Nom</th>
+                <th>Email</th>
+                <th>Statut</th>
+                <th>QR Code</th>
+                <th>Restrictions</th>
+                <th>+1</th>
+                <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr *ngFor="let guest of getPaginatedData(getFilteredEventGuests())">
+                <td>
+                    <input type="checkbox" [(ngModel)]="guest.selected" />
+                </td>
+                <td>{{ guest.name }}</td>
+                <td>{{ guest.email }}</td>
+                <td>
+                    <span class="status-badge" [class]="guest.status">{{ guest.status }}</span>
+                </td>
+                <td>
+                    <span *ngIf="guest.qrCodeGenerated" class="qr-badge">✓ Généré</span>
+                    <span *ngIf="!guest.qrCodeGenerated" class="qr-badge not-generated">✕ Non généré</span>
+                </td>
+                <td>{{ guest.dietaryRestrictions || '-' }}</td>
+                <td>{{ guest.plusOne ? '✓' : '-' }}</td>
+                <td>
+                    <button *ngIf="guest.qrCodeGenerated" class="btn-small btn-view" (click)="viewQRCode(guest)">
+                    📱 QR Code
+                    </button>
+                    <button class="btn-small btn-danger" (click)="deleteGuest(guest)">
+                    🗑️ Supprimer
+                    </button>
+                </td>
+                </tr>
+            </tbody>
+            </table>
+        </div>
+
+        <!-- Bulk Actions -->
+        <div class="bulk-actions">
+            <button class="btn btn-danger" (click)="deleteSelectedGuests()">
+            🗑️ Supprimer les invités sélectionnés
+            </button>
+            <button class="btn btn-danger" (click)="deleteSelectedQRCodes()">
+            📱 Supprimer les QR Codes sélectionnés
+            </button>
+        </div>
+        </div>
+
+        <!-- QR Code Viewer Modal -->
+        <div *ngIf="selectedGuest && selectedGuest.qrCodeUrl" class="modal-overlay" (click)="selectedGuest = null">
+        <div class="modal-content qr-modal" (click)="$event.stopPropagation()">
+            <button class="modal-close" (click)="selectedGuest = null">✕</button>
+            <h3>QR Code de {{ selectedGuest.name }}</h3>
+            <img [src]="selectedGuest.qrCodeUrl" alt="QR Code" class="qr-image" />
+            <div class="modal-actions">
+            <a [href]="selectedGuest.qrCodeUrl" download class="btn btn-primary">
+                📥 Télécharger
+            </a>
+            <button class="btn btn-danger" (click)="deleteQRCode(selectedGuest)">
+                🗑️ Supprimer le QR Code
+            </button>
+            </div>
+        </div>
+        </div>
+    </div>
+
+    <!-- TAB: MAINTENANCE -->
+    <div *ngIf="activeTab === 'maintenance'" class="tab-content">
+
+    <!-- Gérer la Maintenance -->
+    <div class="section-card">
+        <h2>Gérer la Maintenance</h2>
+        <div class="maintenance-form">
+        <div class="form-group">
+            <label>Statut</label>
+            <select [(ngModel)]="maintenance.status" class="form-select">
+            <option value="disabled">Désactivée</option>
+            <option value="enabled">Activée</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Progression : {{ maintenance.maintenance_progress }}%</label>
+            <input type="range" [(ngModel)]="maintenance.maintenance_progress" min="0" max="100" class="form-range">
+        </div>
+        <button class="btn btn-primary" (click)="saveMaintenance()">{{ loading ? '⏳ En cours...' : 'Enregistrer' }}</button>
+        </div>
+    </div>
+
+    <!-- Actions Rapides -->
+    <div class="section-card">
+        <h2>Actions Rapides</h2>
+        <div class="quick-actions">
+        <button class="btn btn-secondary" (click)="restartScheduler()">
+            {{ loading ? '⏳ Relance...' : '🔄 Relancer le Schedule des Événements' }}
+        </button>
+        <button class="btn btn-info" (click)="clearCache()">
+            {{ loading ? '⏳ En cours...' : '🧹 Vider le Cache de l\'Application' }}
+        </button>
+        </div>
+    </div>
+
+    <!-- Notifications Utilisateurs -->
+    <div class="section-card">
+        <h2>Notifier les Utilisateurs</h2>
+        <div class="notification-form">
+        <div class="form-group">
+            <label>Titre de la Notification</label>
+            <input type="text" [(ngModel)]="notification.title" class="form-control form-input" placeholder="Ex: Nouvelle fonctionnalité !">
+        </div>
+        <div class="form-group">
+            <label>Message</label>
+            <textarea [(ngModel)]="notification.message" class="form-control form-input" rows="3" placeholder="Décrivez ici les nouveautés..."></textarea>
+        </div>
+        <button class="btn btn-success" (click)="sendNotification()">
+            <i class="fas fa-paper-plane"></i> Envoyer la Notification
+        </button>
+        </div>
+    </div>
+
+    <!-- Export de Données -->
+    <div class="section-card">
+        <h2>Export de Données</h2>
+        <div class="export-actions">
+            <div class="form-group">
+                <label>Type de données à exporter</label>
+                <select [(ngModel)]="exportType" class="form-select">
+                    <option value="users">Utilisateurs</option>
+                    <option value="events">Événements</option>
+                    <option value="logs">Logs d'activité</option>
+                </select>
+            </div>
+            <button class="btn btn-dark" (click)="exportData()">
+                <i class="fas fa-download"></i> Télécharger les Données
+            </button>
+        </div>
+    </div>
+
+    </div>
+
+  </main>
+</div>
