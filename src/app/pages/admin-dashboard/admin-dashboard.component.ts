@@ -139,6 +139,7 @@ export class AdminDashboardComponent implements OnInit {
   paymentHistoryFilter: 'all' | 'pending' | 'under_review' | 'validated' | 'rejected' = 'all';
   paymentHistorySearch = '';
   selectedPaymentProof: string | null = null;  // URL de la preuve à afficher en modal
+  loadingPaymentId: number | null = null;       // ID du paiement en cours de traitement
 
   // Selected items
   selectedFeedback: Feedback | null = null;
@@ -220,9 +221,10 @@ export class AdminDashboardComponent implements OnInit {
   }
 
   markUnderReview(payment: any) {
+    this.loadingPaymentId = payment.id;
     this.paymentService.markUnderReview(payment.id).subscribe({
-      next: () => this.loadPendingPayments(),
-      error: err => console.error(err)
+      next: () => { this.loadAllPayments(); this.loadingPaymentId = null; },
+      error: err => { console.error(err); this.loadingPaymentId = null; }
     });
   }
 
@@ -232,12 +234,14 @@ export class AdminDashboardComponent implements OnInit {
       return;
     }
     if (!confirm(`Valider le paiement de ${payment.organizer_name} pour "${payment.event_title}" ?`)) return;
+    this.loadingPaymentId = payment.id;
     this.paymentService.validatePayment(payment.id).subscribe({
-      next: () => this.loadAllPayments(),
+      next: () => { this.loadAllPayments(); this.loadingPaymentId = null; },
       error: (err) => {
         const msg = err.error?.message || 'Erreur lors de la validation.';
         alert(msg);
         console.error(err);
+        this.loadingPaymentId = null;
       }
     });
   }
@@ -245,9 +249,10 @@ export class AdminDashboardComponent implements OnInit {
   rejectPayment(payment: any) {
     const reason = prompt(`Motif du rejet pour ${payment.organizer_name} :`);
     if (reason === null) return;
+    this.loadingPaymentId = payment.id;
     this.paymentService.rejectPayment(payment.id, reason).subscribe({
-      next: () => this.loadPendingPayments(),
-      error: err => console.error(err)
+      next: () => { this.loadAllPayments(); this.loadingPaymentId = null; },
+      error: err => { console.error(err); this.loadingPaymentId = null; }
     });
   }
 

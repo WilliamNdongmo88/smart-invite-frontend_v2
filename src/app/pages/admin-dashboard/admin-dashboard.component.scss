@@ -348,13 +348,31 @@
     transition: all 0.2s ease;
     margin-right: 0.25rem;
     margin-top: 1px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 5rem;
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
 
     &.btn-view {
     background-color: rgba(33, 150, 243, 0.1);
     color: #2196F3;
 
-    &:hover {
+    &:hover:not(:disabled) {
         background-color: rgba(33, 150, 243, 0.2);
+    }
+    }
+
+    &.btn-approve {
+    background-color: rgba(76, 175, 80, 0.1);
+    color: #4CAF50;
+
+    &:hover:not(:disabled) {
+        background-color: rgba(76, 175, 80, 0.2);
     }
     }
 
@@ -362,10 +380,24 @@
     background-color: rgba(244, 67, 54, 0.1);
     color: #F44336;
 
-    &:hover {
+    &:hover:not(:disabled) {
         background-color: rgba(244, 67, 54, 0.2);
     }
     }
+}
+
+.btn-spinner {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }
 
 .plan-badge {

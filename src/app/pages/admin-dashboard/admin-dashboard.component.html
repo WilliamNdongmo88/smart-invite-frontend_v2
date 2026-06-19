@@ -535,21 +535,25 @@
                   <button
                     *ngIf="payment.status === 'pending'"
                     class="btn-small btn-view"
+                    [disabled]="loadingPaymentId === payment.id"
                     (click)="markUnderReview(payment)">
-                    🔍 En cours
+                    <span *ngIf="loadingPaymentId !== payment.id">🔍 En cours</span>
+                    <span *ngIf="loadingPaymentId === payment.id" class="btn-spinner"></span>
                   </button>
-                  <!-- Valider : désactivé si pas de preuve (Anomalie 5) -->
                   <button
                     class="btn-small btn-approve"
-                    [disabled]="!payment.proof_url"
+                    [disabled]="!payment.proof_url || loadingPaymentId === payment.id"
                     [title]="!payment.proof_url ? 'Aucune preuve de paiement' : 'Valider le paiement'"
                     (click)="payment.proof_url && validatePayment(payment)">
-                    ✔️ Valider
+                    <span *ngIf="loadingPaymentId !== payment.id">✔️ Valider</span>
+                    <span *ngIf="loadingPaymentId === payment.id" class="btn-spinner"></span>
                   </button>
                   <button
                     class="btn-small btn-danger"
+                    [disabled]="loadingPaymentId === payment.id"
                     (click)="rejectPayment(payment)">
-                    ❌ Rejeter
+                    <span *ngIf="loadingPaymentId !== payment.id">❌ Rejeter</span>
+                    <span *ngIf="loadingPaymentId === payment.id" class="btn-spinner"></span>
                   </button>
                 </ng-container>
                 <span *ngIf="payment.status === 'validated'" class="status-badge validated">✔ Validé</span>
