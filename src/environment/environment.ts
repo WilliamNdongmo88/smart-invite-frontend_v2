@@ -2,7 +2,8 @@ export const environment = {
   production: true, // Change to true to activate production environment
   apiUrlDev: 'http://localhost:3000/api',
   // apiUrlDev: 'http://localhost:8073/api',
-  apiUrlProd:'https://smart-invites-production.up.railway.app/api',
+  //apiUrlProd:'https://smart-invites-production.up.railway.app/api',
+  apiUrlProd:'https://spectacular-joy-production-def1.up.railway.app/api',
   // apiUrlProd:'https://api.smart-invite.com/api'
 };
 if (environment.production) {
