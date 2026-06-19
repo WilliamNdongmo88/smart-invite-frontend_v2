@@ -1,4 +1,4 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, signal, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, NgForm } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
@@ -95,7 +95,7 @@ export class AddEventComponent implements OnInit{
   showAnother = false;
   showErrorModal = false;
   isDefaultPdfUrl = false;
-  showWeddingCivilLocation = false;
+  showWeddingCivilLocation = true;
   showWeddingReligiousLocation = false;
   hasInvitationModelCard = false;
   selectedPdfFile: File | null = null; // Pour stocker le fichier réel
@@ -117,7 +117,7 @@ export class AddEventComponent implements OnInit{
     description: '',
     totalGuests: 0,
     budget: 0,
-    type: '',
+    type: 'wedding',
     eventNameConcerned1: '',
     eventNameConcerned2: '',
     allowDietaryRestrictions: true,
@@ -276,7 +276,8 @@ export class AddEventComponent implements OnInit{
     private router: Router,
     private eventService: EventService,
     private authService: AuthService,
-    private communicationService: CommunicationService
+    private communicationService: CommunicationService,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
@@ -613,10 +614,6 @@ export class AddEventComponent implements OnInit{
     //console.log("this.hasInvitationModelCard: ", this.hasInvitationModelCard)
   }
   get currentPdfUrl(): string {
-    if (this.newFile && this.pdfModelUrl) {
-      return this.pdfModelUrl;
-    }
-    ////console.log("this.defaultPdfUrl: ", this.defaultPdfUrl);
     return this.pdfModelUrl ?? this.defaultPdfUrl;
   }
 
@@ -678,12 +675,13 @@ export class AddEventComponent implements OnInit{
 
     if (file.type === 'application/pdf') {
       this.selectedPdfFile = file;
-      //console.log('Fichier PDF sélectionné :', this.selectedPdfFile);
 
       const reader = new FileReader();
       reader.onload = (e: ProgressEvent<FileReader>) => {
         this.pdfModelUrl = e.target?.result as string;
         this.hasInvitationModelCard = true;
+        this.eventData.hasInvitationModelCard = true;
+        this.cdr.detectChanges();
       };
       reader.readAsDataURL(file);
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -695,6 +693,8 @@ export class AddEventComponent implements OnInit{
   removePdfModel() {
     this.pdfModelUrl = null;
     this.selectedPdfFile = null;
+    this.hasInvitationModelCard = false;
+    this.eventData.hasInvitationModelCard = false;
   }
 
   resetForm(hasInvitationModelCard: boolean) {
