@@ -209,6 +209,7 @@ export class HeaderComponent implements OnInit {
       return;
     }
     this.mobileMenuOpen.set(!this.mobileMenuOpen());
+    this.navigateToPricing();
   }
 
   @HostListener('document:click', ['$event'])
