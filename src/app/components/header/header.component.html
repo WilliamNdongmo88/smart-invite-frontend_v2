@@ -17,7 +17,7 @@
         <ng-container *ngIf="!isAuthenticated">
           <a (click)="navigateToHome()" class="nav-link">Fonctionnalités</a>
           <a id="menu-scanner" (click)="navigateToScanner()" class="nav-link">Scanner</a>
-          <a (click)="navigateToPricing()" class="nav-link">Tarifs</a>
+          <a (click)="navigateToPricing()" class="nav-link">Pricing</a>
           <a routerLink="/contact" class="nav-link">Contact</a>
         </ng-container>
 
@@ -25,9 +25,9 @@
         <ng-container *ngIf="isAuthenticated">
           <a *ngIf="currentUser?.role === 'admin'" (click)="goToPageAdmin()" class="nav-link admin-link">Administration</a>
           <a *ngIf="currentUser?.role === 'manager'" (click)="goToPageManager()" class="nav-link admin-link">Manager</a>
-          <!-- <a (click)="navigateToPricing()" (click)="toggleMobileMenu(false)" class="nav-link">
-            {{current_user === 'gratuit' ? 'Passer en Pro' : ''}}
-          </a> -->
+          <a (click)="navigateToPricing()" (click)="toggleMobileMenu(false)" class="nav-link">
+            Pricing
+          </a>
           <a routerLink="/" class="nav-link">Accueil</a>
           <a routerLink="/contact" (click)="toggleMobileMenu(false)" class="nav-link">Contact</a>
           <a id="menu-scanner" *ngIf="isScanning" (click)="scanQrCode()" class="nav-link">Scanner</a>
@@ -154,9 +154,9 @@
               {{ current_user === 'professionnel' ? 'PRO' : 'GRATUIT' }}
             </span> -->
             <a (click)="goToProfile(); toggleMobileMenu(false)" class="mobile-nav-link">Mon Profil</a>
-            <!-- <a *ngIf="current_user === 'gratuit'" (click)="navigateToPricing()" (click)="toggleMobileMenu(false)" class="mobile-nav-link">
-              Passer en Pro
-            </a> -->
+            <a (click)="navigateToPricing()" (click)="toggleMobileMenu(false)" class="mobile-nav-link">
+              Pricing
+            </a>
           </div>
           <a (click)="navigateToHome(); toggleMobileMenu(false)" class="mobile-nav-link">Accueil</a>
           <a routerLink="/contact" (click)="toggleMobileMenu(false)" class="mobile-nav-link">Contact</a>
