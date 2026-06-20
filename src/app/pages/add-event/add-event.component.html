@@ -326,14 +326,14 @@
                     Champ obligatoire
                 </div>
               </div>
-              
+
               <div class="form-group">
                 <label for="totalGuests">Nombre d'invités</label>
-                <input type="number" 
-                  id="totalGuests" 
-                  name="totalGuests" 
+                <input type="number"
+                  id="totalGuests"
+                  name="totalGuests"
                   [(ngModel)]="eventData.totalGuests"
-                  (ngModelChange)="onQuotaChange()" 
+                  (ngModelChange)="onQuotaChange()"
                   class="form-input"
                   min="1" required/>
                   <p *ngIf="eventData.totalGuests > 0" class="amount-preview">
@@ -803,7 +803,7 @@
                               </p>
                             </ng-container>
                           </div>
-                          
+
                           <ng-container *ngIf="eventData.type != 'wedding'">
                             <p *ngIf="!current_program[0].conditionField || getInvitationValue(current_program[0].conditionField)">
                               <strong>
@@ -891,9 +891,9 @@
                   <span class="value">{{ eventData.totalGuests }}</span>
                 </div>
 
-                <div class="confirmation-item" *ngIf="eventData.budget">
-                  <span class="label">Budget :</span>
-                  <span class="value">{{ eventData.budget }}€</span>
+                <div class="confirmation-item">
+                  <span class="label">💳 Budget :</span>
+                  <span class="value">{{ eventData.totalGuests * PRICE_PER_GUEST }} XAF</span>
                 </div>
 
                 <div class="confirmation-item">
