@@ -1,4 +1,8 @@
-import { Component, signal, ViewChild, ElementRef, OnInit, OnDestroy } from '@angular/core';
+import {
+  Component, signal, ViewChild, ElementRef,
+  OnInit, OnDestroy, inject, DestroyRef
+} from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -22,18 +26,18 @@ interface ScanResult {
 
 interface Guest {
   id?: string;
-  eventId?: number
+  eventId?: number;
   name: string;
   email: string;
   phone: string;
-  notification_mode: 'email' | 'whatsapp'
+  notification_mode: 'email' | 'whatsapp';
   status: 'confirmed' | 'pending' | 'declined' | 'present';
   dietaryRestrictions?: string;
   plusOnedietaryRestrictions?: string;
   plusOne?: boolean;
   plusOneName?: string;
   responseDate?: string;
-  eventDate: string
+  eventDate: string;
 }
 
 type FilterStatus = 'all' | 'confirmed' | 'pending' | 'declined' | 'present';
@@ -49,18 +53,17 @@ export class QRScannerComponent implements OnInit, OnDestroy {
   @ViewChild('videoElement') videoElement!: ElementRef<HTMLVideoElement>;
   @ViewChild('canvasElement') canvasElement!: ElementRef<HTMLCanvasElement>;
 
+  // ─── Signals ───────────────────────────────────────────────────────────────
   cameraActive = signal(false);
   autoCapture = signal(true);
   soundEnabled = signal(true);
-  manualCode = '';
   scanResult = signal<ScanResult | null>(null);
   scannedCount = signal(0);
   successCount = signal(0);
   errorCount = signal(0);
 
-  private stream: MediaStream | null = null;
-  private animationFrameId: number | null = null;
-
+  // ─── Propriétés ────────────────────────────────────────────────────────────
+  manualCode = '';
   token: string = '';
   guestId: number = 0;
   eventId: number = 0;
@@ -69,18 +72,10 @@ export class QRScannerComponent implements OnInit, OnDestroy {
   private isScanning: boolean = false;
   public isEffetScanning: boolean = false;
   datas: any[] = [];
-  data = {
-        eventTitle: '',
-        guestName: '',
-        hasPlusOne: '',
-        plusOneName: ''
-  };
-  userConnected = {
-    id: 0,
-    name: '',
-    email: '',
-    role: ''
-  };
+  data = { eventTitle: '', guestName: '', hasPlusOne: '', plusOneName: '' };
+
+  // [FIX 1] Valeur par défaut sûre pour userConnected
+  userConnected = { id: 0, name: '', email: '', role: '' };
 
   event = {
     eventTitle: '',
@@ -89,7 +84,7 @@ export class QRScannerComponent implements OnInit, OnDestroy {
     eventDateTime: '',
     eventLocation: '',
     guestRsvpStatus: ''
-  }
+  };
 
   filterStatus = signal<FilterStatus>('present');
   filteredGuests: Guest[] = [];
@@ -105,11 +100,18 @@ export class QRScannerComponent implements OnInit, OnDestroy {
   messageError = '';
   canSendThankMessage = false;
 
-  // NOUVELLES PROPRIÉTÉS POUR L'OPTIMISATION
+  private stream: MediaStream | null = null;
+  private animationFrameId: number | null = null;
   private dataMap = new Map<number, any>();
   private lastScanTime = 0;
-  private readonly SCAN_INTERVAL = 200; // Scanner toutes les 200ms au lieu de chaque frame (~16ms)
-  private readonly SCAN_SCALE = 0.7;    // Réduire la taille de l'image de 30% pour jsQR
+  private readonly SCAN_INTERVAL = 200;
+  private readonly SCAN_SCALE = 0.7;
+
+  // [FIX 3] AudioContext singleton — évite "AudioContext limit exceeded" sur mobile
+  private audioContext: AudioContext | null = null;
+
+  // [FIX 6] DestroyRef pour takeUntilDestroyed
+  private destroyRef = inject(DestroyRef);
 
   constructor(
     private route: ActivatedRoute,
@@ -122,174 +124,167 @@ export class QRScannerComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit() {
-    this.userConnected = JSON.parse(localStorage.getItem('currentUser') || '');
-    console.log('this.userConnected', this.userConnected);
+    // [FIX 1] Sécurisation du parsing localStorage
+    this.userConnected = this.loadCurrentUser();
+
     const result = this.route.snapshot.paramMap.get('eventId') || '';
     this.eventId = Number(result);
-    console.log("eventId :::", this.eventId);
     this.getEventAndInvitationRelated();
     this.getCheckInParam();
-    this.isMobile = this.breakpointObserver.observe(['(max-width: 768px)']).pipe(map(res => res.matches));
+    this.isMobile = this.breakpointObserver
+      .observe(['(max-width: 768px)'])
+      .pipe(map(res => res.matches));
   }
 
   ngOnDestroy() {
     this.stopCamera();
+    // Fermeture de l'AudioContext singleton
+    this.audioContext?.close();
   }
 
-  // OPTIMISATION : Pré-indexer les données pour une recherche instantanée (O(1))
-  getEventAndInvitationRelated(){
-    this.eventService.getEventAndInvitationRelated(this.eventId).subscribe(
-        (response) => {
-            this.datas = response;
-            // Création d'une Map pour éviter la boucle 'for' dans addCheckIn
-            this.dataMap.clear();
-            this.datas.forEach(elt => {
-                if (elt.guestId) this.dataMap.set(Number(elt.guestId), elt);
-            });
-            this.getListScannedGuest();
+  // ─── [FIX 1] Chargement sécurisé de l'utilisateur ──────────────────────────
+  private loadCurrentUser() {
+    const defaultUser = { id: 0, name: '', email: '', role: '' };
+    const raw = localStorage.getItem('currentUser');
+    if (!raw) return defaultUser;
+    try {
+      return JSON.parse(raw) ?? defaultUser;
+    } catch {
+      console.error('currentUser: JSON invalide dans localStorage');
+      return defaultUser;
+    }
+  }
+
+  // ─── [FIX 2] Parsing sécurisé du QR Code ───────────────────────────────────
+  private parseQRCode(qrCode: string): { guestId: number; token: string } | null {
+    try {
+      const afterView = qrCode.split('view/')[1];
+      if (!afterView) return null;
+      const parts = afterView.split(':');
+      if (parts.length < 3) return null;
+      const guestId = Number(parts[0]);
+      if (isNaN(guestId) || guestId <= 0) return null;
+      const token = `${parts[1]}:${parts[2]}`;
+      return { guestId, token };
+    } catch {
+      return null;
+    }
+  }
+
+  // ─── [FIX 3] Accès unique à l'AudioContext ─────────────────────────────────
+  private getAudioContext(): AudioContext | null {
+    try {
+      if (!this.audioContext || this.audioContext.state === 'closed') {
+        this.audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+      }
+      return this.audioContext;
+    } catch {
+      return null;
+    }
+  }
+
+  // ─── Services ──────────────────────────────────────────────────────────────
+  getEventAndInvitationRelated() {
+    this.eventService.getEventAndInvitationRelated(this.eventId)
+      .pipe(takeUntilDestroyed(this.destroyRef))  // [FIX 6]
+      .subscribe({
+        next: (response) => {
+          this.datas = response;
+          this.dataMap.clear();
+          this.datas.forEach(elt => {
+            if (elt.guestId) this.dataMap.set(Number(elt.guestId), elt);
+          });
+          this.getListScannedGuest();
         },
-        (error) => {
-            console.error('❌ [getEventAndInvitationRelated] Erreur :', error.message);
-            console.log("Message :: ", error.message);
-        }
-    );
+        error: (error) => console.error('[getEventAndInvitationRelated]', error.message)
+      });
   }
 
+  // ─── Caméra ────────────────────────────────────────────────────────────────
   startCamera() {
-    navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
-    .then(stream => {
-
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+      .then(stream => {
         this.stream = stream;
-
         const video = this.videoElement.nativeElement;
         video.srcObject = stream;
-
-        // Attendre que la caméra soit prête AVANT de scanner
         video.onloadedmetadata = () => {
-            console.log("Activé camera ...");
-            this.cameraActive.set(true);
-            video.play();
-            this.isScanning = true;   // Activation du scan
-            if(this.autoCapture()) this.scanQRCode();
+          this.cameraActive.set(true);
+          video.play();
+          this.isScanning = true;
+          if (this.autoCapture()) this.scanQRCode();
         };
-    })
-    .catch(err => {
-        console.error("Erreur d'accès à la caméra:", err);
-    });
+      })
+      .catch(err => console.error("Erreur d'accès à la caméra:", err));
   }
 
   stopCamera() {
-    this.isScanning = false;   // Empêche toute nouvelle frame
+    this.isScanning = false;
     if (this.stream) {
       this.stream.getTracks().forEach(track => track.stop());
       this.stream = null;
     }
-
     if (this.animationFrameId) {
       cancelAnimationFrame(this.animationFrameId);
       this.animationFrameId = null;
     }
-
     this.cameraActive.set(false);
   }
 
-  // scanQRCodes() {
-  //   if (!this.cameraActive() || !this.isScanning) return;
-
-  //   const video = this.videoElement.nativeElement;
-  //   const canvas = this.canvasElement.nativeElement;
-  //   const context = canvas.getContext("2d", { willReadFrequently: true });
-
-  //   if (!context) return;
-
-  //   if (video.videoWidth === 0 || video.videoHeight === 0) {
-  //       this.animationFrameId = requestAnimationFrame(() => this.scanQRCode());
-  //       return;
-  //   }
-
-  //   canvas.width = video.videoWidth;
-  //   canvas.height = video.videoHeight;
-  //   context.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-  //   const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
-  //   const qrCode = jsQR(imageData.data, canvas.width, canvas.height);
-
-  //   if (qrCode?.data) {
-  //       console.log('QR détecté:', qrCode.data);
-
-  //       this.isScanning = false;              // Stop immédiat de la boucle
-  //       cancelAnimationFrame(this.animationFrameId!);
-
-  //       this.processQRCode(qrCode.data);      // Un seul appel
-  //       return;
-  //   }
-
-  //   this.animationFrameId = requestAnimationFrame(() => this.scanQRCode());
-  // }
-  // OPTIMISATION : Gestion du cycle de scan plus efficace
   scanQRCode() {
     if (!this.cameraActive() || !this.isScanning) return;
 
     const now = Date.now();
     if (now - this.lastScanTime < this.SCAN_INTERVAL) {
-        this.animationFrameId = requestAnimationFrame(() => this.scanQRCode());
-        return;
+      this.animationFrameId = requestAnimationFrame(() => this.scanQRCode());
+      return;
     }
     this.lastScanTime = now;
 
     const video = this.videoElement.nativeElement;
     const canvas = this.canvasElement.nativeElement;
-    const context = canvas.getContext("2d", { willReadFrequently: true });
+    const context = canvas.getContext('2d', { willReadFrequently: true });
 
     if (!context || video.videoWidth === 0) {
-        this.animationFrameId = requestAnimationFrame(() => this.scanQRCode());
-        return;
+      this.animationFrameId = requestAnimationFrame(() => this.scanQRCode());
+      return;
     }
 
-    // OPTIMISATION : Réduction de la résolution pour jsQR
-    // Un QR code n'a pas besoin de 1080p pour être lu.
-    // Réduire la taille divise drastiquement le nombre de pixels à analyser.
     const scanWidth = video.videoWidth * this.SCAN_SCALE;
     const scanHeight = video.videoHeight * this.SCAN_SCALE;
 
     if (canvas.width !== scanWidth) {
-        canvas.width = scanWidth;
-        canvas.height = scanHeight;
+      canvas.width = scanWidth;
+      canvas.height = scanHeight;
     }
 
     context.drawImage(video, 0, 0, scanWidth, scanHeight);
     const imageData = context.getImageData(0, 0, scanWidth, scanHeight);
-
-    // jsQR est synchrone et gourmand en CPU.
-    // En réduisant imageData, on accélère cette ligne :
     const qrCode = jsQR(imageData.data, scanWidth, scanHeight, {
-        inversionAttempts: "dontInvert", // Gain de performance si les QR ne sont pas inversés
+      inversionAttempts: 'dontInvert',
     });
 
     if (qrCode?.data) {
-        this.isScanning = false;
-        this.isEffetScanning = true;
-        cancelAnimationFrame(this.animationFrameId!);
-        this.processQRCode(qrCode.data);
-        return;
+      this.isScanning = false;
+      this.isEffetScanning = true;
+      cancelAnimationFrame(this.animationFrameId!);
+      this.processQRCode(qrCode.data);
+      return;
     }
 
     this.animationFrameId = requestAnimationFrame(() => this.scanQRCode());
   }
 
   captureFrame() {
-    console.log("Manuel...")
     if (!this.cameraActive() || !this.isScanning) return;
 
     const video = this.videoElement.nativeElement;
     const canvas = this.canvasElement.nativeElement;
-    const context = canvas.getContext("2d", { willReadFrequently: true });
-
+    const context = canvas.getContext('2d', { willReadFrequently: true });
     if (!context) return;
 
     if (video.videoWidth === 0 || video.videoHeight === 0) {
-        this.animationFrameId = requestAnimationFrame(() => this.scanQRCode());
-        return;
+      this.animationFrameId = requestAnimationFrame(() => this.scanQRCode());
+      return;
     }
 
     canvas.width = video.videoWidth;
@@ -300,190 +295,156 @@ export class QRScannerComponent implements OnInit, OnDestroy {
     const qrCode = jsQR(imageData.data, canvas.width, canvas.height);
 
     if (qrCode?.data) {
-        console.log('QR détecté:', qrCode.data);
-        this.isEffetScanning = true;
-        this.isScanning = false;              // Stop immédiat de la boucle
-        cancelAnimationFrame(this.animationFrameId!);
-
-        this.processQRCode(qrCode.data);      // Un seul appel
-        return;
+      this.isEffetScanning = true;
+      this.isScanning = false;
+      cancelAnimationFrame(this.animationFrameId!);
+      this.processQRCode(qrCode.data);
+      return;
     }
 
     this.animationFrameId = requestAnimationFrame(() => this.scanQRCode());
   }
 
+  // ─── Traitement QR ─────────────────────────────────────────────────────────
   processQRCode(qrCode: string) {
     this.scannedCount.update(count => count + 1);
 
-    //console.log("qrcode:: ", qrCode);
-    this.guestId = Number(qrCode.split('view/')[1].split(':')[0]);
-    this.token = qrCode.split('view/')[1].split(':')[1]+':'+qrCode.split('view/')[1].split(':')[2];
-    console.log("this.guestId:: ", this.guestId);
-    console.log("this.token:: ", this.token);
-    this.qrcodeService.viewPdfs(qrCode).subscribe(
-    (response) => {
-        console.log("###response :: ", response);
-        this.addCheckIn();
-    },
-    (error: HttpErrorResponse) => {
-        console.error('❌ [viewPdfs] Erreur HTTP');
-        console.error('➡️ Message :', error.message);
+    // [FIX 2] Validation du format QR avant tout accès
+    const parsed = this.parseQRCode(qrCode);
+    if (!parsed) {
+      if (this.soundEnabled()) this.playErrorSound();
+      this.errorCount.update(count => count + 1);
+      this.scanResult.set({ success: false, message: 'Format du QR code invalide' });
+      return;
+    }
 
-        if (this.soundEnabled()) this.playErrorSound();
-        if(error.status == 404){
+    this.guestId = parsed.guestId;
+    this.token = parsed.token;
+
+    this.qrcodeService.viewPdfs(qrCode)
+      .pipe(takeUntilDestroyed(this.destroyRef))  // [FIX 6]
+      .subscribe({
+        next: () => this.addCheckIn(),
+        error: (error: HttpErrorResponse) => {
+          if (this.soundEnabled()) this.playErrorSound();
           this.errorCount.update(count => count + 1);
           this.scanResult.set({
-              success: false,
-              message: 'Invité introuvable',
-          });
-        }else{
-          this.errorCount.update(count => count + 1);
-          this.scanResult.set({
-              success: false,
-              message: 'Code QR invalide ou non reconnu',
+            success: false,
+            message: error.status === 404 ? 'Invité introuvable' : 'Code QR invalide ou non reconnu',
           });
         }
-      }
-    );
+      });
   }
 
-  // OPTIMISATION : Recherche instantanée
-  addCheckIn(){
-    const now = new Date().toISOString();
-    const checkinTime = now.split('.')[0].replace('T', ' ');
-
-    // Utilisation de la Map au lieu de la boucle 'for...of' sur this.datas
+  addCheckIn() {
+    const checkinTime = new Date().toISOString().split('.')[0].replace('T', ' ');
     const elt = this.dataMap.get(this.guestId);
 
-    if (elt) {
-        const data = {
-            eventId: elt.eventId,
-            guestId: elt.guestId,
-            invitationId: elt.invitationId,
-            token: this.token,
-            scannedBy: this.userConnected.name,
-            scanStatus: 'VALID',
-            checkinTime: checkinTime
-        };
+    if (!elt) {
+      this.scanResult.set({ success: false, message: 'Invité non trouvé dans la liste locale' });
+      return;
+    }
 
-        // Mise à jour des données locales pour l'affichage
-        this.data.eventTitle = elt.title;
-        this.data.guestName = elt.guestName;
-        this.data.hasPlusOne = elt.hasPlusOne;
-        this.data.plusOneName = elt.plusOneName;
+    const data = {
+      eventId: elt.eventId,
+      guestId: elt.guestId,
+      invitationId: elt.invitationId,
+      token: this.token,
+      scannedBy: this.userConnected.name,
+      scanStatus: 'VALID',
+      checkinTime
+    };
 
-        this.qrcodeService.addCheckIn(data).subscribe(
-        (response) => {
-            console.log("[addCheckIn] response :: ", response);
-            const guest = response;
-            const event = response;
-            this.successCount.update(count => count + 1);
+    this.data = {
+      eventTitle: elt.title,
+      guestName: elt.guestName,
+      hasPlusOne: elt.hasPlusOne,
+      plusOneName: elt.plusOneName
+    };
 
-            this.isValid = true;
-
-            // 🎉 Son + message + stop caméra (comme avant)
-            if (this.soundEnabled()) this.playSuccessSound();
-
-            this.scanResult.set({
-                success: true,
-                guestName: guest.has_plus_one ? guest.guestName+' et '+guest.plus_one_name : guest.guestName,
-                eventName: event.title,
-                tableNumber: guest.table_number,
-                message: 'Code QR validé avec succès !'
-            });
+    this.qrcodeService.addCheckIn(data)
+      .pipe(takeUntilDestroyed(this.destroyRef))  // [FIX 6]
+      .subscribe({
+        next: (response) => {
+          this.successCount.update(count => count + 1);
+          this.isValid = true;
+          if (this.soundEnabled()) this.playSuccessSound();
+          this.scanResult.set({
+            success: true,
+            guestName: response.has_plus_one
+              ? `${response.guestName} et ${response.plus_one_name}`
+              : response.guestName,
+            eventName: response.title,
+            tableNumber: response.table_number,
+            message: 'Code QR validé avec succès !'
+          });
           this.manageCheckInParameter();
           this.isEffetScanning = false;
         },
-        (error) => {
-            this.isEffetScanning = false;
-            console.error('❌ [getGuestById] Erreur :', error.message);
-            this.isValid = false;
-            if (this.soundEnabled()) this.playErrorSound();
-            this.errorCount.update(count => count + 1);
-            this.manageCheckInParameter();
-            if(error.message.includes('409 Conflict'))console.warn(error.error.error);
-            this.scanResult.set({
-                success: false,
-                message: error.error.error ? error.error.error : 'Code QR invalide ou non reconnu',
-            });
-        });
-    } else {
-        console.error("Invité non trouvé dans la liste locale");
-        this.scanResult.set({
+        error: (error) => {
+          this.isEffetScanning = false;
+          this.isValid = false;
+          if (this.soundEnabled()) this.playErrorSound();
+          this.errorCount.update(count => count + 1);
+          this.manageCheckInParameter();
+          this.scanResult.set({
             success: false,
-            message: 'Invité non trouvé dans la liste locale',
-        });
-    }
+            message: error.error?.error ?? 'Code QR invalide ou non reconnu',
+          });
+        }
+      });
   }
 
-  getListScannedGuest(){
+  getListScannedGuest() {
     const guestIds = this.datas.filter(g => g.guestId != null).map(g => g.guestId);
-    this.qrcodeService.getListScannedGuests(guestIds).subscribe(
-    (responses) => {
-      console.log("[getListScannedGuests] response :: ", responses);
-      const guests = [];
-      const res = responses[0];
-      if (!res?.event_date) {
-        console.error('event_date manquant');
-        return;
-      }
+    this.qrcodeService.getListScannedGuests(guestIds)
+      .pipe(takeUntilDestroyed(this.destroyRef))  // [FIX 6]
+      .subscribe({
+        next: (responses) => {
+          const res = responses[0];
+          if (!res?.event_date) { console.error('event_date manquant'); return; }
 
-      const eventDate = new Date(res.event_date);
+          const eventDate = new Date(res.event_date);
+          if (isNaN(eventDate.getTime())) { console.error('Format de date invalide'); return; }
 
-      if (isNaN(eventDate.getTime())) {
-        console.error('Format de date invalide:', res.event_date);
-        return;
-      }
+          this.event = {
+            eventTitle: res.title,
+            eventDate: eventDate.toISOString().split('T')[0],
+            eventTime: eventDate.toLocaleTimeString('fr-FR', {
+              hour: '2-digit', minute: '2-digit', timeZone: 'UTC'
+            }),
+            eventDateTime: res.event_date,  // [FIX 4] stocké pour comparaison exacte
+            eventLocation: res.event_location,
+            guestRsvpStatus: res.rsvp_status
+          };
 
-      const date = eventDate.toISOString().split('T')[0];
+          this.guests = responses.map((r: any) => ({
+            eventId: r.eventId,
+            name: r.guestName,
+            email: r.email,
+            phone: r.phone_number,
+            notification_mode: r.notification_mode,
+            eventDate: r.event_date,
+            plusOne: r.has_plus_one,
+            plusOneName: r.plus_one_name,
+            dietaryRestrictions: r.dietary_restrictions || 'Aucune',
+            plusOnedietaryRestrictions: r.plus_one_name_diet_restr || 'Aucune',
+            status: r.rsvp_status,
+          }));
 
-      const time = eventDate.toLocaleTimeString('fr-FR', {
-        hour: '2-digit',
-        minute: '2-digit',
-        timeZone: 'UTC'
+          this.filterGuests();
+        },
+        error: (error) => console.error('[getListScannedGuests]', error.message)
       });
-
-      this.event = {
-        eventTitle: responses[0].title,
-        eventDate: date,
-        eventTime: time,
-        eventDateTime: responses[0].event_date,
-        eventLocation: responses[0].event_location,
-        guestRsvpStatus: responses[0].rsvp_status
-      }
-      for (const res of responses) {
-        const guest = {
-          eventId: res.eventId,
-          name: res.guestName,
-          email: res.email,
-          phone: res.phone_number,
-          notification_mode: res.notification_mode,
-          eventDate: res.event_date,
-          plusOne: res.has_plus_one,
-          plusOneName: res.plus_one_name,
-          dietaryRestrictions: res.dietary_restrictions || 'Aucune',
-          plusOnedietaryRestrictions: res.plus_one_name_diet_restr || 'Aucune',
-          status: res.rsvp_status,
-        }
-        guests.push(guest);
-      }
-      this.guests = guests;
-      //console.log("[getListScannedGuests] this.guests :: ", this.guests);
-      this.filterGuests();
-    },
-    (error) => {
-        console.error('❌ [getListScannedGuests] Erreur :', error.message);
-    });
   }
 
   toggle() {
     this.isOpen = !this.isOpen;
     this.isMessage = false;
     this.noMessage = false;
-    // console.log('this.isOpen', this.isOpen)
   }
 
-  manageCheckInParameter(){
+  manageCheckInParameter() {
     const data = {
       eventId: this.eventId,
       automaticCapture: this.autoCapture(),
@@ -491,33 +452,28 @@ export class QRScannerComponent implements OnInit, OnDestroy {
       scannedCodes: this.scannedCount(),
       scannedSuccess: this.successCount(),
       scannedErrors: this.errorCount(),
-   }
-    console.log('[manageCheckInParameter] data:: ', data);
-    this.qrcodeService.createCheckInParam(data).subscribe(
-    (response) => {
-        console.log("###response :: ", response);
-    },
-    (error) => {
-        console.error('❌ [manageCheckInParameter] Erreur :', error.message);
-    });
+    };
+    this.qrcodeService.createCheckInParam(data)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({ error: (e) => console.error('[manageCheckInParameter]', e.message) });
   }
 
-  getCheckInParam(){
-    this.qrcodeService.getCheckInParam(this.eventId).subscribe(
-    (response) => {
-        console.log("[getCheckInParam] response :: ", response);
-        this.autoCapture.set(response.automatic_capture);
-        this.soundEnabled.set(response.confirmation_sound);
-        this.scannedCount.set(response.scanned_codes);
-        this.successCount.set(response.scanned_success);
-        this.errorCount.set(response.scanned_errors);
-    },
-    (error) => {
-        console.error('❌ [getCheckInParam] Erreur :', error.message);
-    });
+  getCheckInParam() {
+    this.qrcodeService.getCheckInParam(this.eventId)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (response) => {
+          this.autoCapture.set(response.automatic_capture);
+          this.soundEnabled.set(response.confirmation_sound);
+          this.scannedCount.set(response.scanned_codes);
+          this.successCount.set(response.scanned_success);
+          this.errorCount.set(response.scanned_errors);
+        },
+        error: (e) => console.error('[getCheckInParam]', e.message)
+      });
   }
 
-  updateCheckInParam(){
+  updateCheckInParam() {
     const data = {
       eventId: this.eventId,
       automaticCapture: this.autoCapture(),
@@ -525,23 +481,152 @@ export class QRScannerComponent implements OnInit, OnDestroy {
       scannedCodes: this.scannedCount(),
       scannedSuccess: this.successCount(),
       scannedErrors: this.errorCount(),
-   }
-    console.log('[updateCheckInParam] data:: ', data);
-    this.qrcodeService.updateCheckInParam(data).subscribe(
-    (response) => {
-        console.log("###response :: ", response);
-    },
-    (error) => {
-        console.error('❌ [updateCheckInParam] Erreur :', error.message);
-    });
+    };
+    this.qrcodeService.updateCheckInParam(data)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({ error: (e) => console.error('[updateCheckInParam]', e.message) });
   }
 
-  processManualCode() {
-    if (!this.manualCode.trim()) {
-      alert('Veuillez entrer un code');
+  // ─── Audio ─────────────────────────────────────────────────────────────────
+  // [FIX 3] Réutilisation du singleton AudioContext
+  private playSuccessSound() {
+    const ctx = this.getAudioContext();
+    if (!ctx) return;
+    try {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(700, ctx.currentTime);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      gain.gain.setValueAtTime(0.0001, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.5, ctx.currentTime + 0.01);
+      osc.start();
+      osc.stop(ctx.currentTime + 0.15);
+    } catch (e) {
+      console.error('Erreur audio succès:', e);
+    }
+  }
+
+  private playErrorSound() {
+    const ctx = this.getAudioContext();
+    if (!ctx) return;
+    try {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.frequency.value = 300;
+      gain.gain.setValueAtTime(0.3, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.2);
+      osc.start(ctx.currentTime);
+      osc.stop(ctx.currentTime + 0.2);
+    } catch (e) {
+      console.error('Erreur audio erreur:', e);
+    }
+  }
+
+  // ─── Filtres & Pagination ───────────────────────────────────────────────────
+  filterGuests() {
+    this.filteredGuests = this.guests.filter(guest => {
+      const matchesSearch =
+        guest.name.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
+        guest.email.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
+        (guest.phone && guest.phone.includes(this.searchTerm));
+      const matchesStatus = this.filterStatus() === 'present' || guest.status === this.filterStatus();
+      return matchesSearch && matchesStatus;
+    });
+    this.currentPage = 1;  // [FIX 5] Réinitialisation après filtrage
+  }
+
+  exportPDF() {
+    const data = { event: this.event, filteredGuests: this.filteredGuests };
+    this.loading = true;
+    this.qrcodeService.downloadGuestsPdf(data)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (blob) => {
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = 'invites-present.pdf';
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          window.URL.revokeObjectURL(url);
+          this.loading = false;
+        },
+        error: (err) => console.error('Erreur téléchargement PDF', err)
+      });
+  }
+
+  thankMessageForm() {
+    // [FIX 4] Utilisation de eventDateTime pour comparaison précise (date + heure)
+    const eventDateObj = new Date(this.event.eventDateTime);
+    const now = new Date();
+
+    if (eventDateObj > now) {
+      this.isOpen = true;
+      this.noMessage = true;
+      this.isMessage = false;
+    } else if (eventDateObj < now) {
+      this.isOpen = true;
+      this.isMessage = true;
+    }
+  }
+
+  onMessageChange() {
+    this.messageError = '';
+    this.canSendThankMessage = false;
+    if (!this.thankMessage?.trim()) {
+      this.messageError = 'Le message est requis.';
       return;
     }
+    if (this.thankMessage.trim().length < 5) {
+      this.messageError = 'Le message doit contenir au moins 5 caractères.';
+      return;
+    }
+    if (this.thankMessage.length > 1000) {
+      this.messageError = 'Le message ne peut pas dépasser 1000 caractères.';
+      return;
+    }
+    this.canSendThankMessage = true;
+  }
 
+  sendThankMessage() {
+    if (!this.canSendThankMessage) return;
+    const guests = this.guests.map(g => ({
+      full_name: g.name,
+      phone_number: g.phone,
+      email: g.email,
+      notification_mode: g.notification_mode,
+    }));
+    const data = {
+      eventId: this.guests[0]?.eventId,
+      guests,
+      message: this.thankMessage
+    };
+    this.loading = true;
+    this.qrcodeService.sendThankMessage(data)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.thankMessage = '';
+          this.canSendThankMessage = false;
+          this.notificationService.clearNotificationsCache();
+          this.notificationService.getNotifications();
+          this.loading = false;
+        },
+        error: (e) => {
+          this.loading = false;
+          console.error('[sendThankMessage]', e.message);
+        }
+      });
+  }
+
+  // ─── UI Helpers ────────────────────────────────────────────────────────────
+  processManualCode() {
+    if (!this.manualCode.trim()) { alert('Veuillez entrer un code'); return; }
     this.processQRCode(this.manualCode);
     this.manualCode = '';
   }
@@ -553,258 +638,45 @@ export class QRScannerComponent implements OnInit, OnDestroy {
   }
 
   toggleAutoCapture(event: Event) {
-    const target = event.target as HTMLInputElement;
-    this.autoCapture.set(target.checked);
+    this.autoCapture.set((event.target as HTMLInputElement).checked);
     this.updateCheckInParam();
   }
 
   toggleSound() {
-    console.log('Mise à jour du signal');
-
     this.soundEnabled.set(!this.soundEnabled());
-
     this.updateCheckInParam();
-  }
-
-  private playSuccessSound() {
-    try {
-        const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-        const oscillator = audioContext.createOscillator();
-        const gainNode = audioContext.createGain();
-
-        oscillator.type = "sine";
-
-        // ✔️ Bonne API
-        oscillator.frequency.setValueAtTime(700, audioContext.currentTime);
-
-        oscillator.connect(gainNode);
-        gainNode.connect(audioContext.destination);
-
-        gainNode.gain.setValueAtTime(0.0001, audioContext.currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.5, audioContext.currentTime + 0.01);
-
-        oscillator.start();
-
-        oscillator.stop(audioContext.currentTime + 0.15);
-    } catch (e) {
-        console.error("Erreur audio :", e);
-    }
-  }
-
-  playErrorSound() {
-    // Créer et jouer un son d'erreur
-    const audioContext = new (window as any).AudioContext();
-    const oscillator = audioContext.createOscillator();
-    const gainNode = audioContext.createGain();
-
-    oscillator.connect(gainNode);
-    gainNode.connect(audioContext.destination);
-
-    oscillator.frequency.value = 300;
-    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
-
-    oscillator.start(audioContext.currentTime);
-    oscillator.stop(audioContext.currentTime + 0.2);
-  }
-
-  filterGuests() {
-    console.log("[filterGuests] this.guests :: ", this.guests);
-    this.filteredGuests = this.guests
-    .filter((guest) => {
-      const matchesSearch =
-        guest.name.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
-        guest.email.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
-        (guest.phone && guest.phone.includes(this.searchTerm));
-      const matchesStatus = this.filterStatus() === 'present' || guest.status === this.filterStatus();
-      return matchesSearch && matchesStatus;
-    });
-    console.log("filteredGuests :: ", this.filteredGuests);
-  }
-
-  exportPDF() {
-    console.log("[exportPDF] this.guests:: ", this.guests);
-    console.log("[exportPDF] this.filteredGuests:: ", this.filteredGuests);
-    const data = {
-      event: this.event,
-      filteredGuests: this.filteredGuests
-    };
-    console.log("data :: ", data);
-    this.loading = true;
-    this.qrcodeService.downloadGuestsPdf(data).subscribe({
-      next: (blob) => {
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'invites-present.pdf';
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        window.URL.revokeObjectURL(url);
-        this.loading = false;
-      },
-      error: (err) => {
-        console.error('Erreur téléchargement PDF', err);
-      }
-    });
-  }
-
-  thankMessageForm(){
-    console.log("Envoie du message en cours... ");
-    const eventDateObj = new Date(this.event.eventDate);
-    console.log('eventDateObj:', eventDateObj);
-    const now = new Date();
-
-    if (eventDateObj > now) {
-      console.log('📅 L’événement est dans le futur');
-      this.isOpen = true;
-      this.noMessage = true;
-      this.isMessage = false;
-    } else if (eventDateObj < now) {
-      console.log("Envoie du message en cours... ");
-      this.isOpen = true;
-      this.isMessage = true;
-    } else {
-      console.log('⚡ L’événement est maintenant');
-    }
-  }
-  onMessageChange() {
-    // Reset
-    this.messageError = '';
-    this.canSendThankMessage = false;
-
-    // Message obligatoire
-    if (!this.thankMessage || this.thankMessage.trim().length === 0) {
-      this.messageError = 'Le message est requis.';
-      return;
-    }
-
-    // Longueur minimale
-    if (this.thankMessage.trim().length < 5) {
-      this.messageError = 'Le message doit contenir au moins 5 caractères.';
-      return;
-    }
-
-    // Longueur max
-    if (this.thankMessage.length > 1000) {
-      this.messageError = 'Le message ne peut pas dépasser 300 caractères.';
-      return;
-    }
-
-    // OK
-    this.canSendThankMessage = true;
-  }
-
-  sendThankMessage() {
-    if (!this.canSendThankMessage) return;
-    const guests = [];
-    let eventId;
-    for (const g of this.guests) {
-      eventId = g.eventId;
-      const guest = {
-        full_name: g.name,
-        phone_number: g.phone,
-        email: g.email,
-        notification_mode: g.notification_mode,
-      }
-      guests.push(guest);
-    }
-    const data = {
-      eventId : eventId,
-      guests: guests,
-      message: this.thankMessage
-    }
-    console.log('📨 data :', data);
-    this.loading = true;
-    this.qrcodeService.sendThankMessage(data).subscribe(
-    (response) => {
-      console.log("[sendThankMessage] response :: ", response);
-      this.thankMessage = '';
-      this.canSendThankMessage = false;
-      this.notificationService.clearNotificationsCache();
-      this.notificationService.getNotifications();
-      this.loading = false;
-    },
-    (error) => {
-      this.loading = false;
-      console.error('❌ [sendThankMessage] Erreur :', error.message);
-    });
   }
 
   formatDate(date: string): string {
     return new Date(date).toLocaleDateString('fr-FR', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
+      weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
     });
   }
 
-  // Logique pagination
-  get totalPages() {
-    return Math.ceil(this.filteredGuests.length / this.itemsPerPage);
-  }
-
-  totalPagesArray() {
-    return Array(this.totalPages)
-      .fill(0)
-      .map((_, i) => i + 1);
-  }
+  get totalPages() { return Math.ceil(this.filteredGuests.length / this.itemsPerPage); }
+  totalPagesArray() { return Array(this.totalPages).fill(0).map((_, i) => i + 1); }
   paginatedGuests() {
-    const startIndex = (this.currentPage - 1) * this.itemsPerPage;
-    //console.log("this.filteredGuests.slice :: ", this.filteredGuests.slice(startIndex, startIndex + this.itemsPerPage))
-    return this.filteredGuests.slice(startIndex, startIndex + this.itemsPerPage);
+    const start = (this.currentPage - 1) * this.itemsPerPage;
+    return this.filteredGuests.slice(start, start + this.itemsPerPage);
   }
 
   getStatusIcon(status: string): string {
-    switch (status) {
-      case 'confirmed':
-        return '✓';
-      case 'pending':
-        return '⏳';
-      case 'declined':
-        return '✕';
-      case 'present':
-        return '✓✓';
-      default:
-        return '';
-    }
+    const icons: Record<string, string> = {
+      confirmed: '✓', pending: '⏳', declined: '✕', present: '✓✓'
+    };
+    return icons[status] ?? '';
   }
 
   getStatusLabel(status: string): string {
-    switch (status) {
-      case 'confirmed':
-        return 'Confirmé';
-      case 'pending':
-        return 'En attente';
-      case 'declined':
-        return 'Refusé';
-      case 'present':
-        return 'Présent';
-      default:
-        return status;
-    }
+    const labels: Record<string, string> = {
+      confirmed: 'Confirmé', pending: 'En attente', declined: 'Refusé', present: 'Présent'
+    };
+    return labels[status] ?? status;
   }
 
-  goToPage(page: number) {
-    this.currentPage = page;
-  }
-
-  nextPage() {
-    if (this.currentPage < this.totalPages) this.currentPage++;
-  }
-
-  prevPage() {
-    if (this.currentPage > 1) this.currentPage--;
-  }
-
-  goToDashboard() {
-    this.router.navigate(['/evenements']);
-  }
-
-  backToEvent(){
-    // this.router.navigate(['/events', this.eventId]);
-    window.history.back();
-  }
+  goToPage(page: number) { this.currentPage = page; }
+  nextPage() { if (this.currentPage < this.totalPages) this.currentPage++; }
+  prevPage() { if (this.currentPage > 1) this.currentPage--; }
+  goToDashboard() { this.router.navigate(['/evenements']); }
+  backToEvent() { window.history.back(); }
 }
-
