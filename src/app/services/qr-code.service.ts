@@ -60,13 +60,7 @@ export class QrCodeService {
     return this.http.post(`${this.apiUrl}/event/guest-pdf`, data, {responseType: 'blob'});
   }
 
-  viewPdfs(qrCode: string): Observable<Blob> {
-    const data = { link: qrCode };
-    const headers = this.getAuthHeaders();
-    return this.http.post(`${this.apiUrl}/checkin/pdf`, data, { headers, responseType: 'blob'});
-  }
-
-  addCheckIn(data: any): Observable<any>{
+addCheckIn(data: any): Observable<any>{
     const headers = this.getAuthHeaders();
     return this.http.post<any>(`${this.apiUrl}/checkin/scan`, data, { headers });
   }
