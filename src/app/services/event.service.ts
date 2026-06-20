@@ -70,7 +70,7 @@ export class EventService {
   private linkCache$?: Observable<any>;
   private refresh$ = new Subject<void>();
 
-  constructor(private http: HttpClient) { 
+  constructor(private http: HttpClient) {
     if (this.isProd) {
       this.apiUrl = environment.apiUrlProd;
     } else {
@@ -111,7 +111,7 @@ export class EventService {
   //   console.log("eventId :: ",eventId);
   //   return this.http.get<Event[]>(`${this.apiUrl}/event/${eventId}`);
   // }
-  
+
   getEventById(eventId: number): Observable<Event[]> {
     if (this.cachedEvent.has(eventId)) {
       console.log('CACHE HIT for eventId:', eventId);
@@ -166,11 +166,13 @@ export class EventService {
   }
 
   updateEventWihtFile(eventId: number, formData: any): Observable<any> {
+    console.log("formData :: ", formData);
     return this.http
       .put<any>(`${this.apiUrl}/file/update-event-file/${eventId}`, formData);
   }
 
   updateEvent(eventId: number, request: Partial<any>): Observable<Event> {
+    console.log("request :: ", request);
     const headers = this.getAuthHeaders();
     return this.http
     .put<Event>(`${this.apiUrl}/event/${eventId}`, request, { headers })
@@ -188,7 +190,7 @@ export class EventService {
       tap(() => this.clearCache(eventId))
     );
   }
-  
+
   deleteEvent(eventId: number): Observable<void> {
     const headers = this.getAuthHeaders();
     return this.http.delete<void>(`${this.apiUrl}/event/${eventId}`, { headers })

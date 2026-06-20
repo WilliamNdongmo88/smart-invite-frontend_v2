@@ -1,4 +1,4 @@
-import { Component, signal, OnInit, PipeTransform, Pipe } from '@angular/core';
+import { Component, signal, OnInit, PipeTransform, Pipe, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, NgForm } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -134,7 +134,7 @@ export class EditEventComponent implements OnInit {
   };
 
   eventData: Event = { ...this.originalEventData };
-  
+
 
   baseInvitationData: Partial<InvitationData> = {
     priorityColors: 'Bleu, Blanc, Rouge, Noir',
@@ -286,7 +286,8 @@ export class EditEventComponent implements OnInit {
     private navigationService: NavigationService,
     private communicationService: CommunicationService,
     private router: Router,
-    private location: Location) {}
+    private location: Location,
+    private cdr: ChangeDetectorRef) {}
 
   ngOnInit() {
     this.route.params.subscribe((params) => {
@@ -327,8 +328,39 @@ export class EditEventComponent implements OnInit {
 
         if(res.type=='wedding'){
           this.showWeddingCivilLocation = true;
-        }else{
+          this.showWeddingNames = true;
+          this.showEngagementNames = false;
+          this.showAnniversaryNames = false;
+          this.showBirthdayNames = false;
+          this.showAnother = false;
+        } else if(res.type=='engagement'){
           this.showWeddingCivilLocation = false;
+          this.showEngagementNames = true;
+          this.showWeddingNames = false;
+          this.showAnniversaryNames = false;
+          this.showBirthdayNames = false;
+          this.showAnother = false;
+        } else if(res.type=='anniversary'){
+          this.showWeddingCivilLocation = false;
+          this.showAnniversaryNames = true;
+          this.showWeddingNames = false;
+          this.showEngagementNames = false;
+          this.showBirthdayNames = false;
+          this.showAnother = false;
+        } else if(res.type=='birthday'){
+          this.showWeddingCivilLocation = false;
+          this.showBirthdayNames = true;
+          this.showWeddingNames = false;
+          this.showEngagementNames = false;
+          this.showAnniversaryNames = false;
+          this.showAnother = false;
+        } else {
+          this.showWeddingCivilLocation = false;
+          this.showAnother = true;
+          this.showWeddingNames = false;
+          this.showEngagementNames = false;
+          this.showAnniversaryNames = false;
+          this.showBirthdayNames = false;
         }
         const banquetTime1 = res.banquet_time.split(":")[0]
         const banquetTime2 = res.banquet_time.split(":")[1].split(':')[0];
@@ -747,11 +779,11 @@ export class EditEventComponent implements OnInit {
         eventDatas: eventDatas,
         eventInvitationNote: eventInvitationNote
       }
-      //console.log('Event updated:', data);
+      console.log(',[] Event updated:', data);
       this.isLoading = true;
       this.eventService.updateEvent(Number(this.eventData.id), data).subscribe(
         (response) => {
-          //console.log("Response :: ", response);
+          console.log("[]Response :: ", response);
           this.isLoading = false;
           this.triggerBAction();
           this.loadEventInvitationNote();
@@ -776,15 +808,16 @@ export class EditEventComponent implements OnInit {
 
     if (file.type === 'application/pdf') {
       this.selectedPdfFile = file;
-      //console.log('Fichier PDF sélectionné :', this.selectedPdfFile);
 
       const reader = new FileReader();
       reader.onload = (e: ProgressEvent<FileReader>) => {
         this.pdfModelUrl = e.target?.result as string;
-        //console.log('Fichier PDF sélectionné :', this.pdfModelUrl);
+        this.newFile = true;
+        this.invitationData.hasInvitationModelCard = true;
+        this.hasInvitationModelCard = true;
+        this.cdr.detectChanges();
       };
       reader.readAsDataURL(file);
-      this.newFile = !this.newFile;
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } else {
       alert('Veuillez sélectionner un fichier PDF valide.');
@@ -802,11 +835,7 @@ export class EditEventComponent implements OnInit {
     //console.log("[toggleInvitationModelCard] hasInvitationModelCard: ", this.invitationData.hasInvitationModelCard);
   }
   get currentPdfUrl(): string {
-    if (this.newFile && this.pdfModelUrl) {
-      return this.pdfModelUrl;
-    }
-    //console.log("this.defaultPdfUrl: ", this.defaultPdfUrl);
-    return this.invitationData.pdfUrl ?? this.defaultPdfUrl;
+    return this.pdfModelUrl ?? this.invitationData.pdfUrl ?? this.defaultPdfUrl;
   }
 
   formatDate(date: string): string {
@@ -953,6 +982,8 @@ export class EditEventComponent implements OnInit {
     this.pdfModelUrl = null;
     this.selectedPdfFile = null;
     this.newFile = false;
+    this.invitationData.hasInvitationModelCard = false;
+    this.hasInvitationModelCard = false;
   }
 
   resetForm() {
