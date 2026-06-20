@@ -328,7 +328,7 @@
                 <input type="number" id="totalGuests" name="totalGuests"
                    [(ngModel)]="eventData.totalGuests"
                    (ngModelChange)="onQuotaChange()"
-                   #totalGuests="ngModel" 
+                   #totalGuests="ngModel"
                    min="1" required class="form-input" />
 
                 <div *ngIf="quotaChanged" class="alert-warning">
@@ -342,7 +342,7 @@
                   </ng-container>
 
                   <ng-container *ngIf="validatedQuota === 0">
-                    <br>Montant à payer : <strong>{{ amountDue | number }} XAF</strong>
+                    <br>💳 Montant à payer : <strong>{{ amountDue | number }} XAF</strong>
                   </ng-container>
                 </div>
               </div>
@@ -833,7 +833,7 @@
                               </p>
                             </ng-container>
                           </div>
-                          
+
                           <ng-container *ngIf="eventData.type != 'wedding'">
                             <p *ngIf="!current_program[0].conditionField || getInvitationValue(current_program[0].conditionField)">
                               <strong>
@@ -926,9 +926,9 @@
                   <span class="value">{{ eventData.totalGuests }}</span>
                 </div>
 
-                <div class="confirmation-item" *ngIf="eventData.budget">
-                  <span class="label">Budget :</span>
-                  <span class="value">{{ eventData.budget }}€</span>
+                <div class="confirmation-item">
+                  <span class="label">💳 Budget :</span>
+                  <span class="value">{{ eventData.totalGuests * PRICE_PER_GUEST }} XAF</span>
                 </div>
 
                 <div class="confirmation-item">
