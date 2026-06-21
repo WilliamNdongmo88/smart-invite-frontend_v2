@@ -53,4 +53,32 @@ export class PaymentService {
   rejectPayment(paymentId: number, reason: string): Observable<any> {
     return this.http.put<any>(`${this.apiUrl}/payment/${paymentId}/reject`, { reason });
   }
+
+  getFinancialStats(): Observable<FinancialStats> {
+    return this.http.get<FinancialStats>(`${this.apiUrl}/payment/stats`);
+  }
+}
+
+export interface MonthStat {
+  year: number;
+  month: number;
+  revenue: number;
+  payment_count: number;
+}
+
+export interface YearStat {
+  year: number;
+  revenue: number;
+  payment_count: number;
+  months: MonthStat[];
+}
+
+export interface FinancialStats {
+  total_revenue: number;
+  total_payments: number;
+  current_year_revenue: number;
+  current_month_revenue: number;
+  current_month_payments: number;
+  by_year: YearStat[];
+  by_month: MonthStat[];
 }

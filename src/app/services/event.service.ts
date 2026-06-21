@@ -47,6 +47,7 @@ export interface CreateEventRequest {
   allowDietaryRestrictions?: boolean;
   showWeddingReligiousLocation?: boolean;
   hasInvitationModelCard?: boolean;
+  eventEndDate?: string | null;
   status: string;
   budget?: number;
   type?: string;
