@@ -21,6 +21,8 @@ interface InvitationData {
   eventLocation: string;
   eventTime: string;
   mainMessage: string;
+  mainMessagePart1?: string;
+  mainMessagePart2?: string;
   eventTheme: string;
   priorityColors: string;
   qrInstructions: string;
@@ -167,7 +169,7 @@ export class EditEventComponent implements OnInit {
         "Nous avons le plaisir de vous inviter à célébrer nos fiançailles et à partager avec nous ce moment de bonheur et de promesse.",
       eventTheme: "ÉLÉGANCE ET TRADITION",
       sousMainMessage:
-        "Une réception conviviale suivra la cérémonie afin de partager ce moment avec nos proches.",
+        "Échange des engagements et bénédictions des familles. Une réception conviviale suivra la cérémonie afin de partager ce moment avec nos proches.",
       closingMessage:
         "Votre présence rendra cette célébration encore plus mémorable."
     },
@@ -189,20 +191,28 @@ export class EditEventComponent implements OnInit {
         "Nous avons le plaisir de vous inviter à célébrer un anniversaire exceptionnel dans une ambiance festive et chaleureuse.",
       eventTheme: "FÊTE ET JOIE",
       sousMainMessage:
-        "Animations, musique et rafraîchissements seront au rendez-vous pour cette occasion spéciale.",
+        "Moment de reconnaissance, de gratitude et de renouvellement de nos engagements. Animations, musique et rafraîchissements seront au rendez-vous pour cette occasion spéciale.",
       closingMessage:
         "Votre présence contribuera à faire de cette journée un moment inoubliable."
     },
 
     other: {
-      title: "INVITATION",
+      title: "LETTRE D'INVITATION",
       mainMessage:
-        "Nous avons le plaisir de vous convier à cet événement spécial et serions ravis de vous compter parmi nous.",
+        "Nous avons le plaisir de vous inviter à participer à cet événement. Votre présence contribuera au succès et à la convivialité de cette occasion particulière.",
+      mainMessagePart1: "Nous avons le plaisir de vous inviter à participer à l'événement :",
+      mainMessagePart2: "Votre présence contribuera au succès et à la convivialité de cette occasion particulière.",
       eventTheme: "CÉLÉBRATION",
       sousMainMessage:
-        "Une réception est prévue afin de partager ce moment avec tous les invités.",
+        "Déroulement de l'événement selon le programme prévu. Moment de partage et d'échanges entre les participants.",
       closingMessage:
-        "Nous espérons vivement votre présence."
+        "Nous vous remercions pour votre confiance et espérons vous compter parmi nous lors de cette occasion spéciale. Au plaisir de vous accueillir.",
+      qrInstructions:
+        "Prière de vous présenter avec votre code QR afin de faciliter votre accueil.",
+      dressCodeMessage:
+        "Informations complémentaires selon les indications de l'organisateur.",
+      thanksMessage1:
+        "Merci pour votre présence et votre confiance."
     }
   };
 
@@ -234,18 +244,23 @@ export class EditEventComponent implements OnInit {
         locationField: 'eventLocation'
       },
       {
+        // title: 'COCKTAIL ET RÉCEPTION',
+        // timeField: 'banquetTime',
+        // locationField: 'eventLocation',
         descriptionField: 'sousMainMessage'
       }
     ],
 
     anniversary: [
       {
-        title: 'CÉLÉBRATION',
+        title: 'CÉRÉMONIE COMMÉMORATIVE',
         timeField: 'eventTime',
         locationField: 'eventLocation'
       },
       {
-        title: 'DÎNER FESTIF',
+        // title: 'RÉCEPTION FESTIVE',
+        // timeField: 'banquetTime',
+        // locationField: 'eventLocation',
         descriptionField: 'sousMainMessage'
       }
     ],
@@ -257,16 +272,25 @@ export class EditEventComponent implements OnInit {
         locationField: 'eventLocation'
       },
       {
-        title: 'COUPURE DU GÂTEAU',
+        title: 'CÉLÉBRATION D\'ANNIVERSAIRE',
         descriptionField: 'sousMainMessage'
       }
     ],
 
     other: [
       {
-        title: 'ÉVÉNEMENT',
+        title: 'OUVERTURE ET ACCUEIL',
+        timeField: 'eventTime',
+        locationField: 'eventLocation'
+      },
+      {
+        title: 'DÉROULEMENT DE L\'ÉVÉNEMENT',
         descriptionField: 'sousMainMessage'
-      }
+      },
+      // {
+      //   title: 'CLÔTURE / RÉCEPTION',
+      //   timeField: 'banquetTime'
+      // }
     ]
   };
 
@@ -850,18 +874,23 @@ export class EditEventComponent implements OnInit {
 
   onEventTypeChange(eventType: string): void {
     this.selectedEventType = eventType;
-    console.log("eventType: ", this.selectedEventType);
 
-    this.invitationData = {
-      ...this.baseInvitationData,
-      ...this.invitationTemplates[eventType]
-    } as InvitationData;
+    const template = this.invitationTemplates[eventType] ?? {};
+    const editorialFields = [
+      'title', 'mainMessage', 'mainMessagePart1', 'mainMessagePart2', 'eventTheme',
+      'sousMainMessage', 'closingMessage', 'qrInstructions', 'dressCodeMessage', 'thanksMessage1'
+    ];
+    editorialFields.forEach(field => {
+      const val = (template as any)[field];
+      if (val !== undefined) (this.invitationData as any)[field] = val;
+    });
 
-    if(this.eventData.type == "wedding"){
-      this.showWeddingCivilLocation = true;
-    }else{
-      this.showWeddingCivilLocation = false;
-    }
+    this.showWeddingCivilLocation = eventType === 'wedding';
+  }
+
+  /** Centralise la condition type === 'other' */
+  get isOtherEvent(): boolean {
+    return this.eventData.type === 'other';
   }
 
   get currentProgram() {

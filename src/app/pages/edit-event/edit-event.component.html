@@ -328,7 +328,7 @@
                 <input type="number" id="totalGuests" name="totalGuests"
                    [(ngModel)]="eventData.totalGuests"
                    (ngModelChange)="onQuotaChange()"
-                   #totalGuests="ngModel"
+                   #totalGuests="ngModel" 
                    min="1" required class="form-input" />
 
                 <div *ngIf="quotaChanged" class="alert-warning">
@@ -342,28 +342,24 @@
                   </ng-container>
 
                   <ng-container *ngIf="validatedQuota === 0">
-                    <br>💳 Montant à payer : <strong>{{ amountDue | number }} XAF</strong>
+                    <br>Montant à payer : <strong>{{ amountDue | number }} XAF</strong>
                   </ng-container>
                 </div>
               </div>
 
-              <div class="form-group checkbox-group checkbox-text">
+              <div *ngIf="!isOtherEvent" class="form-group checkbox-group checkbox-text">
                 <label class="custom-checkbox">
                   <input type="checkbox" name="allowPlusOne" [(ngModel)]="eventData.allowPlusOne" />
                   <span class="checkmark"></span>
-                  <span class="label-text">
-                    Autoriser les "+1"
-                  </span>
+                  <span class="label-text">Autoriser les "+1"</span>
                 </label>
               </div>
 
-              <div class="form-group checkbox-group checkbox-text">
+              <div *ngIf="!isOtherEvent" class="form-group checkbox-group checkbox-text">
                 <label class="custom-checkbox">
                   <input type="checkbox" name="allowDietaryRestrictions" [(ngModel)]="eventData.allowDietaryRestrictions" />
                   <span class="checkmark"></span>
-                  <span class="label-text">
-                    Gérer les restrictions alimentaires
-                  </span>
+                  <span class="label-text">Gérer les restrictions alimentaires</span>
                 </label>
               </div>
 
@@ -567,7 +563,7 @@
                         ></textarea>
                       </div>
 
-                      <div class="form-group">
+                      <div *ngIf="!isOtherEvent" class="form-group">
                         <label for="edit-eventTheme">Thème de la soirée</label>
                         <input
                           type="text"
@@ -579,7 +575,7 @@
                         />
                       </div>
 
-                      <div class="form-group">
+                      <div *ngIf="!isOtherEvent" class="form-group">
                         <label for="edit-priorityColors">Couleurs priorisées</label>
                         <input
                           type="text"
@@ -810,51 +806,45 @@
                         </p>
 
                         <!-- Main message -->
-                        <p class="preview-message">{{ invitationData.mainMessage }}</p>
+                        <ng-container *ngIf="isOtherEvent && invitationData.mainMessagePart1; else fullMessage">
+                          <p class="preview-message">Nous avons le plaisir de vous inviter à participer à l'événement : <span class="preview-event-name">{{ eventData.title }}</span>.<br>{{ invitationData.mainMessagePart2 }}</p>
+                        </ng-container>
+                        <ng-template #fullMessage>
+                          <p class="preview-message">{{ invitationData.mainMessage }}</p>
+                        </ng-template>
 
-                        <!-- Event details -->
+                        <!-- Programme de l'événement -->
                         <div *ngIf="currentProgram.length" class="preview-event-details">
                           <h3>PROGRAMME DE LA JOURNÉE</h3>
-
-                          <div *ngIf="eventData.type == 'wedding'">
-                            <ng-container *ngFor="let item of currentProgram">
-                              <p *ngIf="!item.conditionField || getInvitationValue(item.conditionField)">
-                                <strong>
-                                  {{ item.title }}
+                          <ng-container *ngFor="let item of currentProgram">
+                            <p *ngIf="!item.conditionField || getInvitationValue(item.conditionField)">
+                              <strong *ngIf="item.title">
+                                {{ item.title }}
+                                <ng-container *ngIf="item.timeField">
                                   le {{ formatDate(invitationData.eventDate) }}
                                   à {{ getInvitationValue(item.timeField) }}
-                                </strong>
-                                <br *ngIf="eventData.type == 'wedding'">
-                                {{ getInvitationValue(item.locationField) }}
-                                <span *ngIf="item.descriptionField">
-                                  <br>
-                                  {{ getInvitationValue(item.descriptionField) }}
-                                </span>
-                              </p>
-                            </ng-container>
-                          </div>
-
-                          <ng-container *ngIf="eventData.type != 'wedding'">
-                            <p *ngIf="!current_program[0].conditionField || getInvitationValue(current_program[0].conditionField)">
-                              <strong>
-                                {{ current_program[0].title }}
-                                le {{ formatDate(invitationData.eventDate) }}
-                                à {{ getInvitationValue(current_program[0].timeField) }}
+                                </ng-container>
                               </strong>
-                              {{ getInvitationValue(current_program[0].locationField) }}
-                              <span *ngIf="current_program[1].descriptionField">
-                                <br>
-                                {{ getInvitationValue(current_program[1].descriptionField) }}
-                              </span>
+                              <ng-container *ngIf="item.locationField">
+                                <br>{{ getInvitationValue(item.locationField) }}
+                              </ng-container>
+                              <ng-container *ngIf="item.description">
+                                <br><em>{{ item.description }}</em>
+                              </ng-container>
+                              <ng-container *ngIf="item.descriptionField && getInvitationValue(item.descriptionField)">
+                                <br><em>{{ getInvitationValue(item.descriptionField) }}</em>
+                              </ng-container>
                             </p>
                           </ng-container>
                         </div>
 
-                        <!-- Theme -->
-                        <h3 class="preview-theme">THEME DE LA SOIRÉE : {{ invitationData.eventTheme }}</h3>
+                        <!-- Theme — masqué pour "Autre" -->
+                        <h3 *ngIf="!isOtherEvent" class="preview-theme">THEME DE LA SOIRÉE : {{ invitationData.eventTheme }}</h3>
 
-                        <p class="preview-colors-label">Couleurs priorisées</p>
-                        <p class="preview-colors">{{ invitationData.priorityColors }}</p>
+                        <ng-container *ngIf="!isOtherEvent">
+                          <p class="preview-colors-label">Couleurs priorisées</p>
+                          <p class="preview-colors">{{ invitationData.priorityColors }}</p>
+                        </ng-container>
 
                         <!-- QR Instructions -->
                         <p class="preview-qr-text">{{ invitationData.qrInstructions }}</p>
@@ -868,7 +858,12 @@
 
                         <!-- Signature -->
                         <p class="preview-signature" [style.color]="invitationData.titleColor">
-                          {{ eventData.eventNameConcerned1 }} & {{ eventData.eventNameConcerned2 }}
+                          <ng-container *ngIf="isOtherEvent || eventData.type === 'birthday'; else twoNames">
+                            {{ eventData.eventNameConcerned1 }}
+                          </ng-container>
+                          <ng-template #twoNames>
+                            {{ eventData.eventNameConcerned1 }} & {{ eventData.eventNameConcerned2 }}
+                          </ng-template>
                         </p>
 
                         <!-- Heart icon -->
@@ -926,9 +921,9 @@
                   <span class="value">{{ eventData.totalGuests }}</span>
                 </div>
 
-                <div class="confirmation-item">
-                  <span class="label">💳 Budget :</span>
-                  <span class="value">{{ eventData.totalGuests * PRICE_PER_GUEST }} XAF</span>
+                <div class="confirmation-item" *ngIf="eventData.budget">
+                  <span class="label">Budget :</span>
+                  <span class="value">{{ eventData.budget }}€</span>
                 </div>
 
                 <div class="confirmation-item">

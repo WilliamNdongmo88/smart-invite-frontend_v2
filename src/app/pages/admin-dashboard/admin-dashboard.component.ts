@@ -7,7 +7,7 @@ import { AuthService } from '../../services/auth.service';
 import { Maintenance, MaintenanceService } from '../../services/maintenance.service';
 import { BreakpointObserver } from '@angular/cdk/layout';
 import { map, Observable } from 'rxjs';
-import { PaymentService } from '../../services/payment.service';
+import { PaymentService, FinancialStats, MonthStat } from '../../services/payment.service';
 import { VisitorService, VisitorRow, VisitorDetail, VisitorStats } from '../../services/visitor.service';
 
 // Interfaces
@@ -138,8 +138,12 @@ export class AdminDashboardComponent implements OnInit {
   allPayments: any[] = [];
   paymentHistoryFilter: 'all' | 'pending' | 'under_review' | 'validated' | 'rejected' = 'all';
   paymentHistorySearch = '';
-  selectedPaymentProof: string | null = null;  // URL de la preuve à afficher en modal
-  loadingPaymentId: number | null = null;       // ID du paiement en cours de traitement
+  selectedPaymentProof: string | null = null;
+  loadingPaymentId: number | null = null;
+
+  financialStats: FinancialStats | null = null;
+  financialStatsLoading = false;
+  MONTH_NAMES = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 'Août', 'Sep', 'Oct', 'Nov', 'Déc'];
 
   // Selected items
   selectedFeedback: Feedback | null = null;
@@ -153,6 +157,7 @@ export class AdminDashboardComponent implements OnInit {
     { id: 'visitors', label: '👥 Visiteurs' },
     { id: 'users', label: '👤 Utilisateurs' },
     { id: 'payments', label: '💳 Paiements' },
+    { id: 'finances', label: '📊 Finances' },
     { id: 'guests', label: '🎫 Invités' },
     { id: 'feedback', label: '💬 Retours' },
     { id: 'maintenance', label: '🛠️ Maintenance' },
@@ -176,6 +181,7 @@ export class AdminDashboardComponent implements OnInit {
     this.loadAllPayments();
     this.loadVisitors();
     this.loadVisitorStats();
+    this.loadFinancialStats();
   }
 
   // FEEDBACK METHODS
@@ -686,6 +692,46 @@ export class AdminDashboardComponent implements OnInit {
       });
       //console.log('QR Codes supprimés');
     }
+  }
+
+  loadFinancialStats() {
+    this.financialStatsLoading = true;
+    this.paymentService.getFinancialStats().subscribe({
+      next: (stats) => { this.financialStats = stats; this.financialStatsLoading = false; },
+      error: (err) => { console.error('FINANCIAL STATS ERROR:', err); this.financialStatsLoading = false; }
+    });
+  }
+
+  getMonthLabel(month: number): string {
+    return this.MONTH_NAMES[month - 1] || '';
+  }
+
+  // Retourne les 12 derniers mois pour le graphique barres
+  getChartMonths(): { label: string; revenue: number; payments: number }[] {
+    if (!this.financialStats) return [];
+    const result: { label: string; revenue: number; payments: number }[] = [];
+    const now = new Date();
+    for (let i = 11; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const y = d.getFullYear();
+      const m = d.getMonth() + 1;
+      const found = this.financialStats.by_month.find(b => b.year === y && b.month === m);
+      result.push({
+        label: `${this.MONTH_NAMES[m - 1]} ${y}`,
+        revenue:  found ? found.revenue  : 0,
+        payments: found ? found.payment_count : 0
+      });
+    }
+    return result;
+  }
+
+  getMaxChartRevenue(): number {
+    const months = this.getChartMonths();
+    return Math.max(...months.map(m => m.revenue), 1);
+  }
+
+  formatAmount(amount: number): string {
+    return new Intl.NumberFormat('fr-FR').format(amount) + ' XAF';
   }
 
   formatDate(date: string): string {

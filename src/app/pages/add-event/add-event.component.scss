@@ -381,6 +381,7 @@
 
 .preview-greeting { font-size: 0.8rem; font-style: italic; margin-bottom: 0.5rem; }
 .preview-message { font-size: 0.75rem; line-height: 1.4; margin-bottom: 1rem; }
+.preview-event-name { font-weight: 600; }
 
 .preview-event-details {
   font-size: 0.75rem;
@@ -391,6 +392,7 @@
 .preview-theme { font-size: 0.8rem; font-weight: bold; margin-bottom: 0.25rem; }
 .preview-colors { font-size: 0.75rem; margin-bottom: 1rem; }
 .preview-signature { font-size: 0.9rem; font-weight: bold; text-decoration: underline; }
+.preview-end-time { font-size: 0.75rem; margin-bottom: 0.5rem; color: #444444; }
 
 /* Confirmation Card */
 .confirmation-card {
@@ -465,6 +467,13 @@
   color: #e53935;
   font-size: 0.85rem;
   margin-top: 4px;
+}
+
+.optional-label {
+  font-weight: 400;
+  font-size: 0.8rem;
+  color: #666666;
+  font-style: italic;
 }
 
 .form-input.ng-invalid.ng-touched {

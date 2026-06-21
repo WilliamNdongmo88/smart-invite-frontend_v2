@@ -182,7 +182,7 @@
           <div class="stats-mini-card">
             <h4>Pages populaires</h4>
             <div *ngFor="let p of visitorStats.topPages" class="stat-bar-row">
-              <span class="stat-bar-label">{{ p.page_url }}</span>
+              <span class="stat-bar-label">{{ p.page_url | slice:0:40 }}{{ p.page_url.length > 40 ? '...' : '' }}</span>
               <span class="stat-bar-count">{{ p.count }}</span>
             </div>
           </div>
@@ -449,6 +449,110 @@
           <button [disabled]="currentPage === 1" (click)="changePage(currentPage - 1)">Précédent</button>
           <span>Page {{ currentPage }} sur {{ getTotalPages(getFilteredUsers()) }}</span>
           <button [disabled]="currentPage === getTotalPages(getFilteredUsers())" (click)="changePage(currentPage + 1)">Suivant</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: FINANCES -->
+    <div *ngIf="activeTab === 'finances'" class="tab-content">
+      <div class="section-card">
+        <h2>📊 Tableau de Bord Financier</h2>
+
+        <div *ngIf="financialStatsLoading" class="empty-state">⏳ Chargement...</div>
+
+        <ng-container *ngIf="!financialStatsLoading && financialStats">
+
+          <!-- Cartes récapitulatives -->
+          <div class="stats-grid">
+            <div class="stat-box">
+              <span class="stat-label">Chiffre d'affaires total</span>
+              <span class="stat-value finance-value">{{ formatAmount(financialStats.total_revenue) }}</span>
+            </div>
+            <div class="stat-box">
+              <span class="stat-label">CA année en cours</span>
+              <span class="stat-value finance-value">{{ formatAmount(financialStats.current_year_revenue) }}</span>
+            </div>
+            <div class="stat-box">
+              <span class="stat-label">CA mois en cours</span>
+              <span class="stat-value finance-value">{{ formatAmount(financialStats.current_month_revenue) }}</span>
+            </div>
+            <div class="stat-box">
+              <span class="stat-label">Total paiements validés</span>
+              <span class="stat-value">{{ financialStats.total_payments }}</span>
+            </div>
+          </div>
+
+          <!-- Graphique d'évolution mensuelle (12 derniers mois) -->
+          <h3>Evolution mensuelle des revenus (12 derniers mois)</h3>
+          <div class="chart-container">
+            <div class="bar-chart">
+              <div
+                *ngFor="let m of getChartMonths()"
+                class="bar-col">
+                <div class="bar-label-top">{{ m.revenue > 0 ? formatAmount(m.revenue) : '' }}</div>
+                <div
+                  class="bar"
+                  [style.height.%]="(m.revenue / getMaxChartRevenue()) * 100">
+                </div>
+                <div class="bar-label">{{ m.label }}</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tableau annuel -->
+          <h3 style="margin-top:2rem">Récapitulatif par année</h3>
+          <div class="list-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Année</th>
+                  <th>Revenus</th>
+                  <th>Paiements</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let y of financialStats.by_year">
+                  <td><strong>{{ y.year }}</strong></td>
+                  <td class="finance-cell">{{ formatAmount(y.revenue) }}</td>
+                  <td>{{ y.payment_count }}</td>
+                </tr>
+                <tr *ngIf="financialStats.by_year.length === 0">
+                  <td colspan="3" class="empty-state">Aucune donnée disponible.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Tableau mensuel détaillé -->
+          <h3 style="margin-top:2rem">Récapitulatif mensuel détaillé</h3>
+          <div class="list-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Année</th>
+                  <th>Mois</th>
+                  <th>Revenus</th>
+                  <th>Paiements</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let m of financialStats.by_month">
+                  <td>{{ m.year }}</td>
+                  <td>{{ getMonthLabel(m.month) }}</td>
+                  <td class="finance-cell">{{ formatAmount(m.revenue) }}</td>
+                  <td>{{ m.payment_count }}</td>
+                </tr>
+                <tr *ngIf="financialStats.by_month.length === 0">
+                  <td colspan="4" class="empty-state">Aucune donnée disponible.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+        </ng-container>
+
+        <div *ngIf="!financialStatsLoading && !financialStats" class="empty-state">
+          Aucune donnée financière disponible.
         </div>
       </div>
     </div>
