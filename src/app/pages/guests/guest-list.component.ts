@@ -26,6 +26,7 @@ interface Guest {
   name: string;
   email: string;
   table_number: string;
+  notification_mode: string,
   phone?: string;
   status: 'confirmed' | 'pending' | 'declined' | 'present';
   dietaryRestrictions?: string;
@@ -234,6 +235,7 @@ export class GuestListComponent implements OnInit{
                 eventId: res.event_id,
                 name: res.full_name,
                 email: res.email,
+                notification_mode: res.notification_mode,
                 table_number: res.table_number,
                 phone: res.phone_number,
                 status: uper.toLowerCase() as 'confirmed' | 'pending' | 'declined' | 'present',
