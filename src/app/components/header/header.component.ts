@@ -53,6 +53,7 @@ export class HeaderComponent implements OnInit {
   isSwiping = false;
   notifications: Notification[] = [];
   globalPaymentStatus: 'validated' | 'pending' | 'rejected' | null = null;
+  isRedirectToPricing = signal(false);
 
   constructor(
               private elementRef: ElementRef,
@@ -111,6 +112,7 @@ export class HeaderComponent implements OnInit {
           .subscribe(isMobile => {
             if (isMobile) {
               this.toggleMobileMenu(true);
+              this.isRedirectToPricing.set(true);
             }
             this.headerTourService.initTour();
             setTimeout(() => {
@@ -209,7 +211,7 @@ export class HeaderComponent implements OnInit {
       return;
     }
     this.mobileMenuOpen.set(!this.mobileMenuOpen());
-    this.navigateToPricing();
+    if(!this.isRedirectToPricing) this.navigateToPricing();
   }
 
   @HostListener('document:click', ['$event'])
