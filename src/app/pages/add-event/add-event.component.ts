@@ -121,7 +121,7 @@ export class AddEventComponent implements OnInit{
     description: '',
     totalGuests: 0,
     budget: 0,
-    type: 'wedding',
+    type: '',
     eventNameConcerned1: '',
     eventNameConcerned2: '',
     allowDietaryRestrictions: true,
