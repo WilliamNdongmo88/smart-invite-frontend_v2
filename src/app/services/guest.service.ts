@@ -20,7 +20,8 @@ export interface Guests{
   full_name: string;
   table_number: string;
   email: string
-  phone_number: string
+  phone_number: string;
+  notification_mode: string
   rsvp_status: string
   has_plus_one: boolean
   dietary_restrictions: string

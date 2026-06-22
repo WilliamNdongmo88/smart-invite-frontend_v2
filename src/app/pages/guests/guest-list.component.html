@@ -115,7 +115,8 @@
                 <!-- Card Body -->
                 <div class="card-body click" (click)="goToGuestDetail(guest.id)">
                     <h3>{{ guest.name }}</h3>
-                    <p class="guest-email">{{ guest.email || guest.phone }}</p>
+                    <p *ngIf="guest.notification_mode == 'email'" class="guest-email">{{ guest.email }}</p>
+                    <p *ngIf="guest.notification_mode == 'whatsapp'" class="guest-email">{{ guest.phone }}</p>
 
                     <div class="guest-info">
                     <div class="info-item" *ngIf="guest.table_number">
