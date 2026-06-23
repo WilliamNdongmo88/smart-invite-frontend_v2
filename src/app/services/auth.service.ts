@@ -8,7 +8,6 @@ import {
 import {
   BehaviorSubject,
   Observable,
-  Subject,
   of,
   throwError
 } from 'rxjs';
@@ -17,8 +16,6 @@ import {
   catchError,
   map,
   shareReplay,
-  startWith,
-  switchMap,
   tap
 } from 'rxjs/operators';
 
@@ -97,8 +94,8 @@ export class AuthService {
 
   currentUser$ = this.currentUserSubject.asObservable();
 
+  // FIX: refresh$ supprimé (était déclaré mais jamais utilisé via .next())
   private userCache$?: Observable<any>;
-  private refresh$ = new Subject<void>();
 
   constructor(
     private router: Router,
@@ -272,6 +269,8 @@ export class AuthService {
     this.decodeToken(response.accessToken);
     this.currentUserSubject.next(response.user);
 
+    // FIX: vider le cache userCache$ au login (changement d'utilisateur)
+    this.clearCache();
     this.notificationService.clearNotificationsCache();
     this.eventService.clearCache();
   }
@@ -359,6 +358,8 @@ export class AuthService {
         localStorage.setItem(this.STORAGE_KEYS.ACCESS, res.accessToken);
         localStorage.setItem(this.STORAGE_KEYS.REFRESH, res.refreshToken);
         this.decodeToken(res.accessToken);
+        // FIX: invalider le cache getMe() après refresh du token
+        this.clearCache();
       }),
       map(() => true),
       catchError(err => {
@@ -372,6 +373,11 @@ export class AuthService {
      ME + CACHE
   ======================= */
 
+  // FIX: suppression du pattern refresh$/startWith/switchMap inutilisable
+  // (refresh$ n'avait jamais de .next() → switchMap ne se redéclenchait jamais)
+  // Remplacé par un cache simple : si userCache$ existe, on le retourne,
+  // sinon on crée la requête avec shareReplay(1).
+  // clearCache() invalide le cache → prochain appel fera un nouvel appel HTTP.
   getMe(): Observable<any> {
     if (!this.userCache$) {
       this.userCache$ = this.http
@@ -380,11 +386,7 @@ export class AuthService {
         })
         .pipe(shareReplay(1));
     }
-
-    return this.refresh$.pipe(
-      startWith(void 0),
-      switchMap(() => this.userCache$!)
-    );
+    return this.userCache$;
   }
 
   clearCache(): void {
@@ -409,6 +411,11 @@ export class AuthService {
     this.decodedToken = null;
     this.currentUserSubject.next(null);
     this.isAuthenticatedSubject.next(false);
+
+    // FIX: vider tous les caches au logout
+    this.clearCache();
+    this.notificationService.clearNotificationsCache();
+    this.eventService.clearCache();
 
     this.router.navigate(['/']);
   }

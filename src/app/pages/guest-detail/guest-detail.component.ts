@@ -309,7 +309,7 @@ export class GuestDetailComponent implements OnInit{
   }
 
   markAsConfirmed() {
-    this.guestService.updateRsvpStatusGuest(this.guestId, 'confirmed').subscribe(
+    this.guestService.updateRsvpStatusGuest(this.guestId, 'confirmed', this.eventId).subscribe(
       (response) => {
         console.log("response :: ", response);
         if (!response?.updated_at) {
@@ -343,7 +343,7 @@ export class GuestDetailComponent implements OnInit{
   }
 
   markAsPending() {
-    this.guestService.updateRsvpStatusGuest(this.guestId, 'pending').subscribe(
+    this.guestService.updateRsvpStatusGuest(this.guestId, 'pending', this.eventId).subscribe(
       (response) => {
         console.log("response :: ", response);
         if (!response?.updated_at) {
@@ -376,7 +376,7 @@ export class GuestDetailComponent implements OnInit{
   }
 
   markAsDeclined() {
-    this.guestService.updateRsvpStatusGuest(this.guestId, 'declined').subscribe(
+    this.guestService.updateRsvpStatusGuest(this.guestId, 'declined', this.eventId).subscribe(
       (response) => {
         console.log("response :: ", response);
         if (!response?.updated_at) {

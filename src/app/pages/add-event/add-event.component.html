@@ -1,7 +1,7 @@
     <div class="add-event">
       <!-- Header -->
       <div class="add-event-header">
-        <div class="container c-container">
+        <div class="container">
           <a routerLink="/evenements" class="back-link">← Retour au tableau de bord</a>
           <h1>Créer un nouvel événement</h1>
           <p>Remplissez les détails de votre mariage pour commencer</p>
@@ -890,9 +890,11 @@
                   <span class="value">{{ eventData.totalGuests }}</span>
                 </div>
 
-                <div class="confirmation-item" *ngIf="eventData.budget">
-                  <span class="label">Budget :</span>
-                  <span class="value">{{ eventData.budget }}€</span>
+                <div class="confirmation-item">
+                  <span class="label">💳 Budget :</span>
+                  <span class="value">
+                    {{ eventData.totalGuests * PRICE_PER_GUEST }} XAF
+                  </span>
                 </div>
 
                 <div class="confirmation-item">
@@ -919,12 +921,12 @@
                   <span class="value">{{ eventData.eventNameConcerned1 }}</span>
                 </div>
 
-                <div class="confirmation-item">
+                <div *ngIf="!isOtherEvent" class="confirmation-item">
                   <span class="label">Restrictions alimentaires :</span>
                   <span class="value">{{ eventData.allowDietaryRestrictions ? 'Activées' : 'Désactivées' }}</span>
                 </div>
 
-                <div class="confirmation-item">
+                <div *ngIf="!isOtherEvent" class="confirmation-item">
                   <span class="label">+1 autorisés :</span>
                   <span class="value">{{ eventData.allowPlusOne ? 'Oui' : 'Non' }}</span>
                 </div>
