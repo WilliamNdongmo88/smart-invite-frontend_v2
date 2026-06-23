@@ -1,7 +1,8 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute, RouterLink, Router } from '@angular/router';
+import { ActivatedRoute, RouterLink, Router, NavigationEnd } from '@angular/router';
+import { filter } from 'rxjs/operators';
 import { AuthService, User } from '../../services/auth.service';
 import { GuestService } from '../../services/guest.service';
 import { CommunicationService } from '../../services/share.service';
@@ -149,10 +150,20 @@ export class GuestListComponent implements OnInit{
   ngOnInit(): void {
     const result = this.route.snapshot.paramMap.get('eventId') || '';
     this.eventId = Number(result);
-    console.log("this.eventId :: ", this.eventId);
     this.getGuestsByEvent();
     this.loadGuestsData();
     this.loadPaymentStatus();
+
+    // Recharger la liste à chaque retour sur cette route (ex: depuis guest-detail ou edit-guest)
+    this.router.events.pipe(
+      filter(e => e instanceof NavigationEnd)
+    ).subscribe(() => {
+      const currentEventId = this.route.snapshot.paramMap.get('eventId');
+      if (currentEventId && Number(currentEventId) === this.eventId) {
+        this.guestService.clearGuestsCache(this.eventId);
+        this.getGuestsByEvent();
+      }
+    });
     this.communicationService.message$.subscribe(msg => {
       console.log("msg :: ", localStorage.getItem('variable'));
       if (msg) {

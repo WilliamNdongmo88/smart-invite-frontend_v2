@@ -147,8 +147,10 @@ export class GuestService {
     );
   }
 
-  updateRsvpStatusGuest(guestId: number, rsvpStatus: string): Observable<any> {
-    return this.http.put<any>(`${this.apiUrl}/guest/rsvp/${guestId}`, {rsvpStatus});
+  updateRsvpStatusGuest(guestId: number, rsvpStatus: string, eventId?: number): Observable<any> {
+    return this.http.put<any>(`${this.apiUrl}/guest/rsvp/${guestId}`, {rsvpStatus}).pipe(
+      tap(() => { if (eventId) this.clearGuestsCache(eventId); })
+    );
   }
 
   deleteGuest(guestId: number, eventId: number): Observable<void> {
