@@ -572,16 +572,18 @@ export class GuestListComponent implements OnInit{
     }
     if (this.selectedGuest()) {
       this.isModalLoading = true;
+      console.log(" :Start generateQRCode: ");
       this.qrCodeService.generateQRCode(Number(guestId)).subscribe(
         (response) => {
           for (const key in this.guests) {
             const data = this.guests[key];
             if(Number(data.id) == Number(guestId)){
               data.qrCodeGenerated = true;
-              data.qrCodeUrl = response.qrUrl
+              data.qrCodeUrl = response.qrUrl;
             }
           }
           this.isModalLoading = false;
+          console.log(" :End generateQRCode: ");
         },
         (error) => {
           this.isModalLoading = false;

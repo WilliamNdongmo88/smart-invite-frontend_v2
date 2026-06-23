@@ -124,10 +124,10 @@ export class AddEventComponent implements OnInit{
     type: '',
     eventNameConcerned1: '',
     eventNameConcerned2: '',
-    allowDietaryRestrictions: true,
+    allowDietaryRestrictions: false,
     showWeddingReligiousLocation: false,
     hasInvitationModelCard : false,
-    allowPlusOne: true,
+    allowPlusOne: false,
   };
 
   baseInvitationData: Partial<InvitationData> = {

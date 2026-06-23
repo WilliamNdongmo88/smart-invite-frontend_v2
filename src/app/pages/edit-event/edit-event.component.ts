@@ -746,7 +746,7 @@ export class EditEventComponent implements OnInit {
           this.isLoading = false;
           this.triggerBAction();
           this.loadEventInvitationNote();
-          this.router.navigate(['/evenements']);
+          this.back();
         },
         (error) => {
           this.isLoading = false;
@@ -811,7 +811,7 @@ export class EditEventComponent implements OnInit {
           this.isLoading = false;
           this.triggerBAction();
           this.loadEventInvitationNote();
-          this.router.navigate(['/evenements']);
+          this.back();
         },
         (error) => {
           this.isLoading = false;
@@ -1025,9 +1025,8 @@ export class EditEventComponent implements OnInit {
     this.invitationData.bottomBandColor = '#EF4135';
   }
 
-  navigaToEvents(){
-    //this.router.navigateByUrl(this.navigationService.back());
-    this.location.back();
+  back() {
+    window.history.back();
   }
 }
 

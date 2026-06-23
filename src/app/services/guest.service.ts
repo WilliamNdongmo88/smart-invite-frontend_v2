@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { BehaviorSubject, filter, Observable, of, shareReplay, startWith, Subject, switchMap, tap } from 'rxjs';
+import { Observable, shareReplay, tap } from 'rxjs';
 import { environment } from '../../environment/environment';
 
 export interface Guest {
@@ -71,7 +71,11 @@ export class GuestService {
     private isProd = environment.production;
 
     private cache = new Map<number, Observable<{ guests: Guests[] }>>();
-    private refresh$ = new Subject<number>();
+
+    // FIX: refresh$ supprimé (Subject<number> jamais utilisé via .next() depuis l'extérieur)
+    // getGuestsForEvent() utilisait startWith(eventId) + filter() ce qui créait une
+    // race condition si plusieurs composants s'abonnaient pour des eventId différents.
+    // Remplacé par un cache Map simple, cohérent avec getEventById() dans event.service.
 
     constructor(private http: HttpClient) {
       if (this.isProd) {
@@ -89,13 +93,7 @@ export class GuestService {
     });
   }
 
-  // addGuest(guests: any): Observable<any> {
-  //   console.log("guests :: ",guests);
-  //   const headers = this.getAuthHeaders();
-  //   return this.http.post<any>(`${this.apiUrl}/guest/add-guest`, guests, { headers })
-  // }
   addGuest(guests: any): Observable<any> {
-    console.log("###guests :: ",guests);
     const headers = this.getAuthHeaders();
     return this.http.post<any>(`${this.apiUrl}/guest/add-guest`, guests, { headers })
       .pipe(
@@ -104,7 +102,6 @@ export class GuestService {
   }
 
   addGuestFromGenerateLink(guest: any): Observable<any> {
-    console.log("guest :: ",guest);
     const headers = this.getAuthHeaders();
     return this.http.post<any>(`${this.apiUrl}/guest/add-guest-from-link`, guest, { headers })
     .pipe(
@@ -112,37 +109,22 @@ export class GuestService {
     );
   }
 
-  // getGuests(): Observable<{ guests: Guests[] }> {
-  //   return this.http.get<{ guests: Guests[] }>(`${this.apiUrl}/guest/all-guests`);
-  // }
-
   getEventByGuest(guestId: number): Observable<Event> {
-    console.log("guestId :: ",guestId);
     return this.http.get<Event>(`${this.apiUrl}/guest/${guestId}/event/`);
   }
 
-  // getGuestsForEvent(eventId: number): Observable<{ guests: Guests[] }> {
-  //   console.log("eventId :: ",eventId);
-  //   return this.http.get<{ guests: Guests[] }>(`${this.apiUrl}/guest/event/${eventId}`);
-  // }
+  // FIX: remplacé le pattern refresh$/startWith/filter/switchMap par un cache Map simple.
+  // Comportement identique pour les composants existants (même signature, même Observable retourné).
   getGuestsForEvent(eventId: number): Observable<{ guests: Guests[] }> {
-    return this.refresh$.pipe(
-      startWith(eventId), // première charge
-      filter(id => id === eventId),
-      switchMap(() => {
-        if (!this.cache.has(eventId)) {
-          console.log('GUEST API CALL for eventId:', eventId);
-
-          this.cache.set(
-            eventId,
-            this.http
-              .get<{ guests: Guests[] }>(`${this.apiUrl}/guest/event/${eventId}`)
-              .pipe(shareReplay(1))
-          );
-        }
-        return this.cache.get(eventId)!;
-      })
-    );
+    if (!this.cache.has(eventId)) {
+      this.cache.set(
+        eventId,
+        this.http
+          .get<{ guests: Guests[] }>(`${this.apiUrl}/guest/event/${eventId}`)
+          .pipe(shareReplay(1))
+      );
+    }
+    return this.cache.get(eventId)!;
   }
 
   clearGuestsCache(eventId: number) {
@@ -154,17 +136,19 @@ export class GuestService {
   }
 
   getGuestById(guestId: number): Observable<any> {
-    console.log("guestId :: ", guestId);
-    return this.http.get<any>(`${this.apiUrl}/guest/${guestId}` );
+    return this.http.get<any>(`${this.apiUrl}/guest/${guestId}`);
   }
 
+  // FIX: clearGuestsCache() déplacé dans tap() post-réponse HTTP
+  // (l'original invalidait le cache AVANT la réponse → cache vidé même si la requête échoue)
   updateGuest(guestId: number, guest: any): Observable<Guest> {
-    this.clearGuestsCache(guest.eventId)
-    return this.http.put<Guest>(`${this.apiUrl}/guest/${guestId}`, guest );
+    return this.http.put<Guest>(`${this.apiUrl}/guest/${guestId}`, guest).pipe(
+      tap(() => this.clearGuestsCache(guest.eventId))
+    );
   }
 
   updateRsvpStatusGuest(guestId: number, rsvpStatus: string): Observable<any> {
-    return this.http.put<any>(`${this.apiUrl}/guest/rsvp/${guestId}`, {rsvpStatus} );
+    return this.http.put<any>(`${this.apiUrl}/guest/rsvp/${guestId}`, {rsvpStatus});
   }
 
   deleteGuest(guestId: number, eventId: number): Observable<void> {
@@ -177,38 +161,31 @@ export class GuestService {
 
   deleteSeveralGuests(guestIdList: number[], eventId: number): Observable<void> {
     const headers = this.getAuthHeaders();
-    console.log("### guestIdList :: ", guestIdList);
     return this.http.post<void>(`${this.apiUrl}/guest/delete`, guestIdList, {headers})
     .pipe(
       tap(() => this.clearGuestsCache(eventId))
     );
   }
 
-
-  // Méthode pour créer une invitation pour un invité existant
   createInvitation(invitation: Invitation): Observable<Invitation> {
-    return this.http.post<Invitation>(`${this.apiUrl}/invitations/generate`, invitation );
+    return this.http.post<Invitation>(`${this.apiUrl}/invitations/generate`, invitation);
   }
 
   getInvitationsByGuestId(guestId: number): Observable<Invitation[]> {
-    return this.http.get<Invitation[]>(`${this.apiUrl}/invitations/guest/${guestId}` );
+    return this.http.get<Invitation[]>(`${this.apiUrl}/invitations/guest/${guestId}`);
   }
 
-  // Méthode pour révoquer une invitation
   revokeInvitation(guestId: number): Observable<any> {
-    return this.http.delete(`${this.apiUrl}/invitation/delete/${guestId}` );
+    return this.http.delete(`${this.apiUrl}/invitation/delete/${guestId}`);
   }
 
   sendReminderMail(guestIList: any): Observable<any> {
-    console.log("guestIList :: ",guestIList);
     const headers = this.getAuthHeaders();
-    return this.http.post<any>(`${this.apiUrl}/guest/reminde-mail`, guestIList, { headers })
+    return this.http.post<any>(`${this.apiUrl}/guest/reminde-mail`, guestIList, { headers });
   }
 
   sendFileQrCode(guestId: any): Observable<any> {
-    console.log("guestId :: ",guestId);
     const headers = this.getAuthHeaders();
-    return this.http.post<any>(`${this.apiUrl}/guest/${guestId}/send-file`, { headers })
+    return this.http.post<any>(`${this.apiUrl}/guest/${guestId}/send-file`, { headers });
   }
 }
-
