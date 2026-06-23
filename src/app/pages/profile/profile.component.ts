@@ -120,7 +120,6 @@ export class ProfileComponent implements OnInit {
   getUserProfile() {
     this.authService.getMe().subscribe(
       (response) => {
-        console.log("[getUserProfile] Response :: ", response);
         this.userId = response.id;
         this.userProfile = {
           id: 'user_'+response.id,
@@ -140,6 +139,13 @@ export class ProfileComponent implements OnInit {
           marketingEmails: response.marketing_emails,
         };
         this.originalUserProfile = { ...this.userProfile };
+        // FIX: propager le profil mis à jour dans currentUser$ (header, etc.)
+        this.authService.updateCurrentUser({
+          id: response.id,
+          email: response.email,
+          name: response.name,
+          role: response.role
+        });
       },
       (error) => {
         console.error('❌ Erreur de creation :', error.message.split(':')[4]);
@@ -177,12 +183,14 @@ export class ProfileComponent implements OnInit {
     }
 
     this.loading = true;
-    console.log("# Data: ", data);
     this.authService.updateProfile(userId, data).subscribe(
       (response) => {
-        console.log("[saveProfile] Response :: ", response);
         this.loading = false;
         this.errorMessage = '';
+        // FIX: mettre a jour currentUser$ pour que le header reflète
+        // immédiatement le nouveau nom/email sans rechargement
+        this.authService.clearCache();
+        this.getUserProfile();
       },
       (error) => {
         this.loading = false;

@@ -329,14 +329,15 @@ export class HeaderComponent implements OnInit {
   }
 
   markAsRead(notification: Notification) {
-    notification.is_read = true;
-    this.notificationService.updateNotificationReading(notification.id, notification.is_read).subscribe({
-      next: (response: any) => {
-        //console.log('[markAsRead] response :: ', response);
+    notification.is_read = true; // mise à jour optimiste immédiate
+    this.notificationService.updateNotificationReading(notification.id, true).subscribe({
+      next: () => {
+        // cache déjà invalidé par le service via tap()
+        // pas besoin de recharger : mise à jour locale suffisante
       },
       error: (err) => {
+        notification.is_read = false; // rollback si erreur
         this.errorMessage = err.error.error || 'Erreur lors de la mise a jour.';
-        console.error('[markAsRead] Erreur :', err.error.error);
       }
     });
   }

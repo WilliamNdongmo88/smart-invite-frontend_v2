@@ -1,11 +1,11 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router, RouterLink } from '@angular/router';
+import { Router, RouterLink, NavigationEnd } from '@angular/router';
 import { MatIcon } from "@angular/material/icon";
 import { EventService } from '../../services/event.service';
 import { AuthService, User } from '../../services/auth.service';
 import { CommunicationService } from '../../services/share.service';
-import { map, Observable } from 'rxjs';
+import { filter, map, Observable } from 'rxjs';
 import { BreakpointObserver } from '@angular/cdk/layout';
 import { SpinnerComponent } from "../../components/spinner/spinner";
 import { DashboardTourService } from '../../../tours/services/dashboard-tour.service';
@@ -47,23 +47,31 @@ export class DashboardComponent {
   ) {}
 
   ngOnInit(): void {
-    this.send(undefined);// Pour cacher le boutoun Scanner sur la nav-bar losque le user n'est plus la page event
+    this.send(undefined);
     this.authService.currentUser$.subscribe(user => {
       this.currentUser = user;
-      this.organizerId = user?.id
+      this.organizerId = user?.id;
     });
     this.triggerBAction();
     this.getAllEvent();
     this.communicationService.triggerAction$.subscribe((action) => {
-      console.log('Action reçue:', action);
-
       if (action === 'refresh') {
+        // FIX: invalider le cache events avant de recharger
+        this.eventService.clearCache();
+        this.getAllEvent();
+      }
+    });
+    // FIX: recharger au retour de navigation (edit-event, add-event)
+    this.router.events.pipe(
+      filter(e => e instanceof NavigationEnd)
+    ).subscribe((e: any) => {
+      if (e.url === '/evenements') {
+        this.eventService.clearCache();
         this.getAllEvent();
       }
     });
     window.scrollTo({ top: 0, behavior: 'smooth' });
     this.isMobile = this.breakpointObserver.observe(['(max-width: 768px)']).pipe(map(res => res.matches));
-    console.log("this.isMobile::", this.isMobile)
   }
 
   ngAfterViewInit() {
@@ -76,33 +84,27 @@ export class DashboardComponent {
     }
   }
 
-  getAllEvent(){
+  getAllEvent() {
     if (this.organizerId) {
       this.isLoading = true;
+      // FIX: reset du tableau avant chaque chargement (évite les doublons)
+      this.events = [];
       this.eventService.getEvents(this.organizerId).subscribe(
         (response) => {
-          // console.log("Response :: ", response.events);
-          response.events.map(elt => {
-            const data = {
-              id: elt.event_id,
-              title: elt.title,
-              date: elt.event_date.split('T')[0],     //"2025-12-05T13:30:00.000Z"
-              location: elt.event_location,
-              totalGuests: elt.max_guests,
-              confirmedGuests: elt.confirmed_count,
-              pendingGuests: elt.pending_count,
-              declinedGuests: elt.declined_count
-            }
-            this.events.push(data);
-            return data;
-          });
-          // console.log("this.events :: ", this.events);
+          this.events = response.events.map(elt => ({
+            id: elt.event_id,
+            title: elt.title,
+            date: elt.event_date.split('T')[0],
+            location: elt.event_location,
+            totalGuests: elt.max_guests,
+            confirmedGuests: elt.confirmed_count,
+            pendingGuests: elt.pending_count,
+            declinedGuests: elt.declined_count
+          }));
           this.isLoading = false;
         },
         (error) => {
           this.isLoading = false;
-          console.error('❌ Erreur de recupération :', error.message.split(':')[4]);
-          console.log("Message :: ", error.message);
           this.errorMessage = error.message || 'Erreur de connexion';
         }
       );
