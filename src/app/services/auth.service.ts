@@ -283,6 +283,13 @@ export class AuthService {
     return this.currentUserSubject.value;
   }
 
+  // FIX: permet aux composants de mettre à jour currentUser$ après une modification de profil
+  // sans casser les abonnements existants (header, etc.)
+  updateCurrentUser(user: User): void {
+    this.currentUserSubject.next(user);
+    localStorage.setItem(this.STORAGE_KEYS.USER, JSON.stringify(user));
+  }
+
   private hasToken(): boolean {
     return !!localStorage.getItem(this.STORAGE_KEYS.ACCESS);
   }

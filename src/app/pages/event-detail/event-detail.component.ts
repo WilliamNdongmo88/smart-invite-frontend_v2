@@ -1,7 +1,7 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink, NavigationEnd } from '@angular/router';
 import { AuthService, User } from '../../services/auth.service';
 import { EventService } from '../../services/event.service';
 import { GuestService } from '../../services/guest.service';
@@ -12,7 +12,7 @@ import { ImportGuestsModalComponent } from "../../components/import-guests-modal
 import { SpinnerComponent } from "../../components/spinner/spinner";
 import { ConfirmDeleteModalComponent } from "../../components/confirm-delete-modal/confirm-delete-modal";
 import { BreakpointObserver } from '@angular/cdk/layout';
-import { map, Observable } from 'rxjs';
+import { filter, map, Observable } from 'rxjs';
 import { QrCodeService } from '../../services/qr-code.service';
 import { AlertConfig, ConditionalAlertComponent } from "../../components/conditional-alert/conditional-alert.component";
 import { AddLinkModalComponent } from "../../components/add-invitation-link-modal/add-link-modal";
@@ -191,10 +191,22 @@ export class EventDetailComponent implements OnInit{
     window.scrollTo({ top: 0, behavior: 'smooth' });
     this.sendEventIdToHeaderComponent(this.eventId);
     this.isMobile = this.breakpointObserver.observe(['(max-width: 768px)']).pipe(map(res => res.matches));
-    //console.log("this.isMobile::", this.isMobile)
     this.getLinks();
     this.loadPaymentStatus();
     this.setFilterStatus('confirmed');
+
+    // FIX: recharger au retour depuis edit-event
+    this.router.events.pipe(
+      filter(e => e instanceof NavigationEnd)
+    ).subscribe(() => {
+      const currentEventId = this.route.snapshot.paramMap.get('eventId');
+      if (currentEventId && Number(currentEventId) === this.eventId) {
+        this.eventService.clearCache(this.eventId);
+        this.guestService.clearGuestsCache(this.eventId);
+        this.getOneEvent();
+        this.getGuestsByEvent();
+      }
+    });
   }
 
   ngAfterViewInit(): void {
@@ -281,39 +293,29 @@ export class EventDetailComponent implements OnInit{
   getGuestsByEvent(){
     if (this.eventId) {
       this.isLoading = true;
+      // FIX: reset avant chaque rechargement pour eviter les doublons
+      this.guests = [];
       this.guestService.getGuestsForEvent(this.eventId).subscribe(
         (response) => {
-          //console.log("Response :: ", response.guests);
-          response.guests.map(res => {
-            if (!res.response_date){
-              console.error('response_date manquant');
-              return;
-            }
-            const uper = res.rsvp_status
-            const data = {
-                id: String(res.guest_id),
-                name: res.full_name,
-                email: res.email,
-                phoneNumber: res.phone_number,
-                tableNumber: res.table_number,
-                status: uper.toLowerCase() as 'confirmed' | 'pending' | 'declined',
-                dietaryRestrictions: res.dietary_restrictions,
-                plusOnedietaryRestrictions: res.plus_one_name_diet_restr,
-                plusOne: res.has_plus_one ? true : false,
-                plusOneName: res.plus_one_name,
-                responseDate: res.response_date.split('T')[0],
-            };
-            this.guests.push(data);
-            //this.loadEventData();
-            return data;
-          });
-          // console.log(" this.guests :: ",  this.guests);
+          this.guests = response.guests
+            .filter(res => !!res.response_date)
+            .map(res => ({
+              id: String(res.guest_id),
+              name: res.full_name,
+              email: res.email,
+              tableNumber: res.table_number,
+              status: res.rsvp_status.toLowerCase() as 'confirmed' | 'pending' | 'declined',
+              dietaryRestrictions: res.dietary_restrictions,
+              plusOnedietaryRestrictions: res.plus_one_name_diet_restr,
+              plusOne: res.has_plus_one ? true : false,
+              plusOneName: res.plus_one_name,
+              responseDate: res.response_date.split('T')[0],
+            }));
           this.isLoading = false;
           this.filterGuests();
         },
         (error) => {
           this.isLoading = false;
-          console.log("Message :: ", error.message);
           this.errorMessage = error.message || 'Erreur de connexion';
         }
       );
@@ -712,22 +714,16 @@ export class EventDetailComponent implements OnInit{
   }
 
   getLinks(){
+    // FIX: reset de this.links avant chaque rechargement pour eviter les doublons
+    this.links = [];
     this.eventService.getLink().subscribe(
       (response) => {
-        console.log("[getLinks] Response :: ", response);
-        const linksArray: any[] = [];
-        for (const link of response) {
-          if(this.eventId == link.event_id) linksArray.push(link);
-        }
-        console.log("linksArray :: ", linksArray);
-        for (const link of linksArray) {
-          const data = {
-            id: link.id,
-            label: `🔗 Partagé le lien ${link.type} (utilisé ${link.used_count}/${link.limit_count})`,
-            value:`${link.link}`,
-          };
-          this.links.push(data);
-        }
+        const linksArray = response.filter((link: any) => this.eventId == link.event_id);
+        this.links = linksArray.map((link: any) => ({
+          id: link.id,
+          label: `🔗 Partagé le lien ${link.type} (utilisé ${link.used_count}/${link.limit_count})`,
+          value: `${link.link}`,
+        }));
         this.allLinks = response;
       },
       (error) => {

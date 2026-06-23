@@ -1,6 +1,5 @@
 import { Injectable } from "@angular/core";
-import { Subject } from "rxjs";
-import { BehaviorSubject } from "rxjs/internal/BehaviorSubject";
+import { Subject, BehaviorSubject, ReplaySubject } from "rxjs";
 
 @Injectable({ providedIn: 'root' })
 export class CommunicationService {
@@ -27,7 +26,9 @@ export class CommunicationService {
   }
 
   // Pour déclencher une action chez le Sender
-  private triggerActionSource = new Subject<any>();
+  // FIX: ReplaySubject(1) au lieu de Subject → les composants qui s'abonnent après
+  // l'émission reçoivent quand même la dernière valeur (évite les signaux perdus)
+  private triggerActionSource = new ReplaySubject<any>(1);
   triggerAction$ = this.triggerActionSource.asObservable();
 
   // Appelé par Receiver pour dire "Sender exécute ta méthode"

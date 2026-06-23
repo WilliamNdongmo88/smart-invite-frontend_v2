@@ -229,7 +229,11 @@ export class AdminDashboardComponent implements OnInit {
   markUnderReview(payment: any) {
     this.loadingPaymentId = payment.id;
     this.paymentService.markUnderReview(payment.id).subscribe({
-      next: () => { this.loadAllPayments(); this.loadingPaymentId = null; },
+      next: () => {
+        this.loadAllPayments();
+        this.loadFinancialStats(); // FIX: synchroniser la section finances
+        this.loadingPaymentId = null;
+      },
       error: err => { console.error(err); this.loadingPaymentId = null; }
     });
   }
@@ -242,7 +246,11 @@ export class AdminDashboardComponent implements OnInit {
     if (!confirm(`Valider le paiement de ${payment.organizer_name} pour "${payment.event_title}" ?`)) return;
     this.loadingPaymentId = payment.id;
     this.paymentService.validatePayment(payment.id).subscribe({
-      next: () => { this.loadAllPayments(); this.loadingPaymentId = null; },
+      next: () => {
+        this.loadAllPayments();
+        this.loadFinancialStats(); // FIX: synchroniser la section finances apres validation
+        this.loadingPaymentId = null;
+      },
       error: (err) => {
         const msg = err.error?.message || 'Erreur lors de la validation.';
         alert(msg);
@@ -257,7 +265,11 @@ export class AdminDashboardComponent implements OnInit {
     if (reason === null) return;
     this.loadingPaymentId = payment.id;
     this.paymentService.rejectPayment(payment.id, reason).subscribe({
-      next: () => { this.loadAllPayments(); this.loadingPaymentId = null; },
+      next: () => {
+        this.loadAllPayments();
+        this.loadFinancialStats(); // FIX: synchroniser la section finances apres rejet
+        this.loadingPaymentId = null;
+      },
       error: err => { console.error(err); this.loadingPaymentId = null; }
     });
   }
