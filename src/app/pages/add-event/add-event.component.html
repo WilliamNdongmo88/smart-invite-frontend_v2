@@ -101,7 +101,7 @@
                     <option value="engagement">Fiançailles</option>
                     <option value="anniversary">Anniversaire de Mariage</option>
                     <option value="birthday">Anniversaire</option>
-                    <option value="other">Autre</option>
+                    <option value="other">Événement professionnel</option>
                   </select>
                   <div class="error" *ngIf="eventType.invalid && eventType.touched">
                     Le type de l'événement est obligatoire
@@ -192,7 +192,7 @@
                 </div>
 
                 <!-- Checkbox -->
-                <div *ngIf="showWeddingCivilLocation" class="form-group checkbox-group checkbox-text">
+                <div *ngIf="showWeddingCivilLocation && eventData.type == 'wedding'" class="form-group checkbox-group checkbox-text">
                   <label class="custom-checkbox">
                     <input
                       type="checkbox"
@@ -790,7 +790,7 @@
 
                         <!-- Programme de l'événement -->
                         <div *ngIf="currentProgram.length" class="preview-event-details">
-                          <h3>PROGRAMME DE LA JOURNÉE</h3>
+                          <h3>PROGRAMME</h3>
                           <ng-container *ngFor="let item of currentProgram">
                             <p *ngIf="!item.conditionField || getInvitationValue(item.conditionField)">
                               <strong *ngIf="item.title">

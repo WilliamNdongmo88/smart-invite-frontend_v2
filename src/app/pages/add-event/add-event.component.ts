@@ -622,6 +622,8 @@ export class AddEventComponent implements OnInit{
       const eventInvitationNote = {
         invTitle: this.invitationData.title,
         mainMessage: this.invitationData.mainMessage,
+        mainMessagePart1: this.invitationData.mainMessagePart1,
+        mainMessagePart2: this.invitationData.mainMessagePart2,
         eventTheme: this.invitationData.eventTheme,
         priorityColors: this.invitationData.priorityColors,
         qrInstructions: this.invitationData.qrInstructions,
@@ -644,7 +646,7 @@ export class AddEventComponent implements OnInit{
         eventInvitationNote: eventInvitationNote
       }
 
-      //console.log('Event created:', data);
+      console.log('Event created:', data);
       this.isLoading = true;
       this.eventService.createEvent(data).subscribe(
         (response) => {
