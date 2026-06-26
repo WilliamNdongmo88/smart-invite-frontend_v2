@@ -34,8 +34,8 @@ export class AddLinkModalComponent implements OnInit{
   constructor(private eventService: EventService) {}
 
   ngOnInit(): void {
-    console.log("[AddLinkModalComponent] mode : ", this.mode);
-    console.log("[AddLinkModalComponent] link : ", this.link);
+    //console.log("[AddLinkModalComponent] mode : ", this.mode);
+    //console.log("[AddLinkModalComponent] link : ", this.link);
   }
 
   onSubmit(form?: NgForm) {
@@ -60,12 +60,13 @@ export class AddLinkModalComponent implements OnInit{
 
   openEditLinkModal(mode: 'create' | 'edit' | 'partage') {
     this.mode = mode;
+    //console.log("[openEditLinkModal] this.mode :: ", this.mode);
     this.eventService.getLinkById(this.link.id).subscribe(
-      (responses) => {
-        console.log("[openEditLinkModal] Responses :: ", responses);
-        for (const response of responses) {
+      (response) => {
+        //console.log("[openEditLinkModal] Responses :: ", response);
+        // for (const response of responses) {
           const dateLimitLink = response.date_limit_link ? response.date_limit_link.split('T')[0] : '';
-          console.log("[openEditLinkModal] dateLimitLink :: ", dateLimitLink);
+          //console.log("[openEditLinkModal] dateLimitLink :: ", dateLimitLink);
           if(response.id==this.link.id){
             this.newLink = {
               type: response.type,
@@ -73,7 +74,7 @@ export class AddLinkModalComponent implements OnInit{
               date_limit_link: dateLimitLink
             };
           }
-        }
+       // }
       },
       (error) => {
         console.error('❌ Erreur :', error.message);
@@ -86,8 +87,8 @@ export class AddLinkModalComponent implements OnInit{
     this.closeModal();
   }
   shareEventLink(event: any, link: any) {
-    console.log("link:: ", link);
-    console.log("event:: ", event);
+    //console.log("link:: ", link);
+    //console.log("event:: ", event);
 
     let text = '';
     switch (this.event.type) {
@@ -156,7 +157,7 @@ export class AddLinkModalComponent implements OnInit{
   deleteLinkHandle(){
     this.eventService.deleteLink(this.link.id).subscribe(
       (responses) => {
-        console.log("[deleteLinkHandle] Responses :: ", responses);
+        //console.log("[deleteLinkHandle] Responses :: ", responses);
         this.resetLinks.emit();
         this.closeModal();
       },

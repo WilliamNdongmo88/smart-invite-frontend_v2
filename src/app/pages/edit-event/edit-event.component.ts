@@ -13,8 +13,6 @@ import { NavigationService } from '../../services/navigationService ';
 import { PRICE_PER_GUEST } from '../pricing/pricing.component';
 import { PaymentService } from '../../services/payment.service';
 import { Location } from '@angular/common';
-
-
 interface InvitationData {
   title: string;
   eventDate: string;
@@ -137,7 +135,6 @@ export class EditEventComponent implements OnInit {
 
   eventData: Event = { ...this.originalEventData };
 
-
   baseInvitationData: Partial<InvitationData> = {
     priorityColors: 'Bleu, Blanc, Rouge, Noir',
     qrInstructions: 'Prière de vous présenter uniquement avec votre code QR pour faciliter votre accueil.',
@@ -151,6 +148,12 @@ export class EditEventComponent implements OnInit {
     heartIconUrl: 'img/heart.png'
   };
 
+  /**
+   * MODÈLES OFFICIELS D'INVITATION
+   * Source unique de vérité pour les textes par défaut de chaque type d'événement.
+   * Ces valeurs servent uniquement d'initialisation — elles ne surchargent jamais
+   * les modifications saisies par l'utilisateur (voir applyTemplate()).
+   */
   invitationTemplates: Record<string, Partial<InvitationData>> = {
     wedding: {
       title: "LETTRE D'INVITATION",
@@ -160,40 +163,67 @@ export class EditEventComponent implements OnInit {
       sousMainMessage:
         "Mini réception à la sortie de la mairie directement après la célébration de l'union par Mr le Maire.",
       closingMessage:
-        "Votre présence illuminera ce jour si spécial pour nous."
+        "Votre présence illuminera ce jour si spécial pour nous.",
+      qrInstructions:
+        "Prière de vous présenter avec votre code QR afin de faciliter votre accueil.",
+      dressCodeMessage:
+        "Merci de respecter les couleurs vestimentaires choisies.",
+      thanksMessage1:
+        "Merci pour votre compréhension et votre présence à nos côtés."
     },
 
     engagement: {
-      title: "INVITATION AUX FIANÇAILLES",
+      title: "LETTRE D'INVITATION",
       mainMessage:
-        "Nous avons le plaisir de vous inviter à célébrer nos fiançailles et à partager avec nous ce moment de bonheur et de promesse.",
+        "C'est avec une immense joie que nous vous convions à la célébration de nos fiançailles. Ce moment symbolique marque le début d'une belle aventure que nous souhaitons partager avec nos proches.",
       eventTheme: "ÉLÉGANCE ET TRADITION",
+      // sousMainMessage décrit le cocktail/réception — affiché dans le programme
       sousMainMessage:
-        "Échange des engagements et bénédictions des familles. Une réception conviviale suivra la cérémonie afin de partager ce moment avec nos proches.",
+        "Échange des engagements et bénédictions des familles. Moment de convivialité, animations et partage autour d'un repas festif.",
       closingMessage:
-        "Votre présence rendra cette célébration encore plus mémorable."
+        "Votre présence rendra cette étape de notre vie encore plus mémorable.",
+      qrInstructions:
+        "Prière de vous présenter avec votre code QR afin de faciliter votre accueil.",
+      dressCodeMessage:
+        "Merci de respecter les couleurs vestimentaires choisies.",
+      thanksMessage1:
+        "Nous vous remercions par avance pour votre présence et votre affection."
     },
 
     anniversary: {
-      title: "INVITATION ANNIVERSAIRE DE MARIAGE",
+      title: "LETTRE D'INVITATION",
       mainMessage:
-        "Après toutes ces années de bonheur partagé, nous serions honorés de célébrer notre anniversaire de mariage en votre compagnie.",
+        "Après de nombreuses années de bonheur partagé, nous avons le plaisir de vous inviter à célébrer notre anniversaire de mariage. Votre présence contribuera à faire de cette journée un souvenir précieux.",
       eventTheme: "AMOUR ET SOUVENIRS",
+      // sousMainMessage décrit la réception festive
       sousMainMessage:
-        "Un cocktail et un dîner seront offerts pour marquer cette belle étape de notre vie.",
+        "Moment de reconnaissance, de gratitude et de renouvellement de nos engagements. Repas, animations, souvenirs et moments de partage avec nos proches.",
       closingMessage:
-        "Merci de partager avec nous cette journée remplie d'émotions."
+        "Votre présence sera le plus beau des cadeaux.",
+      qrInstructions:
+        "Prière de vous présenter avec votre code QR pour faciliter votre accueil.",
+      dressCodeMessage:
+        "Merci de partager avec nous cette étape importante de notre histoire.",
+      thanksMessage1:
+        "Merci pour votre présence et votre fidèle amitié."
     },
 
     birthday: {
-      title: "INVITATION D'ANNIVERSAIRE",
+      title: "LETTRE D'INVITATION",
       mainMessage:
-        "Nous avons le plaisir de vous inviter à célébrer un anniversaire exceptionnel dans une ambiance festive et chaleureuse.",
+        "À l'occasion de cet anniversaire, j'ai le plaisir de vous inviter à partager un moment de joie, de fête et de bonne humeur.",
       eventTheme: "FÊTE ET JOIE",
+      // sousMainMessage décrit la célébration
       sousMainMessage:
-        "Moment de reconnaissance, de gratitude et de renouvellement de nos engagements. Animations, musique et rafraîchissements seront au rendez-vous pour cette occasion spéciale.",
+        "Animations, jeux, musique, séance photo et découpe du gâteau. Repas, divertissements et moments de convivialité.",
       closingMessage:
-        "Votre présence contribuera à faire de cette journée un moment inoubliable."
+        "Nous espérons partager cette journée exceptionnelle en votre compagnie.",
+      qrInstructions:
+        "Prière de vous présenter avec votre code QR pour faciliter votre accueil.",
+      dressCodeMessage:
+        "Dress Code (facultatif) : selon les indications de l'hôte.",
+      thanksMessage1:
+        "Merci d'avance pour votre présence."
     },
 
     other: {
@@ -203,6 +233,7 @@ export class EditEventComponent implements OnInit {
       mainMessagePart1: "Nous avons le plaisir de vous inviter à participer à l'événement :",
       mainMessagePart2: "Votre présence contribuera au succès et à la convivialité de cette occasion particulière.",
       eventTheme: "CÉLÉBRATION",
+      // sousMainMessage décrit le déroulement
       sousMainMessage:
         "Déroulement de l'événement selon le programme prévu. Moment de partage et d'échanges entre les participants.",
       closingMessage:
@@ -216,6 +247,12 @@ export class EditEventComponent implements OnInit {
     }
   };
 
+  /**
+   * PROGRAMMES PAR TYPE D'ÉVÉNEMENT
+   * Structure le programme affiché dans l'aperçu de l'invitation.
+   * Chaque item utilise des clés de champ (timeField, locationField, etc.)
+   * résolues dynamiquement via getInvitationValue().
+   */
   programTemplates: Record<string, any[]> = {
     wedding: [
       {
@@ -319,7 +356,6 @@ export class EditEventComponent implements OnInit {
       //console.log('Édition de l\'événement avec ID :', this.eventId);
       // Charger l'événement depuis le backend
       this.loadEvent();
-      this.loadEventInvitationNote();
       this.loadValidatedQuota();
     });
   }
@@ -327,7 +363,7 @@ export class EditEventComponent implements OnInit {
   loadEvent() {
     this.eventService.getEventById(this.eventId).subscribe(
     (response) => {
-        //console.log("#Response :: ", response);
+        console.log("#Response :: ", response);
         const res = response[0];
 
         if (!res?.event_date) {
@@ -413,6 +449,7 @@ export class EditEventComponent implements OnInit {
             createdAt: res.createdAt,
             updatedAt: res.updatedAt,
         };
+        this.loadEventInvitationNote();
         this.originalQuota = res.max_guests;
         this.eventData = { ...this.originalEventData };
         //console.log("#this.eventData :: ", this.eventData);
@@ -441,8 +478,10 @@ export class EditEventComponent implements OnInit {
           title: response.title ?? this.invitationData.title,
           eventDate: response.event_date ?? this.invitationData.eventDate,
           eventTime: time ?? this.invitationData.eventTime,
-          eventLocation: response.event_location ?? this.invitationData.eventLocation,
+          eventLocation: this.eventData.location ?? this.invitationData.eventLocation,
           mainMessage: response.main_message ?? this.invitationData.mainMessage,
+          mainMessagePart1: response.mainMessage_part1 ?? this.invitationData.mainMessagePart1,
+          mainMessagePart2: response.mainMessage_part2 ?? this.invitationData.mainMessagePart2,
           sousMainMessage:response.sous_main_message ?? this.invitationData.sousMainMessage,
           eventTheme: response.event_theme ?? this.invitationData.eventTheme,
           priorityColors: response.priority_colors ?? this.invitationData.priorityColors,
@@ -782,6 +821,8 @@ export class EditEventComponent implements OnInit {
         eventId: this.eventData.id,
         invTitle: this.invitationData.title,
         mainMessage: this.invitationData.mainMessage,
+        mainMessagePart1: this.invitationData.mainMessagePart1,
+        mainMessagePart2: this.invitationData.mainMessagePart2,
         eventTheme: this.invitationData.eventTheme,
         priorityColors: this.invitationData.priorityColors,
         qrInstructions: this.invitationData.qrInstructions,
@@ -899,6 +940,7 @@ export class EditEventComponent implements OnInit {
   }
 
   getInvitationValue(field: keyof InvitationData): any {
+    console.log("this.invitationData[field] :", this.invitationData[field])
     return this.invitationData[field];
   }
 

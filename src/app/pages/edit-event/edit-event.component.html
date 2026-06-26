@@ -103,7 +103,7 @@
                     <option value="engagement">Fiançailles</option>
                     <option value="anniversary">Anniversaire de Mariage</option>
                     <option value="birthday">Anniversaire</option>
-                    <option value="other">Autre</option>
+                    <option value="other">Événement professionnel</option>
                   </select>
                   <div class="error" *ngIf="eventType.invalid && eventType.touched">
                     Le type de l'événement est obligatoire
@@ -792,7 +792,7 @@
                       <div class="preview-content">
                         <!-- Logo -->
                         <div class="preview-logo" *ngIf="invitationData.logoUrl">
-                          <img [src]="invitationData.logoUrl" alt="Logo" />
+                          <img src="img/logo.png" alt="Logo" />
                         </div>
 
                         <!-- Title -->
@@ -815,7 +815,7 @@
 
                         <!-- Programme de l'événement -->
                         <div *ngIf="currentProgram.length" class="preview-event-details">
-                          <h3>PROGRAMME DE LA JOURNÉE</h3>
+                          <h3>PROGRAMME</h3>
                           <ng-container *ngFor="let item of currentProgram">
                             <p *ngIf="!item.conditionField || getInvitationValue(item.conditionField)">
                               <strong *ngIf="item.title">
@@ -826,7 +826,7 @@
                                 </ng-container>
                               </strong>
                               <ng-container *ngIf="item.locationField">
-                                <br>{{ getInvitationValue(item.locationField) }}
+                                <br><span class="preview-event-name">{{ getInvitationValue(item.locationField) }}</span>
                               </ng-container>
                               <ng-container *ngIf="item.description">
                                 <br><em>{{ item.description }}</em>
