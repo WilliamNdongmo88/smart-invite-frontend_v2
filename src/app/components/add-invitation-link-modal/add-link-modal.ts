@@ -93,7 +93,7 @@ export class AddLinkModalComponent implements OnInit{
     this.eventService.getLinkById(this.link.id).subscribe(
       (response) => {
         this.dateLimitLink = response.date_limit_link ? response.date_limit_link.split('T')[0] : '';
-        console.log("[this.dateLimitLink]:: ", this.dateLimitLink);
+        //console.log("[this.dateLimitLink]:: ", this.dateLimitLink);
 
         let text = '';
         switch (this.event.type) {
