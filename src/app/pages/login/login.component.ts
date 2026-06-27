@@ -1,13 +1,15 @@
-import { ChangeDetectorRef, Component, OnInit, signal } from '@angular/core';
+import { ChangeDetectorRef, Component, OnDestroy, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, NgForm } from '@angular/forms';
 import { RouterLink, Router, ActivatedRoute } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { CommunicationService } from '../../services/share.service';
-import { SpinnerComponent } from "../../components/spinner/spinner";
+import { SpinnerComponent } from '../../components/spinner/spinner';
 import { finalize } from 'rxjs';
+import { AUTH_CAROUSEL_SLIDES } from '../../shared/auth-carousel-slides';
 
 declare const google: any;
+
 @Component({
   selector: 'app-login',
   standalone: true,
@@ -15,7 +17,9 @@ declare const google: any;
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.scss']
 })
-export class LoginComponent implements  OnInit{
+export class LoginComponent implements OnInit, OnDestroy {
+  carouselSlides = AUTH_CAROUSEL_SLIDES;
+  activeSlide = signal(0);
   email = '';
   password = '';
   loading = false;
@@ -25,6 +29,7 @@ export class LoginComponent implements  OnInit{
   rememberMe = false;
   showPassword = signal(false);
   returnUrl: string = '/evenements';
+  private carouselInterval?: ReturnType<typeof setInterval>;
 
   constructor(
     private route: ActivatedRoute,
@@ -33,8 +38,8 @@ export class LoginComponent implements  OnInit{
     private cd: ChangeDetectorRef,
     private communicationService: CommunicationService
   ) {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
 
   togglePasswordVisibility() {
     this.showPassword.update(value => !value);
@@ -42,16 +47,14 @@ export class LoginComponent implements  OnInit{
 
   ngOnInit(): void {
     this.returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/evenements';
+    this.startCarousel();
 
     google.accounts.id.initialize({
       client_id: '1054058117713-j8or7mvfn32k9r2rk5issg9137bm944a.apps.googleusercontent.com',
       callback: (response: any) => this.handleCredentialResponse(response)
     });
 
-    // Rendu du bouton
     const googleDiv = document.getElementById('googleSignInDiv');
-    console.log('googleDiv: ', googleDiv);
-
     if (googleDiv) {
       google.accounts.id.renderButton(googleDiv, {
         theme: 'outline',
@@ -65,96 +68,86 @@ export class LoginComponent implements  OnInit{
     }
   }
 
-  handleCredentialResponse(response: any) {
+  ngOnDestroy(): void {
+    if (this.carouselInterval) {
+      clearInterval(this.carouselInterval);
+    }
+  }
 
+  setActiveSlide(index: number): void {
+    this.activeSlide.set(index);
+    this.startCarousel();
+  }
+
+  private startCarousel(): void {
+    if (this.carouselInterval) {
+      clearInterval(this.carouselInterval);
+    }
+    this.carouselInterval = setInterval(() => {
+      this.activeSlide.update(i => (i + 1) % this.carouselSlides.length);
+    }, 5000);
+  }
+
+  handleCredentialResponse(response: any) {
     this.isLoading = true;
     this.cd.detectChanges();
 
-    const googleIdToken = response.credential;
-
-    this.authService.loginWithGoogle(googleIdToken)
-      .pipe(
-        finalize(() => {
-          // toujours exécuté
-          this.isLoading = false;
-          this.cd.detectChanges();
-        })
-      )
+    this.authService.loginWithGoogle(response.credential)
+      .pipe(finalize(() => {
+        this.isLoading = false;
+        this.cd.detectChanges();
+      }))
       .subscribe({
         next: (result) => {
-          console.log('✅ Connexion Google réussie', result);
-          if (result) {
-            this.router.navigateByUrl(this.returnUrl);
-          }
+          if (result) this.router.navigateByUrl(this.returnUrl);
         },
         error: (error) => {
-          console.error(
-            "Erreur Google :",
-            error.error?.error ||
-            error.error?.message ||
-            error.message
-          );
-
           if (error.message?.includes('503')) {
             this.router.navigate(['/maintenance']);
           }
-
           this.errorMessage = error.message || 'Erreur de connexion';
         }
       });
   }
 
-  // gestion de la soumission du formulaire
   onSubmit(form: NgForm): void {
     if (form.invalid) {
-      // Marque tous les champs comme "touchés" pour déclencher l’affichage des erreurs
-      Object.values(form.controls).forEach(control => {
-        control.markAsTouched();
-      });
+      Object.values(form.controls).forEach(c => c.markAsTouched());
       return;
     }
 
-    // Si valide, exécute ta logique d’authentification
-    console.log('Formulaire valide :', form.value);
     this.loading = true;
-    const loginRequest = {
+    this.authService.login({
       email: form.value.email,
       password: form.value.password,
       rememberMe: this.rememberMe
-    };
-    this.authService.login(loginRequest).subscribe(
+    }).subscribe(
       (response) => {
-        console.log("Message :: ", response.message)
         this.loading = false;
         this.router.navigateByUrl(this.returnUrl);
         this.errorMessage = null;
       },
       (error) => {
         this.loading = false;
-        console.error('❌ Erreur de connexion :', error.message);
-        console.log("Message :: ", error.message.split(':')[4])
         if (error.message.includes('429 Too Many Requests')) {
           this.errorMessage = 'Trop de tentatives de connexion. Réessayez plus tard.';
-        }else if (error.message.includes('Veuillez activer votre compte!')){
+        } else if (error.message.includes('Veuillez activer votre compte!')) {
           this.isActiveAccount = true;
           this.errorMessage = error.message;
-        }else if (error.message.includes('503 Service Unavailable') ||
-                  error.message.includes('Le service est en maintenance. Veuillez réessayer plus tard.')) {
+        } else if (
+          error.message.includes('503 Service Unavailable') ||
+          error.message.includes('Le service est en maintenance. Veuillez réessayer plus tard.')
+        ) {
           this.router.navigate(['/maintenance']);
-        }else {
+        } else {
           this.errorMessage = error.message || 'Erreur de connexion';
         }
       }
     );
   }
 
-  activeAccount(){
+  activeAccount() {
     this.router.navigate(['/signup']);
     this.communicationService.sendMessage(true);
   }
-
-  // loginWithGoogle() {
-  //   alert('🔵 Connexion avec Google...');
-  // }
 }
-
