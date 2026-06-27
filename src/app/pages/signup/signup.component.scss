@@ -15,45 +15,76 @@
 
   .signup-image {
     position: relative;
+    min-height: 100vh;
     overflow: hidden;
-    background: linear-gradient(135deg, rgba(212, 175, 55, 0.2) 0%, transparent 100%);
-  }
+    background-color: $primary-dark;
 
-  .image-content {
-    position: relative;
-    width: 100%;
-    height: 100%;
-  }
+    .image-content {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      min-height: inherit;
 
-  .image-content img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
+      &::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: url('/img/login-image-bg.png') center / cover no-repeat;
+      }
 
-  .overlay {
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(135deg, rgba(26, 26, 26, 0.6) 0%, rgba(212, 175, 55, 0.3) 100%);
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
-    color: #FFFFFF;
-    padding: 2rem;
-  }
+      &::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        z-index: 2;
+        background:
+          linear-gradient(135deg, rgba(26, 26, 26, 0.7), rgba(212, 175, 55, 0.25)),
+          linear-gradient(0deg, rgba(26, 26, 26, 0.3), transparent 45%);
+      }
+    }
 
-  .overlay h2 {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: clamp(1.75rem, 3vw, 3.5rem);
-    margin-bottom: 1rem;
-    color: #F4E4C1;
-  }
+    img {
+      display: block;
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      height: 100%;
+      min-height: inherit;
+      object-fit: contain;
+      object-position: center;
+    }
 
-  .overlay p {
-    font-size: 1.3rem;
-    color: #FFFFFF;
+    .overlay {
+      position: absolute;
+      inset: 0;
+      z-index: 3;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      max-width: 44rem;
+      margin: 0 auto;
+      padding: clamp(2rem, 5vw, 4rem);
+      text-align: center;
+      color: #FFFFFF;
+    }
+
+    h2 {
+      max-width: 12ch;
+      margin: 0 0 1rem;
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(2rem, 4vw, 4rem);
+      line-height: 1;
+      color: #F4E4C1;
+    }
+
+    p {
+      max-width: 32rem;
+      margin: 0;
+      font-size: clamp(1rem, 1.4vw, 1.3rem);
+      line-height: 1.6;
+      color: rgba(255, 255, 255, 0.92);
+    }
   }
 
   .signup-form-container {
