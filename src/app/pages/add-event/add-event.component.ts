@@ -760,7 +760,7 @@ export class AddEventComponent implements OnInit{
       engagement: 'Fiançailles',
       anniversary: 'Anniversaire de Mariage',
       birthday: 'Anniversaire',
-      other: 'Autre',
+      other: 'Événement professionnel',
     };
     return types[type] || 'Non spécifié';
   }
