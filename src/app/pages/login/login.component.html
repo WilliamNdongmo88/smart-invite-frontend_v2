@@ -2,14 +2,30 @@
       <!-- Left side - Image -->
       <div class="login-image">
         <div class="image-content">
-          <img src="img/carte.jpg" alt="Wedding theme" />
+          <img
+            *ngFor="let slide of carouselSlides; let slideIndex = index"
+            [src]="slide.image"
+            [alt]="slide.alt"
+            [class.is-active]="slideIndex === activeSlide()"
+          />
           <div class="overlay">
-            <h2>Bienvenue sur Smart Invite</h2>
-            <p>Gérez vos invitations de mariage avec élégance et facilité</p>
+            <p class="slide-kicker">Smart Invite</p>
+            <h2>{{ carouselSlides[activeSlide()].title }}</h2>
+            <p>{{ carouselSlides[activeSlide()].description }}</p>
+            <div class="carousel-dots" aria-label="Choisir un visuel">
+              <button
+                *ngFor="let slide of carouselSlides; let slideIndex = index"
+                type="button"
+                [class.is-active]="slideIndex === activeSlide()"
+                [attr.aria-label]="'Afficher ' + slide.title"
+                [attr.aria-pressed]="slideIndex === activeSlide()"
+                (click)="setActiveSlide(slideIndex)"
+              ></button>
+            </div>
           </div>
         </div>
       </div>
-      
+
       <!-- Right side - Form -->
       <div class="login-form-container">
         <div class="login-form">
@@ -104,7 +120,7 @@
 
           <!-- Social login -->
           <!-- <button class="social-btn google" (click)="loginWithGoogle()">
-            <span>🌐</span> 
+            <span>🌐</span>
             {{ loading ? '⏳ Connexion ...' :'Google' }}
           </button> -->
           <div class="social-login">
