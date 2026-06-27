@@ -31,6 +31,8 @@ export class AddLinkModalComponent implements OnInit{
     date_limit_link: '',
   };
 
+  dateLimitLink : any;
+
   constructor(private eventService: EventService) {}
 
   ngOnInit(): void {
@@ -61,17 +63,21 @@ export class AddLinkModalComponent implements OnInit{
   openEditLinkModal(mode: 'create' | 'edit' | 'partage') {
     this.mode = mode;
     //console.log("[openEditLinkModal] this.mode :: ", this.mode);
-    this.eventService.getLinkById(this.link.id).subscribe(
+    this.getLinkById();
+  }
+
+  getLinkById(){
+      this.eventService.getLinkById(this.link.id).subscribe(
       (response) => {
         //console.log("[openEditLinkModal] Responses :: ", response);
         // for (const response of responses) {
-          const dateLimitLink = response.date_limit_link ? response.date_limit_link.split('T')[0] : '';
-          //console.log("[openEditLinkModal] dateLimitLink :: ", dateLimitLink);
+          this.dateLimitLink = response.date_limit_link ? response.date_limit_link.split('T')[0] : '';
+          //console.log("[openEditLinkModal] dateLimitLink :: ", this.dateLimitLink);
           if(response.id==this.link.id){
             this.newLink = {
               type: response.type,
               used_limit_count: response.limit_count,
-              date_limit_link: dateLimitLink
+              date_limit_link: this.dateLimitLink
             };
           }
        // }
@@ -87,7 +93,9 @@ export class AddLinkModalComponent implements OnInit{
     this.closeModal();
   }
   shareEventLink(event: any, link: any) {
-    //console.log("link:: ", link);
+    this.getLinkById();
+    // console.log("[link]:: ", link);
+    // console.log("[this.dateLimitLink]:: ", this.dateLimitLink);
     //console.log("event:: ", event);
 
     let text = '';
@@ -104,6 +112,8 @@ export class AddLinkModalComponent implements OnInit{
       case 'birthday':
         text = "Vous êtes invité à l'"
         break
+      default :
+         text = "Vous êtes invité à la "
     }
     let message = '';
     if(event.type == "wedding"){
@@ -113,6 +123,7 @@ export class AddLinkModalComponent implements OnInit{
       `⏰ Heure : ${event.time}\n` +
       `📍 Lieu de la Cérémonie Civile : ${event.civilLocation}\n` +
       `📍 Lieu du Banquet: ${event.location}\n\n` +
+      `⏳ Merci de confirmer votre présence avant le ${this.formatDate(this.dateLimitLink)}.\n\n` +
       `Veuillez cliquer sur le lien ci-dessous pour confirmer votre présence :\n` +
       `${link.value}`;
     }else{
@@ -121,6 +132,7 @@ export class AddLinkModalComponent implements OnInit{
       `📅 Date : ${this.formatDate(event.date)}\n` +
       `⏰ Heure : ${event.time}\n` +
       `📍 Lieu : ${event.location}\n\n` +
+      `⏳ Merci de confirmer votre présence avant le ${this.formatDate(this.dateLimitLink)}.\n\n` +
       `Veuillez cliquer sur le lien ci-dessous pour confirmer votre présence :\n` +
       `${link.value}`;
     }
