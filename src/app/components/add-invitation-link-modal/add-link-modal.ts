@@ -63,15 +63,10 @@ export class AddLinkModalComponent implements OnInit{
   openEditLinkModal(mode: 'create' | 'edit' | 'partage') {
     this.mode = mode;
     //console.log("[openEditLinkModal] this.mode :: ", this.mode);
-    this.getLinkById();
-  }
-
-  getLinkById(){
-      this.eventService.getLinkById(this.link.id).subscribe(
+    this.eventService.getLinkById(this.link.id).subscribe(
       (response) => {
         //console.log("[openEditLinkModal] Responses :: ", response);
-        // for (const response of responses) {
-          this.dateLimitLink = response.date_limit_link ? response.date_limit_link.split('T')[0] : '';
+        this.dateLimitLink = response.date_limit_link ? response.date_limit_link.split('T')[0] : '';
           //console.log("[openEditLinkModal] dateLimitLink :: ", this.dateLimitLink);
           if(response.id==this.link.id){
             this.newLink = {
@@ -80,8 +75,7 @@ export class AddLinkModalComponent implements OnInit{
               date_limit_link: this.dateLimitLink
             };
           }
-       // }
-      },
+        },
       (error) => {
         console.error('❌ Erreur :', error.message);
       }
@@ -93,56 +87,65 @@ export class AddLinkModalComponent implements OnInit{
     this.closeModal();
   }
   shareEventLink(event: any, link: any) {
-    this.getLinkById();
     // console.log("[link]:: ", link);
-    // console.log("[this.dateLimitLink]:: ", this.dateLimitLink);
-    //console.log("event:: ", event);
+    console.log("event date:: ", event.date);
 
-    let text = '';
-    switch (this.event.type) {
-      case 'wedding':
-        text = "Vous êtes invité au "
-        break;
-      case 'engagement':
-        text = "Vous êtes invité aux "
-        break
-      case 'anniversary':
-        text = "Vous êtes invité à l'"
-        break
-      case 'birthday':
-        text = "Vous êtes invité à l'"
-        break
-      default :
-         text = "Vous êtes invité à la "
-    }
-    let message = '';
-    if(event.type == "wedding"){
-      message =
-      `${text}${event.title}\n` +
-      `📅 Date : ${this.formatDate(event.date)}\n` +
-      `⏰ Heure : ${event.time}\n` +
-      `📍 Lieu de la Cérémonie Civile : ${event.civilLocation}\n` +
-      `📍 Lieu du Banquet: ${event.location}\n\n` +
-      `⏳ Merci de confirmer votre présence avant le ${this.formatDate(this.dateLimitLink)}.\n\n` +
-      `Veuillez cliquer sur le lien ci-dessous pour confirmer votre présence :\n` +
-      `${link.value}`;
-    }else{
-      message =
-      `${text}${event.title}\n` +
-      `📅 Date : ${this.formatDate(event.date)}\n` +
-      `⏰ Heure : ${event.time}\n` +
-      `📍 Lieu : ${event.location}\n\n` +
-      `⏳ Merci de confirmer votre présence avant le ${this.formatDate(this.dateLimitLink)}.\n\n` +
-      `Veuillez cliquer sur le lien ci-dessous pour confirmer votre présence :\n` +
-      `${link.value}`;
-    }
+    this.eventService.getLinkById(this.link.id).subscribe(
+      (response) => {
+        this.dateLimitLink = response.date_limit_link ? response.date_limit_link.split('T')[0] : '';
+        console.log("[this.dateLimitLink]:: ", this.dateLimitLink);
 
-    if (navigator.share) {
-      navigator.share({
-        title: event.title,
-        text: message,
-      });
-    }
+        let text = '';
+        switch (this.event.type) {
+          case 'wedding':
+            text = "Vous êtes invité au "
+            break;
+          case 'engagement':
+            text = "Vous êtes invité aux "
+            break
+          case 'anniversary':
+            text = "Vous êtes invité à l'"
+            break
+          case 'birthday':
+            text = "Vous êtes invité à l'"
+            break
+          default :
+            text = "Vous êtes invité à la "
+        }
+        let message = '';
+        if(event.type == "wedding"){
+          message =
+          `${text}${event.title}\n` +
+          `📅 Date : ${this.formatDate(event.date)}\n` +
+          `⏰ Heure : ${event.time}\n` +
+          `📍 Lieu de la Cérémonie Civile : ${event.civilLocation}\n` +
+          `📍 Lieu du Banquet: ${event.location}\n\n` +
+          `⏳ Merci de confirmer votre présence avant le ${this.formatDate(this.dateLimitLink)}.\n\n` +
+          `Veuillez cliquer sur le lien ci-dessous pour confirmer votre présence :\n` +
+          `${link.value}`;
+        }else{
+          message =
+          `${text}${event.title}\n` +
+          `📅 Date : ${this.formatDate(event.date)}\n` +
+          `⏰ Heure : ${event.time}\n` +
+          `📍 Lieu : ${event.location}\n\n` +
+          `⏳ Merci de confirmer votre présence avant le ${this.formatDate(this.dateLimitLink)}.\n\n` +
+          `Veuillez cliquer sur le lien ci-dessous pour confirmer votre présence :\n` +
+          `${link.value}`;
+        }
+
+        if (navigator.share) {
+          navigator.share({
+            title: event.title,
+            text: message,
+          });
+        }
+
+      },
+      (error) => {
+        console.error('❌ Erreur :', error.message);
+      }
+    );
   }
 
   formatDate(date: string): string {
