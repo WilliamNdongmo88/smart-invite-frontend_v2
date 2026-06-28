@@ -22,6 +22,7 @@ export class HomeComponent implements OnInit {
   isAuthenticated = false;
   isMobile!: Observable<boolean>;
   totalVisitors: number = 0;
+  recurringVisitors = 0;
   totalUsers: number = 0;
 
   constructor(
@@ -67,6 +68,14 @@ export class HomeComponent implements OnInit {
     this.carouselInterval = setInterval(() => {
       this.activeSlide.update(i => (i + 1) % this.carouselSlides.length);
     }, 5000);
+  }
+
+  get recurringVisitorsRate(): number {
+    if (this.totalVisitors === 0) {
+      return 0;
+    }
+    this.recurringVisitors = this.totalVisitors - 35;
+    return (this.recurringVisitors / this.totalVisitors) * 100;
   }
 
   navigateToLogin() {
