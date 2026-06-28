@@ -6,7 +6,7 @@ import { AuthService } from '../../services/auth.service';
 import { VisitorService } from '../../services/visitor.service';
 import { map, Observable } from 'rxjs';
 import { BreakpointObserver } from '@angular/cdk/layout';
-import { AUTH_CAROUSEL_SLIDES } from '../../shared/auth-carousel-slides';
+import { HOME_CAROUSEL_SLIDES } from '../../shared/auth-carousel-slides';
 
 @Component({
   selector: 'app-home',
@@ -16,7 +16,7 @@ import { AUTH_CAROUSEL_SLIDES } from '../../shared/auth-carousel-slides';
   styleUrls: ['./home.component.scss']
 })
 export class HomeComponent implements OnInit {
-  carouselSlides = AUTH_CAROUSEL_SLIDES;
+  carouselSlides = HOME_CAROUSEL_SLIDES;
   activeSlide = signal(0);
   private carouselInterval?: ReturnType<typeof setInterval>;
   isAuthenticated = false;
@@ -46,6 +46,7 @@ export class HomeComponent implements OnInit {
       },
       error: () => {}
     });
+    this.startCarousel();
   }
 
   ngOnDestroy(): void {
