@@ -347,13 +347,13 @@
                 </div>
               </div>
 
-              <div *ngIf="!isOtherEvent" class="form-group checkbox-group checkbox-text">
+              <!-- <div *ngIf="!isOtherEvent" class="form-group checkbox-group checkbox-text">
                 <label class="custom-checkbox">
                   <input type="checkbox" name="allowPlusOne" [(ngModel)]="eventData.allowPlusOne" />
                   <span class="checkmark"></span>
                   <span class="label-text">Autoriser les "+1"</span>
                 </label>
-              </div>
+              </div> -->
 
               <div *ngIf="!isOtherEvent" class="form-group checkbox-group checkbox-text">
                 <label class="custom-checkbox">
@@ -964,10 +964,10 @@
                   <span class="value">{{ eventData.allowDietaryRestrictions ? 'Activées' : 'Désactivées' }}</span>
                 </div>
 
-                <div *ngIf="!isOtherEvent" class="confirmation-item">
+                <!-- <div *ngIf="!isOtherEvent" class="confirmation-item">
                   <span class="label">+1 autorisés :</span>
                   <span class="value">{{ eventData.allowPlusOne ? 'Oui' : 'Non' }}</span>
-                </div>
+                </div> -->
               </div>
 
               <!-- Changes Summary -->

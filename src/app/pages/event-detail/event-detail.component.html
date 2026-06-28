@@ -181,7 +181,6 @@
                                     <th>Nom +1</th>
                                     <th>N° Table</th>
                                     <th>Restrictions</th>
-                                    <th>Restrictions +1</th>
                                     <th>Statut</th>
                                 </tr>
                             </thead>
@@ -191,7 +190,6 @@
                                     <td class="email">{{ guest.plusOne ? guest.plusOneName : '-' }}</td>
                                     <td class="email">{{ guest.tableNumber || '-' }}</td>
                                     <td class="restrictions">{{ guest.dietaryRestrictions || '-' }}</td>
-                                    <td class="restrictions">{{ guest.plusOnedietaryRestrictions || '-' }}</td>
                                     <td>
                                         <span class="status-badge" [class]="'status-' + guest.status">
                                             {{ getStatusIcon(guest.status) }} {{ getStatusLabel(guest.status) }}
