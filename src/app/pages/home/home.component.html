@@ -20,10 +20,36 @@
               </div>
             </div>
 
-            <!-- Right side - Image Commencer maintenant → -->
-            <div class="hero-image">
+            <!-- Right side - Desktop -->
+            <!-- <div *ngIf="!(isMobile | async)" class="hero-image">
               <img src="img/wedding-theme.jpg" alt="Wedding theme" />
+            </div> -->
+
+            <!-- Right side - Mobile -->
+            <div class="login-image">
+              <img
+                  *ngFor="let slide of carouselSlides; let slideIndex = index"
+                  [src]="slide.image"
+                  [alt]="slide.alt"
+                  [class.is-active]="slideIndex === activeSlide()"
+                />
+                <div class="overlay">
+                  <p class="slide-kicker">Smart Invite</p>
+                  <h2>{{ carouselSlides[activeSlide()].title }}</h2>
+                  <p>{{ carouselSlides[activeSlide()].description }}</p>
+                  <div class="carousel-dots" aria-label="Choisir un visuel">
+                    <button
+                      *ngFor="let slide of carouselSlides; let slideIndex = index"
+                      type="button"
+                      [class.is-active]="slideIndex === activeSlide()"
+                      [attr.aria-label]="'Afficher ' + slide.title"
+                      [attr.aria-pressed]="slideIndex === activeSlide()"
+                      (click)="setActiveSlide(slideIndex)"
+                    ></button>
+                  </div>
+                </div>
             </div>
+
             <div *ngIf="isMobile | async" class="hero-buttons">
                 <button class="btn btn-primary btn-align" (click)="navigateToLogin()">
                   🚀Commencer maintenant
