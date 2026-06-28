@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule, DecimalPipe } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { Router } from '@angular/router';
@@ -6,6 +6,7 @@ import { AuthService } from '../../services/auth.service';
 import { VisitorService } from '../../services/visitor.service';
 import { map, Observable } from 'rxjs';
 import { BreakpointObserver } from '@angular/cdk/layout';
+import { AUTH_CAROUSEL_SLIDES } from '../../shared/auth-carousel-slides';
 
 @Component({
   selector: 'app-home',
@@ -15,6 +16,9 @@ import { BreakpointObserver } from '@angular/cdk/layout';
   styleUrls: ['./home.component.scss']
 })
 export class HomeComponent implements OnInit {
+  carouselSlides = AUTH_CAROUSEL_SLIDES;
+  activeSlide = signal(0);
+  private carouselInterval?: ReturnType<typeof setInterval>;
   isAuthenticated = false;
   isMobile!: Observable<boolean>;
   totalVisitors: number = 0;
@@ -42,6 +46,26 @@ export class HomeComponent implements OnInit {
       },
       error: () => {}
     });
+  }
+
+  ngOnDestroy(): void {
+    if (this.carouselInterval) {
+      clearInterval(this.carouselInterval);
+    }
+  }
+
+  setActiveSlide(index: number): void {
+    this.activeSlide.set(index);
+    this.startCarousel();
+  }
+
+  private startCarousel(): void {
+    if (this.carouselInterval) {
+      clearInterval(this.carouselInterval);
+    }
+    this.carouselInterval = setInterval(() => {
+      this.activeSlide.update(i => (i + 1) % this.carouselSlides.length);
+    }, 5000);
   }
 
   navigateToLogin() {

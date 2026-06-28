@@ -7,6 +7,12 @@ export interface AuthCarouselSlide {
 
 export const AUTH_CAROUSEL_SLIDES: AuthCarouselSlide[] = [
   {
+    image: 'img/wedding-theme.jpg',
+    alt: 'Wedding',
+    title: '',
+    description: ''
+  },
+  {
     image: 'img/pic_wedding.png',
     alt: 'Wedding celebration',
     title: 'Mariage',
