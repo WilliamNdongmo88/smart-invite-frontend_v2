@@ -170,17 +170,39 @@
                   <!-- TELEPHONE -->
                    <div *ngIf="notificationMethod=='whatsapp'">
                       <label>Whatsapp *</label>
-                      <input
-                        type="text"
-                        placeholder="+237655002318"
-                        [(ngModel)]="phone"
-                        name="phone"
-                        #phoneCtrl="ngModel"
-                        pattern="^\+?[1-9][0-9]{7,14}$"
-                        (ngModelChange)="checkField()"
-                        required
-                        [disabled]="loading"
-                      />
+                      <div class="phone-input-group">
+                        <select
+                          name="countryDialCode"
+                          [(ngModel)]="selectedCountryCode"
+                          (ngModelChange)="onCountryDialCodeChange()"
+                          class="country-code-select"
+                          aria-label="Indicatif pays"
+                          [disabled]="loading"
+                        >
+                          <option
+                            *ngFor="let country of countryDialCodes"
+                            [value]="country.code"
+                            [attr.aria-label]="country.name + ' ' + country.dialCode"
+                          >
+                            {{ country.flag }} {{ country.dialCode }}
+                          </option>
+                        </select>
+
+                        <input
+                          type="tel"
+                          placeholder="655002318"
+                          [(ngModel)]="phoneLocalNumber"
+                          name="phone"
+                          #phoneCtrl="ngModel"
+                          pattern="[0-9+()\s.-]{6,20}"
+                          (ngModelChange)="onPhoneLocalNumberChange($event)"
+                          required
+                          [disabled]="loading"
+                        />
+                      </div>
+                      <p class="phone-preview" *ngIf="phone">
+                        Format international : {{ phone }}
+                      </p>
                       <div *ngIf="errorPhoneMessage" class="error">
                         {{ errorPhoneMessage }}
                       </div>
