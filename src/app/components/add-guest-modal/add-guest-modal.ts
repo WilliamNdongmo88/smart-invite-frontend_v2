@@ -120,7 +120,7 @@ export class AddGuestModalComponent implements OnInit {
       this.guestAdded.emit(this.newGuest);
       this.resetForm();
     }else if (this.notificationMode === 'whatsapp' && this.newGuest.name && this.buildInternationalPhoneNumber()) {
-      //console.log("New Guest: ", this.newGuest);
+      console.log("New Guest: ", this.newGuest);
         this.guestAdded.emit({
           ...this.newGuest,
           phone: this.buildInternationalPhoneNumber()

@@ -46,6 +46,8 @@ export interface RegisterRequest {
   password: string;
   name: string;
   //accountType: string;
+  phoneNumber?: string;
+  notificationMode?: 'whatsapp' | 'email';
   acceptTerms?: boolean;
 }
 

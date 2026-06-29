@@ -8,6 +8,13 @@ import { AUTH_CAROUSEL_SLIDES } from '../../shared/auth-carousel-slides';
 
 type ActivatedAccoutStep = 'email' | 'verification' | 'success';
 
+interface CountryDialCode {
+  name: string;
+  code: string;
+  dialCode: string;
+  flag: string;
+}
+
 declare const google: any;
 
 @Component({
@@ -25,6 +32,44 @@ export class SignupComponent implements OnInit, OnDestroy {
   newPassword = '';
   name = '';
   email = '';
+  phoneLocalNumber = '';
+  selectedCountryCode = 'CM';
+  notificationMeans = {
+    whatsapp: false,
+    email: true
+  };
+  notificationMode: 'whatsapp' | 'email' = 'email';
+  countryDialCodes: CountryDialCode[] = [
+    { name: 'Cameroun', code: 'CM', dialCode: '+237', flag: '🇨🇲' },
+    { name: 'France', code: 'FR', dialCode: '+33', flag: '🇫🇷' },
+    { name: 'Belgique', code: 'BE', dialCode: '+32', flag: '🇧🇪' },
+    { name: 'Canada', code: 'CA', dialCode: '+1', flag: '🇨🇦' },
+    { name: 'Etats-Unis', code: 'US', dialCode: '+1', flag: '🇺🇸' },
+    { name: 'Suisse', code: 'CH', dialCode: '+41', flag: '🇨🇭' },
+    { name: 'Bresil', code: 'BR', dialCode: '+55', flag: '🇧🇷' },
+    { name: 'Maurice', code: 'MU', dialCode: '+230', flag: '🇲🇺' },
+    { name: 'Tchad', code: 'TD', dialCode: '+235', flag: '🇹🇩' },
+    { name: 'Royaume-Uni', code: 'GB', dialCode: '+44', flag: '🇬🇧' },
+    { name: 'Allemagne', code: 'DE', dialCode: '+49', flag: '🇩🇪' },
+    { name: 'Espagne', code: 'ES', dialCode: '+34', flag: '🇪🇸' },
+    { name: 'Italie', code: 'IT', dialCode: '+39', flag: '🇮🇹' },
+    { name: 'Maroc', code: 'MA', dialCode: '+212', flag: '🇲🇦' },
+    { name: 'Algerie', code: 'DZ', dialCode: '+213', flag: '🇩🇿' },
+    { name: 'Tunisie', code: 'TN', dialCode: '+216', flag: '🇹🇳' },
+    { name: 'Senegal', code: 'SN', dialCode: '+221', flag: '🇸🇳' },
+    { name: "Cote d'Ivoire", code: 'CI', dialCode: '+225', flag: '🇨🇮' },
+    { name: 'Mali', code: 'ML', dialCode: '+223', flag: '🇲🇱' },
+    { name: 'Burkina Faso', code: 'BF', dialCode: '+226', flag: '🇧🇫' },
+    { name: 'Benin', code: 'BJ', dialCode: '+229', flag: '🇧🇯' },
+    { name: 'Togo', code: 'TG', dialCode: '+228', flag: '🇹🇬' },
+    { name: 'Gabon', code: 'GA', dialCode: '+241', flag: '🇬🇦' },
+    { name: 'Congo', code: 'CG', dialCode: '+242', flag: '🇨🇬' },
+    { name: 'RDC', code: 'CD', dialCode: '+243', flag: '🇨🇩' },
+    { name: 'Nigeria', code: 'NG', dialCode: '+234', flag: '🇳🇬' },
+    { name: 'Ghana', code: 'GH', dialCode: '+233', flag: '🇬🇭' },
+    { name: 'Kenya', code: 'KE', dialCode: '+254', flag: '🇰🇪' },
+    { name: 'Afrique du Sud', code: 'ZA', dialCode: '+27', flag: '🇿🇦' }
+  ];
   accountType: string = '';
   email_confirmed = '';
   password = '';
@@ -147,6 +192,36 @@ export class SignupComponent implements OnInit, OnDestroy {
     this.passwordStrength.set(strength);
   }
 
+  toggleNotificationMeans() {
+    this.notificationMeans.email = !this.notificationMeans.whatsapp;
+    this.notificationMode = this.notificationMeans.whatsapp ? 'whatsapp' : 'email';
+  }
+
+  onCountryDialCodeChange() {
+    this.phoneLocalNumber = this.phoneLocalNumber.trimStart();
+  }
+
+  getInternationalPhoneNumber(): string {
+    const phoneValue = this.phoneLocalNumber.trim();
+
+    if (!phoneValue) {
+      return '';
+    }
+
+    const sanitizedPhone = phoneValue.replace(/[^\d+]/g, '');
+
+    if (sanitizedPhone.startsWith('+')) {
+      return `+${sanitizedPhone.slice(1).replace(/\D/g, '')}`;
+    }
+
+    const nationalNumber = sanitizedPhone.replace(/\D/g, '').replace(/^0+/, '');
+    return nationalNumber ? `${this.getSelectedCountryDialCode()}${nationalNumber}` : '';
+  }
+
+  private getSelectedCountryDialCode(): string {
+    return this.countryDialCodes.find(country => country.code === this.selectedCountryCode)?.dialCode || '+237';
+  }
+
   getPasswordStrengthPercentage(): number {
     return this.passwordStrength() === 'weak' ? 33 : this.passwordStrength() === 'medium' ? 66 : 100;
   }
@@ -171,11 +246,17 @@ export class SignupComponent implements OnInit, OnDestroy {
       this.errorMessage = "Vous devez accepter les conditions d'utilisation.";
       return;
     }
+    if (this.notificationMode === 'whatsapp' && !this.getInternationalPhoneNumber()) {
+      this.errorMessage = 'Veuillez entrer un numero WhatsApp valide.';
+      return;
+    }
 
     const request: RegisterRequest = {
       name: this.name,
       email: this.email,
       password: this.password,
+      phoneNumber: this.notificationMode === 'whatsapp' ? this.getInternationalPhoneNumber() : undefined,
+      notificationMode: this.notificationMode,
       acceptTerms: this.acceptTerms
     };
     this.loading = true;
