@@ -18,6 +18,13 @@ interface UserProfile {
   createdAt: string;
 }
 
+interface CountryDialCode {
+  name: string;
+  code: string;
+  dialCode: string;
+  flag: string;
+}
+
 interface NotificationPreferences {
   emailNotifications: boolean;
   attendanceNotifications: boolean;
@@ -63,6 +70,39 @@ export class ProfileComponent implements OnInit {
     email: false
   };
   notificationMode: 'whatsapp' | 'email' = 'whatsapp';
+  phoneLocalNumber = '';
+  selectedCountryCode = 'CM';
+  countryDialCodes: CountryDialCode[] = [
+    { name: 'Cameroun', code: 'CM', dialCode: '+237', flag: '🇨🇲' },
+    { name: 'France', code: 'FR', dialCode: '+33', flag: '🇫🇷' },
+    { name: 'Belgique', code: 'BE', dialCode: '+32', flag: '🇧🇪' },
+    { name: 'Canada', code: 'CA', dialCode: '+1', flag: '🇨🇦' },
+    { name: 'Etats-Unis', code: 'US', dialCode: '+1', flag: '🇺🇸' },
+    { name: 'Suisse', code: 'CH', dialCode: '+41', flag: '🇨🇭' },
+    { name: 'Bresil', code: 'BR', dialCode: '+55', flag: '🇧🇷' },
+    { name: 'Maurice', code: 'MU', dialCode: '+230', flag: '🇲🇺' },
+    { name: 'Tchad', code: 'TD', dialCode: '+235', flag: '🇹🇩' },
+    { name: 'Royaume-Uni', code: 'GB', dialCode: '+44', flag: '🇬🇧' },
+    { name: 'Allemagne', code: 'DE', dialCode: '+49', flag: '🇩🇪' },
+    { name: 'Espagne', code: 'ES', dialCode: '+34', flag: '🇪🇸' },
+    { name: 'Italie', code: 'IT', dialCode: '+39', flag: '🇮🇹' },
+    { name: 'Maroc', code: 'MA', dialCode: '+212', flag: '🇲🇦' },
+    { name: 'Algerie', code: 'DZ', dialCode: '+213', flag: '🇩🇿' },
+    { name: 'Tunisie', code: 'TN', dialCode: '+216', flag: '🇹🇳' },
+    { name: 'Senegal', code: 'SN', dialCode: '+221', flag: '🇸🇳' },
+    { name: "Cote d'Ivoire", code: 'CI', dialCode: '+225', flag: '🇨🇮' },
+    { name: 'Mali', code: 'ML', dialCode: '+223', flag: '🇲🇱' },
+    { name: 'Burkina Faso', code: 'BF', dialCode: '+226', flag: '🇧🇫' },
+    { name: 'Benin', code: 'BJ', dialCode: '+229', flag: '🇧🇯' },
+    { name: 'Togo', code: 'TG', dialCode: '+228', flag: '🇹🇬' },
+    { name: 'Gabon', code: 'GA', dialCode: '+241', flag: '🇬🇦' },
+    { name: 'Congo', code: 'CG', dialCode: '+242', flag: '🇨🇬' },
+    { name: 'RDC', code: 'CD', dialCode: '+243', flag: '🇨🇩' },
+    { name: 'Nigeria', code: 'NG', dialCode: '+234', flag: '🇳🇬' },
+    { name: 'Ghana', code: 'GH', dialCode: '+233', flag: '🇬🇭' },
+    { name: 'Kenya', code: 'KE', dialCode: '+254', flag: '🇰🇪' },
+    { name: 'Afrique du Sud', code: 'ZA', dialCode: '+27', flag: '🇿🇦' }
+  ];
 
   passwordData: PasswordData  = {
     currentPassword: '',
@@ -126,7 +166,7 @@ export class ProfileComponent implements OnInit {
           fullName: response.name,
           email: response.email,
           phone: response.phone,
-          notificationMode: response.notification_mode,
+          notificationMode: response.notification_mode || 'email',
           avatar: response.avatar_url,
           bio: response.bio || 'Passionné par l\'organisation d\'événements',
           createdAt: response.created_at,
@@ -139,6 +179,10 @@ export class ProfileComponent implements OnInit {
           marketingEmails: response.marketing_emails,
         };
         this.originalUserProfile = { ...this.userProfile };
+        this.notificationMeans.whatsapp = this.userProfile.notificationMode === 'whatsapp';
+        this.notificationMeans.email = this.userProfile.notificationMode !== 'whatsapp';
+        this.notificationMode = this.userProfile.notificationMode;
+        this.setPhoneInputFromProfile(this.userProfile.phone);
         // FIX: propager le profil mis à jour dans currentUser$ (header, etc.)
         this.authService.updateCurrentUser({
           id: response.id,
@@ -157,6 +201,7 @@ export class ProfileComponent implements OnInit {
 
   saveProfile() {
     const userId = parseInt(this.userProfile.id.replace('user_', ''), 10);
+    this.userProfile.phone = this.buildInternationalPhoneNumber();
     const data = {
       name: this.userProfile.fullName,
       email: this.userProfile.email,
@@ -171,12 +216,12 @@ export class ProfileComponent implements OnInit {
     };
     console.log("data.email: ", data.email);
  
-    if(data.notificationMode == 'whatsapp' && data.phone == null){
+    if(data.notificationMode == 'whatsapp' && !data.phone){
       this.errorMessage = "Le champ whatsapp est obligatoire";
       return;
     }
 
-    const bool = this.validatePhoneNumber(data.phone);
+    const bool = data.notificationMode !== 'whatsapp' || this.validatePhoneNumber(data.phone);
     if(!bool) {
       this.errorMessage = 'Le numéro doit contenir l’indicatif du pays (ex: +237655002318).'
       return;
@@ -207,6 +252,9 @@ export class ProfileComponent implements OnInit {
     this.userProfile.notificationMode = checked
       ? 'whatsapp'
       : 'email';
+    this.notificationMeans.whatsapp = checked;
+    this.notificationMeans.email = !checked;
+    this.notificationMode = this.userProfile.notificationMode;
     console.log('Notification mode updated:', this.userProfile.notificationMode);
   }
 
@@ -220,8 +268,70 @@ export class ProfileComponent implements OnInit {
 
     // restaurer les valeurs initiales
     this.userProfile = { ...this.originalUserProfile };
+    this.notificationMeans.whatsapp = this.userProfile.notificationMode === 'whatsapp';
+    this.notificationMeans.email = this.userProfile.notificationMode !== 'whatsapp';
+    this.notificationMode = this.userProfile.notificationMode;
+    this.setPhoneInputFromProfile(this.userProfile.phone);
 
-    form.resetForm(this.userProfile);
+    form.resetForm({
+      ...this.userProfile,
+      countryDialCode: this.selectedCountryCode,
+      phone: this.phoneLocalNumber
+    });
+  }
+
+  onCountryDialCodeChange() {
+    this.userProfile.phone = this.buildInternationalPhoneNumber();
+  }
+
+  onPhoneLocalNumberChange(value: string) {
+    this.phoneLocalNumber = value;
+    this.userProfile.phone = this.buildInternationalPhoneNumber();
+  }
+
+  buildInternationalPhoneNumber(): string {
+    const phoneValue = this.phoneLocalNumber.trim();
+
+    if (!phoneValue) {
+      return '';
+    }
+
+    const sanitizedPhone = phoneValue.replace(/[^\d+]/g, '');
+
+    if (sanitizedPhone.startsWith('+')) {
+      return `+${sanitizedPhone.slice(1).replace(/\D/g, '')}`;
+    }
+
+    const nationalNumber = sanitizedPhone.replace(/\D/g, '').replace(/^0+/, '');
+    return nationalNumber ? `${this.getSelectedCountryDialCode()}${nationalNumber}` : '';
+  }
+
+  private getSelectedCountryDialCode(): string {
+    return this.countryDialCodes.find(country => country.code === this.selectedCountryCode)?.dialCode || '+237';
+  }
+
+  private setPhoneInputFromProfile(phone?: string) {
+    const normalizedPhone = phone?.replace(/[^\d+]/g, '') || '';
+
+    if (!normalizedPhone) {
+      this.phoneLocalNumber = '';
+      this.selectedCountryCode = 'CM';
+      return;
+    }
+
+    const matchingCountry = [...this.countryDialCodes]
+      .sort((a, b) => b.dialCode.length - a.dialCode.length)
+      .find(country => normalizedPhone.startsWith(country.dialCode));
+
+    if (matchingCountry) {
+      this.selectedCountryCode = matchingCountry.code;
+      this.phoneLocalNumber = normalizedPhone.slice(matchingCountry.dialCode.length);
+      this.userProfile.phone = this.buildInternationalPhoneNumber();
+      return;
+    }
+
+    this.phoneLocalNumber = normalizedPhone;
+    this.userProfile.phone = this.buildInternationalPhoneNumber();
   }
 
   changePassword(form: NgForm): void {

@@ -68,25 +68,62 @@
                 <p class="form-hint">Nous ne partagerons jamais votre email</p>
               </div>
 
-              <!-- Type de compte -->
-              <!-- <div class="form-group">
-                <label for="accountType">Type de compte</label>
+              <!-- Notification Means -->
+              <div class="form-group checkbox-group checkbox-text">
+                <p class="notification-title">
+                  Me notifiez des détails de l'événement via :
+                </p>
+                <label class="custom-switch">
+                  <input
+                    type="checkbox"
+                    [(ngModel)]="notificationMeans.whatsapp"
+                    name="notificationMeans"
+                    (change)="toggleNotificationMeans()"
+                  />
+                  <span class="checkmark"></span>
+                  <div class="label-text">
+                    <span class="on">WhatsApp</span>
+                    <span class="off">Email</span>
+                  </div>
+                </label>
+              </div>
 
-                <select
-                  id="accountType"
-                  name="accountType"
-                  [(ngModel)]="accountType"
-                  required
-                  class="form-input"
-                >
-                  <option value="" disabled selected>
-                    -- Sélectionner un type de compte --
-                  </option>
+              <!-- Phone -->
+              <div *ngIf="notificationMode=='whatsapp'" class="form-group">
+                <label for="phone">Whatsapp</label>
+                <div class="phone-input-group">
+                  <select
+                      id="countryDialCode"
+                      name="countryDialCode"
+                      [(ngModel)]="selectedCountryCode"
+                      (ngModelChange)="onCountryDialCodeChange()"
+                      class="country-code-select"
+                      aria-label="Indicatif pays"
+                  >
+                    <option
+                        *ngFor="let country of countryDialCodes"
+                        [value]="country.code"
+                        [attr.aria-label]="country.name + ' ' + country.dialCode"
+                    >
+                      {{ country.flag }} {{ country.dialCode }}
+                    </option>
+                  </select>
 
-                  <option value="personal">Compte Personnel</option>
-                  <option value="business">Compte Entreprise</option>
-                </select>
-              </div> -->
+                  <input
+                      type="tel"
+                      id="phone"
+                      name="phone"
+                      [(ngModel)]="phoneLocalNumber"
+                      placeholder="655345678"
+                      required
+                      pattern="[0-9+()\s.-]{6,20}"
+                      class="form-input phone-number-input"
+                  />
+                </div>
+                <p class="form-hint" *ngIf="getInternationalPhoneNumber()">
+                  Format international : {{ getInternationalPhoneNumber() }}
+                </p>
+              </div>
 
               <!-- Password -->
               <div class="form-group">
@@ -165,14 +202,6 @@
                 </label>
               </div>
 
-              <!-- Newsletter checkbox -->
-              <!-- <div class="form-group">
-                <label class="checkbox-label">
-                  <input type="checkbox" [(ngModel)]="subscribeNewsletter" name="subscribeNewsletter" />
-                  <span>Je souhaite recevoir des conseils et des mises à jour</span>
-                </label>
-              </div> -->
-
               <!-- Submit button -->
               <button
                 type="submit"
@@ -191,32 +220,8 @@
                 {{ successMessage }}
               </div>
             </form>
-
-            <!-- Divider -->
-            <!-- <div class="divider">
-              <span>ou</span>
-            </div> -->
           </div>
           <div [hidden]="showActiveAccount">
-            <!-- Social signup -->
-            <!-- J'ai annulé cette partie parce que: -->
-            <!-- Le type de compte est necessaire pour la création d'un compte mais je n'ai pas pu trouvé une logique pour rendre cela obligatoire -->
-            <!-- Le message d'erreur n'apparaît pas lorsque l'utilisateur existe déjà -->
-            <!-- <div class="social-signup">
-              <div class="google-wrapper">
-                <div id="googleSignUpDiv"></div>
-
-                <div
-                  class="disabled-overlay"
-                  *ngIf="!isGoogleEnabled()">
-                </div>
-              </div>
-            </div> -->
-
-            <!-- Message d'erreur -->
-            <!-- <div *ngIf="errorMessage" class="alert alert-error">
-              {{ errorMessage }}
-            </div> -->
 
             <!-- Login link -->
             <div class="login-link">

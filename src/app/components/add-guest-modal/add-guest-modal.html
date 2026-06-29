@@ -59,15 +59,39 @@
             <!-- Phone -->
             <div *ngIf="notificationMode=='whatsapp'" class="form-group">
             <label for="phone">Whatsapp *</label>
-            <input
-                type="tel"
-                id="phone"
-                name="phone"
-                [(ngModel)]="newGuest.phone"
-                placeholder="+237655345678"
-                required
-                class="form-input"
-            />
+            <div class="phone-input-group">
+              <select
+                  id="countryDialCode"
+                  name="countryDialCode"
+                  [(ngModel)]="selectedCountryCode"
+                  (ngModelChange)="onCountryDialCodeChange()"
+                  class="country-code-select"
+                  aria-label="Indicatif pays"
+              >
+                <option
+                    *ngFor="let country of countryDialCodes"
+                    [value]="country.code"
+                    [attr.aria-label]="country.name + ' ' + country.dialCode"
+                >
+                  {{ country.flag }} {{ country.dialCode }}
+                </option>
+              </select>
+
+              <input
+                  type="tel"
+                  id="phone"
+                  name="phone"
+                  [(ngModel)]="phoneLocalNumber"
+                  (ngModelChange)="onPhoneLocalNumberChange($event)"
+                  placeholder="655345678"
+                  required
+                  pattern="[0-9+()\s.-]{6,20}"
+                  class="form-input phone-number-input"
+              />
+            </div>
+            <p class="phone-preview" *ngIf="newGuest.phone">
+              Format international : {{ newGuest.phone }}
+            </p>
             </div>
 
             <!-- Plus One -->
