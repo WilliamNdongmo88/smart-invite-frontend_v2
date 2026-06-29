@@ -178,7 +178,6 @@
                             <thead>
                                 <tr>
                                     <th>Nom</th>
-                                    <th>Nom +1</th>
                                     <th>N° Table</th>
                                     <th>Restrictions</th>
                                     <th>Statut</th>
@@ -187,7 +186,6 @@
                             <tbody>
                                 <tr *ngFor="let guest of paginatedGuests()" [class]="'status-' + guest.status">
                                     <td>{{ guest.name }}</td>
-                                    <td class="email">{{ guest.plusOne ? guest.plusOneName : '-' }}</td>
                                     <td class="email">{{ guest.tableNumber || '-' }}</td>
                                     <td class="restrictions">{{ guest.dietaryRestrictions || '-' }}</td>
                                     <td>

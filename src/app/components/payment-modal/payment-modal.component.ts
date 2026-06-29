@@ -2,6 +2,7 @@ import { Component, Input, Output, EventEmitter, OnChanges, signal } from '@angu
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
+const CARTE_VISA_NUMBER = '10005 00059 00000108383 95';
 const ORANGE_MONEY_NUMBER = '+237655002318';
 const MTN_MONEY_NUMBER = '+237682933424';
 
@@ -37,10 +38,12 @@ export class PaymentModalComponent implements OnChanges {
 
   // Coordonnées de paiement (depuis l'ancienne modal)
   readonly paymentInfo = {
+    carteVisaNumber: CARTE_VISA_NUMBER,
     orangeMoneyNumber: ORANGE_MONEY_NUMBER,
     mtnMoneyNumber: MTN_MONEY_NUMBER,
   };
 
+  copiedCarte = false;
   copiedOrange = false;
   copiedMtn = false;
 
@@ -108,14 +111,24 @@ export class PaymentModalComponent implements OnChanges {
 
   removeFile() { this.proofFile = null; }
 
-  copyToClipboard(text: string, type: 'orange' | 'mtn') {
+  copyToClipboard(text: string, type: 'carte' | 'orange' | 'mtn') {
+    console.log("Text et Type: ", text +' et '+ type);
     navigator.clipboard.writeText(text).then(() => {
-      if (type === 'orange') {
-        this.copiedOrange = true;
-        setTimeout(() => this.copiedOrange = false, 2000);
-      } else {
-        this.copiedMtn = true;
-        setTimeout(() => this.copiedMtn = false, 2000);
+      switch (type) {
+        case 'carte':
+          this.copiedCarte = true;
+          setTimeout(() => this.copiedCarte = false, 2000);
+          break;
+
+        case 'orange':
+          this.copiedOrange = true;
+          setTimeout(() => this.copiedOrange = false, 2000);
+          break;
+
+        case 'mtn':
+          this.copiedMtn = true;
+          setTimeout(() => this.copiedMtn = false, 2000);
+          break;
       }
     });
   }
