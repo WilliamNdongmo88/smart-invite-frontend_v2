@@ -12,6 +12,14 @@
       <p class="instruction">Effectuez votre paiement via l'un des moyens suivants :</p>
 
       <div class="payment-method">
+        <span>Afriland First Bank</span>
+        <strong>{{ paymentInfo.carteVisaNumber }}</strong>
+        <button (click)="copyToClipboard(paymentInfo.carteVisaNumber, 'carte')">
+          {{ copiedCarte ? '✅ Copié' : '📋 Copier' }}
+        </button>
+      </div>
+
+      <div class="payment-method">
         <span>Orange Money</span>
         <strong>{{ paymentInfo.orangeMoneyNumber }}</strong>
         <button (click)="copyToClipboard(paymentInfo.orangeMoneyNumber, 'orange')">
